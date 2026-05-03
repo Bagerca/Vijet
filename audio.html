@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>WuWa Resonance Equalizer</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: transparent; /* Прозрачный фон для OBS */
+            display: flex;
+            align-items: flex-end; /* Прижимаем эквалайзер к низу */
+            justify-content: center;
+            height: 100vh;
+            padding-bottom: 50px; /* Отступ снизу */
+        }
+
+        .visualizer-container {
+            display: flex;
+            gap: 8px; /* Расстояние между полосками */
+            align-items: flex-end;
+            height: 150px; /* Максимальная высота прыжка */
+        }
+
+        .bar {
+            width: 18px; /* Ширина полоски */
+            min-height: 5px;
+            /* Цвет Эхо (Бирюзовый) */
+            background: linear-gradient(to top, rgba(0, 255, 204, 0.1), #00ffcc);
+            /* Срезаем правый верхний угол для кибер-стиля */
+            clip-path: polygon(0 10px, 100% 0, 100% 100%, 0% 100%);
+            box-shadow: 0 -5px 15px rgba(0, 255, 204, 0.5);
+            border-top: 2px solid #ffffff; /* Белая окантовка сверху */
+            transition: height 0.07s ease-out; /* Плавность прыжков */
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Каждая 4-я полоска будет Золотой (как лега) */
+        .bar:nth-child(4n) {
+            background: linear-gradient(to top, rgba(255, 215, 0, 0.1), #ffd700);
+            box-shadow: 0 -5px 15px rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="visualizer-container" id="visualizer">
+        <!-- Полоски сгенерирует скрипт -->
+    </div>
+
+    <script>
+        const container = document.getElementById('visualizer');
+        const numBars = 16; // Количество полосок
+        const bars = [];
+
+        // Создаем полоски в HTML
+        for (let i = 0; i < numBars; i++) {
+            const bar = document.createElement('div');
+            bar.classList.add('bar');
+            container.appendChild(bar);
+            bars.push(bar);
+        }
+
+        // Подключаем микрофон
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then(stream => {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            const microphone = audioContext.createMediaStreamSource(stream);
+            
+            microphone.connect(analyser);
+            analyser.fftSize = 64; // Делим звук на частоты
+            
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function update() {
+                analyser.getByteFrequencyData(dataArray);
+                
+                for (let i = 0; i < numBars; i++) {
+                    // Берем кусочек частот для каждой полоски
+                    let value = dataArray[i]; 
+                    
+                    // Убираем фоновый шум
+                    if (value < 20) value = 0; 
+                    
+                    // Превращаем громкость в пиксели (макс высота 150px)
+                    let height = (value / 255) * 150; 
+                    // Минимальная высота полоски 5px
+                    bars[i].style.height = Math.max(5, height) + 'px';
+                }
+                
+                requestAnimationFrame(update);
+            }
+            update();
+        })
+        .catch(err => console.error("Ошибка микрофона:", err));
+    </script>
+
+</body>
+</html>
