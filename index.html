@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>OBS Neon Ring</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: transparent; /* Полностью прозрачный фон */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+        }
+        .neon-ring { 
+            width: 300px; 
+            height: 300px; 
+            border-radius: 50%; 
+            border: 5px solid #00ffcc; 
+            transform: scale(calc(1 + var(--vol) * 0.4)); 
+            box-shadow: 0 0 calc(10px + var(--vol) * 80px) #00ffcc, inset 0 0 calc(10px + var(--vol) * 80px) #00ffcc; 
+            transition: transform 0.05s ease-out, box-shadow 0.05s ease-out; 
+        }
+    </style>
+</head>
+<body>
+    <div class="neon-ring"></div>
+
+    <script>
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then(stream => {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            const microphone = audioContext.createMediaStreamSource(stream);
+            
+            microphone.connect(analyser);
+            analyser.fftSize = 256;
+            
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            function update() {
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                
+                let volume = (sum / dataArray.length) / 255;
+                if (volume < 0.03) volume = 0; // Игнорируем тишину
+                
+                document.documentElement.style.setProperty('--vol', volume);
+                requestAnimationFrame(update);
+            }
+            update();
+        })
+        .catch(err => console.error("Ошибка микрофона:", err));
+    </script>
+</body>
+</html>
