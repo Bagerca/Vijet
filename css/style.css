@@ -15,7 +15,7 @@ body, html {
     position: absolute; bottom: 50px; left: 20px; 
     width: 466px; height: 740px; 
     display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 0 20px 10px 20px; box-sizing: border-box;
+    padding: 0 20px 35px 20px; box-sizing: border-box;
     -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
 }
 
@@ -68,8 +68,7 @@ body, html {
 #widget-container.hidden { transform: translateY(150px) scale(0.8); opacity: 0; pointer-events: none; }
 
 #player-wrapper {
-    position: relative; /* Чтобы прогресс-бар прилип к низу */
-    width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px;
+    position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px;
     border: 3px solid #9146FF; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); overflow: hidden; transition: all 0.3s ease;
 }
 
@@ -82,25 +81,9 @@ body, html {
 #yt-player { width: 100%; height: 100%; pointer-events: none; }
 
 /* ================= ПРОГРЕСС-БАР YOUTUBE ================= */
-#yt-progress-container {
-    position: absolute; bottom: 0; left: 0;
-    width: 100%; height: 4px;
-    background: rgba(255, 255, 255, 0.15);
-    z-index: 10;
-}
-
-#yt-progress-bar {
-    height: 100%; width: 0%;
-    background: #9146FF;
-    box-shadow: 0 0 10px #9146FF, 0 0 5px #bf94ff;
-    transition: width 0.5s linear;
-    animation: progressPulse 1.5s infinite alternate ease-in-out;
-}
-
-@keyframes progressPulse {
-    0% { filter: brightness(1); box-shadow: 0 -2px 8px rgba(145, 70, 255, 0.6); }
-    100% { filter: brightness(1.4); box-shadow: 0 -2px 18px rgba(191, 148, 255, 1); }
-}
+#yt-progress-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); z-index: 10; }
+#yt-progress-bar { height: 100%; width: 0%; background: #9146FF; box-shadow: 0 0 10px #9146FF, 0 0 5px #bf94ff; transition: width 0.5s linear; animation: progressPulse 1.5s infinite alternate ease-in-out; }
+@keyframes progressPulse { 0% { filter: brightness(1); box-shadow: 0 -2px 8px rgba(145, 70, 255, 0.6); } 100% { filter: brightness(1.4); box-shadow: 0 -2px 18px rgba(191, 148, 255, 1); } }
 
 /* ================= ИНФО-БАР (ГРОМКОСТЬ/ОЧЕРЕДЬ) ================= */
 #info-bar {
@@ -118,7 +101,7 @@ body, html {
 .animate-pop { animation: popNumber 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes popNumber { 0% { transform: scale(1); color: #fff; } 40% { transform: scale(1.6); color: #bf94ff; text-shadow: 0 0 15px rgba(145, 70, 255, 1); } 100% { transform: scale(1); color: #fff; } }
 
-/* ================= РОТАТОР СОЦСЕТЕЙ (ПРАВЫЙ ВЕРХ) ================= */
+/* ================= РОТАТОР СОЦСЕТЕЙ ================= */
 #social-rotator {
     position: absolute; top: 40px; right: 40px;
     background: linear-gradient(135deg, rgba(20, 20, 25, 0.85) 0%, rgba(15, 15, 18, 0.6) 100%);
@@ -129,14 +112,13 @@ body, html {
 }
 
 #social-rotator.fade-out { opacity: 0; transform: translateX(40px) scale(0.95); transition: all 0.4s ease-in; }
-
 .social-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
 .social-icon svg { width: 100%; height: 100%; }
 .social-info { display: flex; flex-direction: column; gap: 2px; white-space: nowrap; overflow: hidden; }
 .social-title { font-size: 11px; color: rgba(255, 255, 255, 0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
 .social-handle { font-size: 16px; color: #f1f1f1; font-weight: 700; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
-/* ================= СИСТЕМА АЛЕРТОВ (ЦЕНТР ВЕРХ) ================= */
+/* ================= СИСТЕМА АЛЕРТОВ ================= */
 #alert-container {
     position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
     background: linear-gradient(135deg, rgba(20, 20, 25, 0.9) 0%, rgba(15, 15, 18, 0.7) 100%);
@@ -147,16 +129,42 @@ body, html {
 }
 
 #alert-container.hidden { display: none; }
-
 .alert-icon { font-size: 38px; line-height: 1; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); animation: alertPulse 1.5s infinite alternate ease-in-out; }
 .alert-info { display: flex; flex-direction: column; gap: 4px; }
 .alert-title { font-size: 18px; color: #f1f1f1; font-weight: 700; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
 .alert-user { font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
 .alert-message { font-size: 14px; color: rgba(255, 255, 255, 0.7); font-style: italic; font-weight: 500; }
-
 .alert-in { animation: alertSlideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 .alert-out { animation: alertFadeUp 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
 
 @keyframes alertSlideDown { 0% { opacity: 0; transform: translate(-50%, -60px) scale(0.8); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
 @keyframes alertFadeUp { 0% { opacity: 1; transform: translate(-50%, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -40px) scale(0.9); } }
 @keyframes alertPulse { 0% { transform: scale(1) translateY(0); } 100% { transform: scale(1.1) translateY(-3px); } }
+
+/* ================= БЕГУЩАЯ СТРОКА (ПОДСКАЗКИ) ================= */
+#ticker-container {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 30px;
+    background: rgba(10, 10, 12, 0.4); 
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex; align-items: center; overflow: hidden; z-index: 50;
+}
+
+#ticker-text {
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    display: inline-block; padding-left: 100vw; 
+    /* Анимация назначается только при наличии класса .scrolling */
+}
+
+#ticker-text.scrolling {
+    animation: ticker linear forwards; /* forwards гарантирует, что строка остановится за кадром */
+}
+
+.ticker-separator { color: #9146FF; margin: 0 40px; font-size: 14px; opacity: 0.8; }
+
+@keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}

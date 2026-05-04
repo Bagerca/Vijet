@@ -17,28 +17,21 @@
 
     <div id="scene-wrapper">
         
-        <!-- Алерт-система (По центру сверху) -->
         <div id="alert-container" class="hidden"></div>
-
-        <!-- Ротатор соцсетей (Правый верхний угол) -->
         <div id="social-rotator" class="fade-out"></div>
 
-        <!-- Чат (Левый нижний угол) -->
         <div id="chat-container">
             <div id="chat-messages"></div>
         </div>
 
-        <!-- Вебка (Левый верхний угол) -->
         <div id="webcam-container">
             <video id="webcam-video" autoplay muted playsinline></video>
             <div id="webcam-frame"></div>
         </div>
 
-        <!-- Виджет YouTube (Правый нижний угол) -->
         <div id="widget-container" class="hidden">
             <div id="player-wrapper">
                 <div id="yt-player"></div>
-                <!-- ЛИНИЯ ПРОГРЕССА -->
                 <div id="yt-progress-container">
                     <div id="yt-progress-bar"></div>
                 </div>
@@ -55,6 +48,11 @@
             </div>
         </div>
 
+        <!-- НОВЫЙ БЛОК: Бегущая строка -->
+        <div id="ticker-container">
+            <div id="ticker-text"></div>
+        </div>
+
     </div>
 
     <!-- Модули логики (Строгий порядок загрузки) -->
@@ -66,6 +64,7 @@
     <script src="js/mic.js"></script>
     <script src="js/socials.js"></script>
     <script src="js/alerts.js"></script>
+    <script src="js/ticker.js"></script> <!-- Скрипт бегущей строки -->
     <script src="js/twitch.js"></script>
 
 </body>
