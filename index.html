@@ -24,6 +24,9 @@
 
         <!-- Вебка (Левый верхний угол) -->
         <div id="webcam-container">
+            <!-- Само видео с вебки (muted - чтобы не было двойного звука) -->
+            <video id="webcam-video" autoplay muted playsinline></video>
+            <!-- Рамка поверх вебки -->
             <div id="webcam-frame"></div>
         </div>
 
@@ -52,7 +55,7 @@
     <script src="js/chat.js"></script>
     <script src="js/queue.js"></script>
     <script src="js/youtube.js"></script>
-    <script src="js/mic.js"></script>
+    <script src="js/mic.js"></script> <!-- Теперь он отвечает и за камеру -->
     <script src="js/twitch.js"></script>
 
 </body>

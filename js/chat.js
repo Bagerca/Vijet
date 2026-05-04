@@ -6,10 +6,14 @@ window.AppChat = {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-message';
         
+        // Берем цвет юзера (или дефолтный фиолетовый)
         const userColor = extra.userColor || '#9146FF';
         const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         const parsedMessage = this.parseEmotes(message, extra.messageEmotes);
 
+        // Динамически красим левую границу и добавляем легкое свечение в цвет юзера
+        msgDiv.style.borderLeft = `4px solid ${userColor}`;
+        
         msgDiv.innerHTML = `
             <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" class="chat-avatar" id="avatar-${extra.id}">
             <div class="chat-content">
@@ -32,23 +36,28 @@ window.AppChat = {
             setTimeout(() => { if (msgDiv.parentNode) msgDiv.remove(); }, 500);
         }, window.AppConfig.chatMsgLifetime);
 
+        // Загрузка аватарки
         const avatarUrl = await this.getAvatar(user, userColor);
         const avatarImg = msgDiv.querySelector(`#avatar-${extra.id}`);
         if (avatarImg) avatarImg.src = avatarUrl;
     },
 
     getAvatar: async function(username, userColor) {
+        // Если уже загружали эту аватарку, берем из кэша
         if (this.avatarCache[username]) return this.avatarCache[username];
         
         try {
-            const response = await fetch(`https://decapi.me/twitch/avatar/${username}`);
-            const url = await response.text();
-            if (url.includes("user-default-pictures") || url.includes("Error") || url.includes("not found")) {
-                throw new Error("No custom avatar");
+            // Используем сверхнадежное API ivr.fi для Твича
+            const response = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${username}`);
+            const data = await response.json();
+            
+            if (data && data.length > 0 && data[0].logo) {
+                this.avatarCache[username] = data[0].logo; 
+                return data[0].logo;
             }
-            this.avatarCache[username] = url; 
-            return url;
+            throw new Error("Нет кастомной аватарки");
         } catch (e) {
+            // Если аватарки нет, генерируем красивую заглушку с первой буквой ника и цветом юзера
             let hexColor = userColor.replace('#', '');
             let fallbackUrl = `https://ui-avatars.com/api/?name=${username}&background=${hexColor}&color=fff&size=64&bold=true`;
             this.avatarCache[username] = fallbackUrl;
