@@ -1,27 +1,34 @@
 window.AppChat = {
     container: document.getElementById('chat-messages'),
 
-    addMessage: function(user, message) {
+    addMessage: function(user, message, flags, extra) {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-message';
         
-        // Защита от HTML-инъекций (XSS)
+        // Получаем цвет пользователя из Твича или ставим белый по умолчанию
+        const userColor = extra.userColor || '#bf94ff';
+        
+        // Защита от взлома через чат
         const safeMsg = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         
-        msgDiv.innerHTML = `<span class="chat-user">${user}</span><span class="chat-text">${safeMsg}</span>`;
+        msgDiv.innerHTML = `
+            <div class="message-header">
+                <span class="chat-user" style="color: ${userColor}">${user}:</span>
+            </div>
+            <div class="chat-text">${safeMsg}</div>
+        `;
+        
         this.container.appendChild(msgDiv);
 
-        // Удаление старых сообщений (лимит)
+        // Лимит сообщений
         if (this.container.children.length > window.AppConfig.maxChatMessages) {
             this.container.removeChild(this.container.firstChild);
         }
 
-        // Таймер на исчезновение
+        // Удаление по таймеру
         setTimeout(() => {
-            msgDiv.style.opacity = '0';
-            setTimeout(() => {
-                if (msgDiv.parentNode) msgDiv.remove();
-            }, 500); // Ждем конец анимации прозрачности
+            msgDiv.classList.add('fade-out');
+            setTimeout(() => { if (msgDiv.parentNode) msgDiv.remove(); }, 1000);
         }, window.AppConfig.chatMsgLifetime);
     }
 };
