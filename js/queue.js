@@ -31,11 +31,18 @@ window.AppQueue = {
     },
 
     updateStats: function() {
-        document.getElementById('queue-count').innerText = this.items.length;
+        const countEl = document.getElementById('queue-count');
+        countEl.innerText = this.items.length;
+        
+        // Перезапуск анимации цифры (эффект подпрыгивания)
+        countEl.classList.remove('animate-pop');
+        void countEl.offsetWidth; // Принудительная перерисовка
+        countEl.classList.add('animate-pop');
     },
 
     extractId: function(url) {
-        const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+        // Регулярка поддерживает обычные ссылки, короткие youtu.be и Shorts
+        const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
         const match = url.match(regExp);
         return (match && match[1].length === 11) ? match[1] : null;
     }

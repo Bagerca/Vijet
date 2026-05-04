@@ -17,7 +17,7 @@ window.AppPlayer = {
             events: {
                 'onReady': () => { 
                     this.isReady = true;
-                    this.yt.unMute(); // Гарантированно включаем звук
+                    this.yt.unMute(); 
                     this.setVolume(window.AppConfig.defaultVolume);
                 },
                 'onStateChange': this.handleStateChange.bind(this),
@@ -34,9 +34,15 @@ window.AppPlayer = {
         this.nameLabel.innerText = user;
         this.container.classList.remove('hidden');
         
-        // Попытка запустить принудительно
+        // Запускаем через mute -> unmute, чтобы обойти блокировку автоплея браузером
         this.yt.loadVideoById(videoId);
+        this.yt.mute(); 
         this.yt.playVideo(); 
+        
+        setTimeout(() => {
+            this.yt.unMute();
+            this.yt.setVolume(parseInt(this.volLabel.innerText) || window.AppConfig.defaultVolume);
+        }, 500);
     },
 
     hide: function() {
@@ -50,9 +56,15 @@ window.AppPlayer = {
     setVolume: function(vol) {
         if (this.isReady) {
             let safeVol = Math.max(0, Math.min(100, parseInt(vol) || window.AppConfig.defaultVolume));
-            this.yt.unMute(); // Обязательно unMute, иначе громкость не сработает
+            this.yt.unMute(); 
             this.yt.setVolume(safeVol);
+            
             this.volLabel.innerText = safeVol;
+            
+            // Перезапуск анимации цифры (эффект подпрыгивания)
+            this.volLabel.classList.remove('animate-pop');
+            void this.volLabel.offsetWidth; // Принудительная перерисовка
+            this.volLabel.classList.add('animate-pop');
         }
     },
 
@@ -69,3 +81,8 @@ window.AppPlayer = {
 };
 
 function onYouTubeIframeAPIReady() { window.AppPlayer.init(); }
+
+// Запасной запуск для OBS, если API загрузилось раньше скрипта
+if (window.YT && window.YT.Player && !window.AppPlayer.isReady) {
+    window.AppPlayer.init();
+}
