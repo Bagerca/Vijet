@@ -16,7 +16,7 @@ body, html {
     width: 466px; height: 740px; 
     display: flex; flex-direction: column; justify-content: flex-end;
     padding: 0 20px 35px 20px; box-sizing: border-box;
-    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
+    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
 }
 
 #chat-messages { display: flex; flex-direction: column; gap: 14px; width: 100%; }
@@ -28,8 +28,15 @@ body, html {
     color: #e6e6e6; padding: 14px 16px; border-radius: 16px; 
     border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    
+    /* Анимация появления */
     animation: slideInChat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    transition: opacity 0.5s ease;
+    transform-origin: left center;
+}
+
+/* Класс для плавного исчезновения старых сообщений */
+.chat-out {
+    animation: slideOutChat 0.4s cubic-bezier(0.36, 0, 0.66, -0.56) forwards;
 }
 
 .chat-avatar {
@@ -48,6 +55,11 @@ body, html {
 @keyframes slideInChat {
     from { opacity: 0; transform: translateX(-40px) scale(0.95); }
     to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes slideOutChat {
+    from { opacity: 1; transform: scale(1); height: auto; margin-bottom: 14px; }
+    to { opacity: 0; transform: scale(0.8) translateX(-20px); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none; }
 }
 
 /* ================= ВЕБКА (СЛЕВА СВЕРХУ) ================= */
