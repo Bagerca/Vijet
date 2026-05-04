@@ -1,6 +1,7 @@
 // 1. Слушаем сообщения чата
 ComfyJS.onChat = (user, message, flags, self, extra) => {
-    window.AppChat.addMessage(user, message);
+    // Передаем extra (там цвета, смайлы, ID)
+    window.AppChat.addMessage(user, message, flags, extra);
 };
 
 // 2. Слушаем баллы канала (Музыка)
@@ -23,7 +24,9 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
 };
 
 // Подключение к Твичу
-if (window.AppConfig.channelName) {
+if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
     ComfyJS.Init(window.AppConfig.channelName);
     console.log(`[Twitch] Подключено к: ${window.AppConfig.channelName}`);
+} else {
+    console.warn("[Twitch] ВНИМАНИЕ: Не забудь вписать свой ник в js/config.js");
 }
