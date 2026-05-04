@@ -2,35 +2,53 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>OBS YouTube Widget</title>
-    <!-- Подключаем шрифты для красоты -->
+    <title>Ultimate Stream Overlay</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <!-- Стили -->
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- Внешние библиотеки -->
+    <!-- Библиотеки -->
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
 
-    <div id="widget-container" class="hidden">
-        <!-- Рамка и плеер -->
-        <div id="player-wrapper">
-            <div id="yt-player"></div>
+    <!-- Задний фон: Частицы -->
+    <canvas id="particles-canvas"></canvas>
+
+    <div id="scene-wrapper">
+        
+        <!-- Чат (Левый нижний угол) -->
+        <div id="chat-container">
+            <div id="chat-messages"></div>
         </div>
-        <!-- Инфо-плашка -->
-        <div id="info-bar">
-            <span class="icon">🎵</span>
-            <span id="requester-name">Никнейм</span>
+
+        <!-- Вебка (Правый верхний угол) -->
+        <div id="webcam-container">
+            <!-- Сюда в OBS ты подложишь свою реальную камеру -->
+            <div id="webcam-frame"></div>
         </div>
+
+        <!-- Виджет YouTube (Правый нижний угол) -->
+        <div id="widget-container" class="hidden">
+            <div id="player-wrapper">
+                <div id="yt-player"></div>
+            </div>
+            <div id="info-bar">
+                <span class="icon">🎵</span>
+                <span id="requester-name">Никнейм</span>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Модули логики (порядок важен) -->
+    <!-- Модули логики -->
     <script src="js/config.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/chat.js"></script>
     <script src="js/queue.js"></script>
     <script src="js/youtube.js"></script>
-    <script src="js/twitch.js"></script>
+    <script src="js/mic.js"></script>
+    <script src="js/twitch.js"></script> <!-- Твич подключаем последним -->
 
 </body>
 </html>
