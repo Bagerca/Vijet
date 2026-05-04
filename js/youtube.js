@@ -2,6 +2,7 @@ window.AppPlayer = {
     yt: null,
     container: document.getElementById('widget-container'),
     nameLabel: document.getElementById('requester-name'),
+    volLabel: document.getElementById('volume-level'),
     isReady: false,
 
     init: function() {
@@ -10,9 +11,9 @@ window.AppPlayer = {
             events: {
                 'onReady': () => { 
                     this.isReady = true;
-                    this.yt.setVolume(window.AppConfig.defaultVolume);
+                    this.setVolume(window.AppConfig.defaultVolume);
                 },
-                'onStateChange': (event) => { if (event.data === 0) window.AppQueue.next(); },
+                'onStateChange': this.handleStateChange.bind(this),
                 'onError': () => { window.AppQueue.next(); }
             }
         });
@@ -27,6 +28,7 @@ window.AppPlayer = {
 
     hide: function() {
         this.container.classList.add('hidden');
+        this.container.classList.remove('is-playing');
         if (this.isReady && this.yt.stopVideo) this.yt.stopVideo();
     },
 
@@ -34,6 +36,18 @@ window.AppPlayer = {
         if (this.isReady) {
             let safeVol = Math.max(0, Math.min(100, parseInt(vol) || window.AppConfig.defaultVolume));
             this.yt.setVolume(safeVol);
+            this.volLabel.innerText = safeVol; 
+        }
+    },
+
+    handleStateChange: function(event) {
+        if (event.data === 1) {
+            this.container.classList.add('is-playing'); 
+        } else {
+            this.container.classList.remove('is-playing'); 
+        }
+        if (event.data === 0) {
+            window.AppQueue.next();
         }
     }
 };

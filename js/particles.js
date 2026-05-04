@@ -27,21 +27,14 @@ window.AppParticles = {
 
     animate: function() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
         for (let i = 0; i < this.particlesArray.length; i++) {
             let p = this.particlesArray[i];
-            p.x += p.speedX;
-            p.y += p.speedY;
-
-            if (p.x > this.canvas.width) p.x = 0;
-            if (p.x < 0) p.x = this.canvas.width;
-            if (p.y > this.canvas.height) p.y = 0;
-            if (p.y < 0) p.y = this.canvas.height;
+            p.x += p.speedX; p.y += p.speedY;
+            if (p.x > this.canvas.width) p.x = 0; if (p.x < 0) p.x = this.canvas.width;
+            if (p.y > this.canvas.height) p.y = 0; if (p.y < 0) p.y = this.canvas.height;
 
             this.ctx.fillStyle = `rgba(145, 70, 255, ${p.opacity})`;
-            this.ctx.beginPath();
-            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            this.ctx.fill();
+            this.ctx.beginPath(); this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); this.ctx.fill();
         }
         requestAnimationFrame(this.animate.bind(this));
     }
