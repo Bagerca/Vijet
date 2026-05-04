@@ -407,3 +407,87 @@ body, html {
     0% { transform: translateX(-50%) scale(1); }
     100% { transform: translateX(-50%) scale(1.02); }
 }
+
+/* =======================================================
+   РЕЖИМ РАЗДЕЛЕНИЯ НА ВИДЖЕТЫ (ДЛЯ OBS)
+   Здесь правится поведение элементов в маленьких окнах
+   ======================================================= */
+
+body.is-widget {
+    width: 100vw !important;
+    height: 100vh !important;
+    background: transparent !important;
+}
+
+body.is-widget #scene-wrapper { width: 100vw; height: 100vh; position: relative; }
+
+/* Скрываем всё по умолчанию в режиме виджета */
+body.is-widget #scene-wrapper > div,
+body.is-widget #particles-canvas {
+    display: none !important;
+}
+
+/* --- 1. НАСТРОЙКА ЧАТА --- */
+body.widget-chat #chat-container {
+    display: flex !important;
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%; padding: 10px;
+    -webkit-mask-image: none; /* Убираем исчезновение сверху для маленького окна */
+}
+
+/* --- 2. НАСТРОЙКА МУЗЫКИ --- */
+body.widget-music #widget-container {
+    display: flex !important;
+    position: absolute; top: 0; left: 0; 
+    width: 100%; height: 100%; padding: 10px; box-sizing: border-box;
+    transform: translateY(0) scale(1) !important;
+}
+body.widget-music #widget-container.hidden {
+    transform: translateY(50px) scale(0.9) !important; opacity: 0;
+}
+
+/* --- 3. НАСТРОЙКА АЛЕРТОВ --- */
+body.widget-alerts #alert-container {
+    display: flex !important;
+    top: 50px; /* Отступ от верхнего края окна OBS */
+}
+/* Центрирование алерта работает идеально, так как left: 50% смотрит на ширину источника OBS */
+
+/* --- 4. НАСТРОЙКА GOAL (ЦЕЛИ) --- */
+body.widget-goal #goal-container {
+    display: block !important;
+    top: 25px; /* Отступ от верхнего края окна OBS */
+}
+
+/* --- 5. НАСТРОЙКА ВЕБКИ --- */
+body.widget-cam #webcam-container {
+    display: block !important;
+    position: absolute; top: 0; left: 0; 
+    width: 100%; height: 100%; border-radius: 0; /* Или оставь border-radius: 12px; */
+}
+
+/* --- 6. НАСТРОЙКА СОЦСЕТЕЙ --- */
+body.widget-socials #social-rotator {
+    display: flex !important;
+    position: absolute; top: 10px; left: 10px; right: auto;
+    transform: translateX(0) scale(1) !important;
+}
+body.widget-socials #social-rotator.fade-out {
+    transform: translateX(-40px) scale(0.95) !important; opacity: 0;
+}
+
+/* --- 7. НАСТРОЙКА SHOUTOUT --- */
+body.widget-shoutout #shoutout-container {
+    display: flex !important;
+}
+
+/* --- 8. НАСТРОЙКА БЕГУЩЕЙ СТРОКИ --- */
+body.widget-ticker #ticker-container {
+    display: flex !important;
+    bottom: 20px;
+}
+
+/* --- 9. НАСТРОЙКА ЧАСТИЦ --- */
+body.widget-particles #particles-canvas {
+    display: block !important;
+}
