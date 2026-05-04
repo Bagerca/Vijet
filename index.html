@@ -11,23 +11,20 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
-    <!-- Инициализация режима OBS -->
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const widgetMode = urlParams.get('widget');
-        if (widgetMode) {
-            document.body.classList.add('is-widget', `widget-${widgetMode}`);
-        }
-    </script>
 
     <!-- Задний фон: Частицы -->
     <canvas id="particles-canvas"></canvas>
 
     <div id="scene-wrapper">
+        
+        <!-- Динамический Goal-бар (Центр Верх) -->
         <div id="goal-container">
-            <div id="goal-bar-bg"><div id="goal-bar-fill"></div></div>
+            <div id="goal-bar-bg">
+                <div id="goal-bar-fill"></div>
+            </div>
             <div id="goal-text">
-                <span id="goal-title">⭐ Цель:</span><span id="goal-count">0 / 0</span>
+                <span id="goal-title">⭐ Цель:</span>
+                <span id="goal-count">0 / 0</span>
             </div>
         </div>
 
@@ -47,11 +44,14 @@
         <div id="widget-container" class="hidden">
             <div id="player-wrapper">
                 <div id="yt-player"></div>
-                <div id="yt-progress-container"><div id="yt-progress-bar"></div></div>
+                <div id="yt-progress-container">
+                    <div id="yt-progress-bar"></div>
+                </div>
             </div>
             <div id="info-bar">
                 <div class="info-main">
-                    <span class="icon">🎵</span><span id="requester-name">Никнейм</span>
+                    <span class="icon">🎵</span>
+                    <span id="requester-name">Никнейм</span>
                 </div>
                 <div class="info-stats">
                     <span title="Громкость">🔊 <span id="volume-level">30</span>%</span>
@@ -63,9 +63,10 @@
         <div id="ticker-container">
             <div id="ticker-text"></div>
         </div>
+
     </div>
 
-    <!-- Модули логики -->
+    <!-- Модули логики (Строгий порядок загрузки) -->
     <script src="js/config.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/chat.js"></script>
@@ -79,12 +80,62 @@
     <script src="js/ticker.js"></script>
     <script src="js/twitch.js"></script>
 
-    <!-- Глушилка медиа для неактивных виджетов -->
+    <!-- СИСТЕМА РАЗДЕЛЕНИЯ НА ВИДЖЕТЫ (СОХРАНЯЯ 1920x1080) -->
     <script>
-        if (widgetMode) {
-            if (widgetMode !== 'music' && window.AppPlayer) window.AppPlayer.init = function(){};
-            if (widgetMode !== 'cam' && window.AppMedia) window.AppMedia.init = function(){};
-            if (widgetMode !== 'particles' && window.AppParticles) window.AppParticles.animate = function(){};
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeWidget = urlParams.get('widget');
+
+        if (activeWidget) {
+            // 1. ЖЕСТКО УБИВАЕМ МЕДИА-ПРОЦЕССЫ В НЕАКТИВНЫХ ВИДЖЕТАХ
+            
+            // Если это окно НЕ для музыки — вырезаем плеер Ютуба с корнями
+            if (activeWidget !== 'music') {
+                const ytPlayer = document.getElementById('yt-player');
+                if (ytPlayer) ytPlayer.remove(); // Нет плеера = нет звука
+                if (window.AppPlayer) window.AppPlayer.play = function(){}; // Блокируем команды запуска
+                if (window.AppQueue) window.AppQueue.add = function(){};    // Блокируем добавление в очередь
+            }
+
+            // Если это окно НЕ для камеры — удаляем захват микрофона и видео
+            if (activeWidget !== 'cam') {
+                const cam = document.getElementById('webcam-video');
+                if (cam) cam.remove();
+                if (window.AppMedia) window.AppMedia.init = function(){}; // Блокируем включение эквалайзера
+            }
+
+            // Если это окно НЕ для частиц — удаляем холст (чтобы не жрало ресурсы видеокарты)
+            if (activeWidget !== 'particles') {
+                const canvas = document.getElementById('particles-canvas');
+                if (canvas) canvas.remove();
+                if (window.AppParticles) window.AppParticles.animate = function(){};
+            }
+
+            // 2. Скрываем все остальные контейнеры
+            const widgets = {
+                'chat': 'chat-container',
+                'cam': 'webcam-container',
+                'music': 'widget-container',
+                'socials': 'social-rotator',
+                'alerts': 'alert-container',
+                'shoutout': 'shoutout-container',
+                'goal': 'goal-container',
+                'ticker': 'ticker-container',
+                'particles': 'particles-canvas'
+            };
+
+            for (const [key, id] of Object.entries(widgets)) {
+                if (key !== activeWidget) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        // Прячем элемент
+                        el.style.setProperty('display', 'none', 'important');
+                        // Дополнительная защита: очищаем внутренности элемента (кроме чата, чтобы не сбивать логику)
+                        if (key !== 'chat') { 
+                            el.innerHTML = ''; 
+                        }
+                    }
+                }
+            }
         }
     </script>
 </body>
