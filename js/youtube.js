@@ -1,40 +1,72 @@
-var player;
-function onYouTubeIframeAPIReady() {
-    // API готов
-}
+window.AppPlayer = {
+    yt: null,
+    container: document.getElementById('widget-container'),
+    nameLabel: document.getElementById('requester-name'),
+    isReady: false,
 
-function playVideo(videoId) {
-    const container = document.getElementById('video-container');
-    container.classList.remove('hidden');
-
-    if (player) {
-        player.loadVideoById(videoId);
-    } else {
-        player = new YT.Player('player', {
-            height: '100%',
-            width: '100%',
-            videoId: videoId,
+    init: function() {
+        this.yt = new YT.Player('yt-player', {
             playerVars: {
                 'autoplay': 1,
-                'controls': 0,
-                'modestbranding': 1
+                'controls': 0,      // Убираем элементы управления
+                'disablekb': 1,     // Отключаем клавиатуру
+                'modestbranding': 1 // Убираем логотип Ютуба
             },
             events: {
-                'onStateChange': onPlayerStateChange
+                'onReady': () => { 
+                    this.isReady = true;
+                    this.yt.setVolume(window.AppConfig.defaultVolume);
+                    console.log("[Player] YouTube API Готов");
+                },
+                'onStateChange': this.onStateChange.bind(this),
+                'onError': this.onError.bind(this)
             }
         });
-    }
-}
+    },
 
-function onPlayerStateChange(event) {
-    // Если видео закончилось (код 0)
-    if (event.data == YT.PlayerState.ENDED) {
-        document.getElementById('video-container').classList.add('hidden');
-    }
-}
+    play: function(videoId, user) {
+        if (!this.isReady) return;
+        
+        // Обновляем текст на плашке
+        this.nameLabel.innerText = user;
+        
+        // Показываем виджет
+        this.container.classList.remove('hidden');
+        
+        // Загружаем и включаем видео
+        this.yt.loadVideoById(videoId);
+    },
 
-// Подгружаем скрипт API YouTube
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-var firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    hide: function() {
+        this.container.classList.add('hidden');
+        if (this.isReady && this.yt.stopVideo) {
+            this.yt.stopVideo();
+        }
+    },
+
+    setVolume: function(vol) {
+        if (this.isReady) {
+            let safeVol = Math.max(0, Math.min(100, parseInt(vol) || window.AppConfig.defaultVolume));
+            this.yt.setVolume(safeVol);
+            console.log(`[Player] Громкость: ${safeVol}%`);
+        }
+    },
+
+    onStateChange: function(event) {
+        // YT.PlayerState.ENDED == 0 (видео закончилось)
+        if (event.data === 0) {
+            window.AppQueue.next();
+        }
+    },
+
+    onError: function(event) {
+        console.error(`[Player] Ошибка воспроизведения (Код: ${event.data}). Скипаем...`);
+        // Пропускаем проблемное видео
+        window.AppQueue.next();
+    }
+};
+
+// Системная функция, которую вызывает сам YouTube Iframe API при загрузке скрипта
+function onYouTubeIframeAPIReady() {
+    window.AppPlayer.init();
+}
