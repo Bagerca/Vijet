@@ -17,11 +17,19 @@
 
     <div id="scene-wrapper">
         
-        <div id="alert-container" class="hidden"></div>
-        
-        <!-- НОВЫЙ БЛОК: Shoutout -->
-        <div id="shoutout-container" class="hidden"></div>
+        <!-- НОВЫЙ БЛОК: Динамический Goal-бар (Центр Верх) -->
+        <div id="goal-container">
+            <div id="goal-bar-bg">
+                <div id="goal-bar-fill"></div>
+            </div>
+            <div id="goal-text">
+                <span id="goal-title">⭐ Цель:</span>
+                <span id="goal-count">0 / 0</span>
+            </div>
+        </div>
 
+        <div id="alert-container" class="hidden"></div>
+        <div id="shoutout-container" class="hidden"></div>
         <div id="social-rotator" class="fade-out"></div>
 
         <div id="chat-container">
@@ -67,7 +75,8 @@
     <script src="js/mic.js"></script>
     <script src="js/socials.js"></script>
     <script src="js/alerts.js"></script>
-    <script src="js/shoutout.js"></script> <!-- Скрипт Shoutout -->
+    <script src="js/shoutout.js"></script>
+    <script src="js/goal.js"></script> <!-- Скрипт Цели фолловеров -->
     <script src="js/ticker.js"></script>
     <script src="js/twitch.js"></script>
 

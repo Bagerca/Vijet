@@ -7,6 +7,12 @@ window.AppQueue = {
         if (videoId) {
             this.items.push({ id: videoId, user: user });
             this.updateStats(); 
+            
+            // НОВОЕ: Передаем информацию в бегущую строку для показа уведомления
+            if (window.AppTicker) {
+                window.AppTicker.showMusicEvent(videoId, user);
+            }
+
             if (!this.isPlaying) this.next();
         }
     },
@@ -34,14 +40,12 @@ window.AppQueue = {
         const countEl = document.getElementById('queue-count');
         countEl.innerText = this.items.length;
         
-        // Перезапуск анимации цифры (эффект подпрыгивания)
         countEl.classList.remove('animate-pop');
-        void countEl.offsetWidth; // Принудительная перерисовка
+        void countEl.offsetWidth; 
         countEl.classList.add('animate-pop');
     },
 
     extractId: function(url) {
-        // Регулярка поддерживает обычные ссылки, короткие youtu.be и Shorts
         const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
         const match = url.match(regExp);
         return (match && match[1].length === 11) ? match[1] : null;
