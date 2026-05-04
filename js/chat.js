@@ -1,16 +1,16 @@
 window.AppChat = {
     container: document.getElementById('chat-messages'),
-    avatarCache: {}, // Кэш аватарок, чтобы не грузить одно и то же
+    avatarCache: {}, 
 
     addMessage: async function(user, message, flags, extra) {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-message';
         
-        // Базовая структура с серой заглушкой вместо аватарки
-        const userColor = extra.userColor || '#ffffff';
+        // Цвет пользователя (если его нет, берем фиолетовый)
+        const userColor = extra.userColor || '#9146FF';
         const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         
-        // Обработка смайлов и защита
+        // Парсим смайлы
         const parsedMessage = this.parseEmotes(message, extra.messageEmotes);
 
         msgDiv.innerHTML = `
@@ -26,39 +26,51 @@ window.AppChat = {
         
         this.container.appendChild(msgDiv);
 
-        // Лимит сообщений
         if (this.container.children.length > window.AppConfig.maxChatMessages) {
             this.container.removeChild(this.container.firstChild);
         }
 
-        // Удаление по таймеру
         setTimeout(() => {
             msgDiv.style.opacity = '0';
             setTimeout(() => { if (msgDiv.parentNode) msgDiv.remove(); }, 500);
         }, window.AppConfig.chatMsgLifetime);
 
-        // Асинхронно подгружаем аватарку
-        const avatarUrl = await this.getAvatar(user);
+        // Получаем аватарку (передаем цвет для генерации заглушки)
+        const avatarUrl = await this.getAvatar(user, userColor);
         const avatarImg = msgDiv.querySelector(`#avatar-${extra.id}`);
         if (avatarImg) avatarImg.src = avatarUrl;
     },
 
-    // Функция получения аватарки
-    getAvatar: async function(username) {
+    // Умное получение аватарки
+    getAvatar: async function(username, userColor) {
         if (this.avatarCache[username]) return this.avatarCache[username];
+        
         try {
-            // Используем публичный API для получения URL аватарки Твича
             const response = await fetch(`https://decapi.me/twitch/avatar/${username}`);
             const url = await response.text();
-            this.avatarCache[username] = url; // Сохраняем в кэш
+
+            // Если вернулся стандартный пустой аватар Твича или ошибка -> идем в catch
+            if (url.includes("user-default-pictures") || url.includes("Error") || url.includes("not found")) {
+                throw new Error("No custom avatar");
+            }
+
+            this.avatarCache[username] = url; 
             return url;
+            
         } catch (e) {
-            // Если ошибка - ставим дефолтную Твич аватарку
-            return 'https://static-cdn.jtvnw.net/user-default-pictures-uv/41780b5a-def8-11e9-94d9-784f43822e80-profile_image-70x70.png';
+            // ГЕНЕРАЦИЯ КРАСИВОЙ АВАТАРКИ
+            // Убираем решетку из hex-цвета (#9146FF -> 9146FF)
+            let hexColor = userColor.replace('#', '');
+            
+            // Генерируем картинку: первая буква ника + цвет пользователя + белый текст
+            let fallbackUrl = `https://ui-avatars.com/api/?name=${username}&background=${hexColor}&color=fff&size=64&bold=true`;
+            
+            this.avatarCache[username] = fallbackUrl;
+            return fallbackUrl;
         }
     },
 
-    // Функция замены текста на смайлики
+    // Парсер смайликов
     parseEmotes: function(message, emotes) {
         if (!emotes) return this.escapeHTML(message);
 
@@ -70,16 +82,13 @@ window.AppChat = {
                 let start = parseInt(pos[0]);
                 let end = parseInt(pos[1]);
                 
-                // Вставляем HTML картинки вместо начала слова
                 stringArr[start] = `<img src="https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/3.0" class="chat-emote">`;
-                // Очищаем остальные буквы слова
                 for (let j = start + 1; j <= end; j++) {
                     stringArr[j] = ''; 
                 }
             }
         }
 
-        // Собираем обратно, экранируя обычный текст, чтобы нас не взломали
         let finalStr = '';
         for (let i = 0; i < stringArr.length; i++) {
             if (stringArr[i].startsWith('<img')) {
