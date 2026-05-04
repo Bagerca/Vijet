@@ -21,6 +21,7 @@ window.AppShoutout = {
         const targetUser = this.queue.shift();
 
         try {
+            // Обращаемся к API для получения детальных данных
             const response = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${targetUser}`);
             const data = await response.json();
 
@@ -39,34 +40,67 @@ window.AppShoutout = {
         const displayName = userData.displayName || userData.login;
         const userColor = userData.chatColor || "#9146FF"; 
         const avatarUrl = userData.logo || `https://ui-avatars.com/api/?name=${displayName}&background=1a1a1e&color=fff`;
+        
+        // Достаем дополнительные данные (Форматируем числа для красоты)
+        const followers = userData.followers ? userData.followers.toLocaleString('ru-RU') : "0";
+        const category = (userData.lastBroadcast && userData.lastBroadcast.game) ? userData.lastBroadcast.game.displayName : "Just Chatting";
 
-        this.container.style.boxShadow = `0 25px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 40px ${userColor}55`;
-        this.container.style.borderTop = `4px solid ${userColor}`;
+        // Передаем основной цвет в CSS-переменную для гибкой стилизации
+        this.container.style.setProperty('--user-color', userColor);
+        // Создаем полупрозрачную версию цвета для теней (грязный хак с добавлением hex-прозрачности '44' = ~25%)
+        this.container.style.setProperty('--user-glow', `${userColor}44`);
 
         this.container.innerHTML = `
-            <div class="shoutout-avatar-wrapper" style="box-shadow: 0 0 25px ${userColor}88;">
-                <img src="${avatarUrl}" class="shoutout-avatar">
-            </div>
-            <div class="shoutout-info">
-                <div class="shoutout-badge">ОБРАТИТЕ ВНИМАНИЕ</div>
-                <div class="shoutout-name" style="color: ${userColor}; text-shadow: 0 0 15px ${userColor}88;">${displayName}</div>
-                <div class="shoutout-cta">Залетайте на канал и жмите фоллоу! 💜</div>
-                <div class="shoutout-url">twitch.tv/<span>${userData.login}</span></div>
+            <div class="so-card">
+                <!-- Блик на стекле (Анимация пролета) -->
+                <div class="so-shine"></div>
+                
+                <div class="so-left">
+                    <div class="so-avatar-wrapper">
+                        <img src="${avatarUrl}" class="so-avatar">
+                        <div class="so-avatar-ring"></div>
+                    </div>
+                </div>
+                
+                <div class="so-right">
+                    <div class="so-badge">
+                        <div class="so-dot"></div>
+                        ВНИМАНИЕ, РЕКОМЕНДАЦИЯ
+                    </div>
+                    
+                    <div class="so-name" style="background-image: linear-gradient(90deg, #fff 0%, ${userColor} 150%);">
+                        ${displayName}
+                    </div>
+                    
+                    <div class="so-meta">
+                        <div class="so-meta-item">🎮 ${category}</div>
+                        <div class="so-meta-item">👥 ${followers} фолл.</div>
+                    </div>
+                    
+                    <div class="so-url">
+                        twitch.tv/<span>${userData.login}</span>
+                    </div>
+                </div>
             </div>
         `;
 
+        // Сбрасываем классы
         this.container.classList.remove('hidden');
         this.container.classList.remove('shoutout-out');
+        
+        // Запускаем анимацию появления
         this.container.classList.add('shoutout-in');
 
+        // Ждем время из конфига
         setTimeout(() => {
             this.container.classList.remove('shoutout-in');
             this.container.classList.add('shoutout-out');
 
+            // Полностью прячем после завершения анимации исчезновения
             setTimeout(() => {
                 this.container.classList.add('hidden');
                 this.playNext();
-            }, 600); 
+            }, 800); // 800мс на красивое угасание
         }, window.AppConfig.shoutoutDuration || 8000);
     }
 };
