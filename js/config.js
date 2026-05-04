@@ -1,5 +1,5 @@
 window.AppConfig = {
-    channelName: "gronkhtv",       // Впиши сюда ник друга для тестов
+    channelName: "melharucos",       // Впиши сюда ник друга для тестов
     rewardName: "Заказать видео",  // Точное название награды
     defaultVolume: 30,             // Громкость видео
     chatMsgLifetime: 15000,        // Сколько миллисекунд висит сообщение в чате (15 сек)
