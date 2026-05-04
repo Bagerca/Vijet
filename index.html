@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Ultimate Stream Overlay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     
     <!-- Библиотеки -->
@@ -17,6 +17,12 @@
 
     <div id="scene-wrapper">
         
+        <!-- Алерт-система (По центру сверху) -->
+        <div id="alert-container" class="hidden"></div>
+
+        <!-- Ротатор соцсетей (Правый верхний угол) -->
+        <div id="social-rotator" class="fade-out"></div>
+
         <!-- Чат (Левый нижний угол) -->
         <div id="chat-container">
             <div id="chat-messages"></div>
@@ -24,9 +30,7 @@
 
         <!-- Вебка (Левый верхний угол) -->
         <div id="webcam-container">
-            <!-- Само видео с вебки (muted - чтобы не было двойного звука) -->
             <video id="webcam-video" autoplay muted playsinline></video>
-            <!-- Рамка поверх вебки -->
             <div id="webcam-frame"></div>
         </div>
 
@@ -34,6 +38,10 @@
         <div id="widget-container" class="hidden">
             <div id="player-wrapper">
                 <div id="yt-player"></div>
+                <!-- ЛИНИЯ ПРОГРЕССА -->
+                <div id="yt-progress-container">
+                    <div id="yt-progress-bar"></div>
+                </div>
             </div>
             <div id="info-bar">
                 <div class="info-main">
@@ -49,13 +57,15 @@
 
     </div>
 
-    <!-- Модули логики -->
+    <!-- Модули логики (Строгий порядок загрузки) -->
     <script src="js/config.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/queue.js"></script>
     <script src="js/youtube.js"></script>
-    <script src="js/mic.js"></script> <!-- Теперь он отвечает и за камеру -->
+    <script src="js/mic.js"></script>
+    <script src="js/socials.js"></script>
+    <script src="js/alerts.js"></script>
     <script src="js/twitch.js"></script>
 
 </body>

@@ -3,7 +3,9 @@ window.AppPlayer = {
     container: document.getElementById('widget-container'),
     nameLabel: document.getElementById('requester-name'),
     volLabel: document.getElementById('volume-level'),
+    progressBar: document.getElementById('yt-progress-bar'), // Доступ к ползунку
     isReady: false,
+    progressInterval: null, // Переменная для таймера
 
     init: function() {
         this.yt = new YT.Player('yt-player', {
@@ -34,6 +36,9 @@ window.AppPlayer = {
         this.nameLabel.innerText = user;
         this.container.classList.remove('hidden');
         
+        // Сброс прогресс-бара перед новым видео
+        this.progressBar.style.width = '0%';
+        
         // Запускаем через mute -> unmute, чтобы обойти блокировку автоплея браузером
         this.yt.loadVideoById(videoId);
         this.yt.mute(); 
@@ -48,6 +53,7 @@ window.AppPlayer = {
     hide: function() {
         this.container.classList.add('hidden');
         this.container.classList.remove('is-playing');
+        this.stopProgress(); // Останавливаем расчеты
         if (this.isReady) {
             this.yt.stopVideo();
         }
@@ -61,9 +67,9 @@ window.AppPlayer = {
             
             this.volLabel.innerText = safeVol;
             
-            // Перезапуск анимации цифры (эффект подпрыгивания)
+            // Перезапуск анимации цифры
             this.volLabel.classList.remove('animate-pop');
-            void this.volLabel.offsetWidth; // Принудительная перерисовка
+            void this.volLabel.offsetWidth; 
             this.volLabel.classList.add('animate-pop');
         }
     },
@@ -71,18 +77,49 @@ window.AppPlayer = {
     handleStateChange: function(event) {
         if (event.data === 1) { // PLAYING
             this.container.classList.add('is-playing');
+            this.startProgress(); // Включаем прогресс-бар
         } else {
             this.container.classList.remove('is-playing');
+            this.stopProgress(); // Выключаем (пауза/буферизация)
         }
+        
         if (event.data === 0) { // ENDED
+            this.progressBar.style.width = '0%';
             window.AppQueue.next();
+        }
+    },
+
+    // ==========================================
+    // ЛОГИКА ПРОГРЕСС-БАРА
+    // ==========================================
+    startProgress: function() {
+        // Защита от двойного запуска
+        if (this.progressInterval) clearInterval(this.progressInterval);
+        
+        // Обновляем каждые 500мс
+        this.progressInterval = setInterval(() => {
+            if (this.yt && this.yt.getCurrentTime && this.yt.getDuration) {
+                const currentTime = this.yt.getCurrentTime();
+                const totalTime = this.yt.getDuration();
+                
+                if (totalTime > 0) {
+                    const percent = (currentTime / totalTime) * 100;
+                    this.progressBar.style.width = `${percent}%`;
+                }
+            }
+        }, 500); 
+    },
+
+    stopProgress: function() {
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
         }
     }
 };
 
 function onYouTubeIframeAPIReady() { window.AppPlayer.init(); }
 
-// Запасной запуск для OBS, если API загрузилось раньше скрипта
 if (window.YT && window.YT.Player && !window.AppPlayer.isReady) {
     window.AppPlayer.init();
 }
