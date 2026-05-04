@@ -17,7 +17,7 @@
 
     <div id="scene-wrapper">
         
-        <!-- НОВЫЙ БЛОК: Динамический Goal-бар (Центр Верх) -->
+        <!-- Динамический Goal-бар (Центр Верх) -->
         <div id="goal-container">
             <div id="goal-bar-bg">
                 <div id="goal-bar-fill"></div>
@@ -76,9 +76,76 @@
     <script src="js/socials.js"></script>
     <script src="js/alerts.js"></script>
     <script src="js/shoutout.js"></script>
-    <script src="js/goal.js"></script> <!-- Скрипт Цели фолловеров -->
+    <script src="js/goal.js"></script>
     <script src="js/ticker.js"></script>
     <script src="js/twitch.js"></script>
 
+    <!-- СИСТЕМА РАЗДЕЛЕНИЯ НА ВИДЖЕТЫ ДЛЯ OBS -->
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeWidget = urlParams.get('widget');
+
+        if (activeWidget) {
+            // 1. Блокируем "тяжелые" функции, если это не их виджет
+            // Чтобы музыка Ютуба и микрофон камеры не запускались в каждом невидимом слое OBS
+            if (activeWidget !== 'music' && window.AppPlayer) {
+                window.AppPlayer.init = function() {}; 
+            }
+            if (activeWidget !== 'cam' && window.AppMedia) {
+                window.AppMedia.init = function() {}; 
+            }
+            if (activeWidget !== 'particles' && window.AppParticles) {
+                window.AppParticles.animate = function() {}; 
+            }
+
+            // 2. Словарь всех контейнеров на экране
+            const widgetMap = {
+                'chat': document.getElementById('chat-container'),
+                'cam': document.getElementById('webcam-container'),
+                'music': document.getElementById('widget-container'),
+                'socials': document.getElementById('social-rotator'),
+                'alerts': document.getElementById('alert-container'),
+                'shoutout': document.getElementById('shoutout-container'),
+                'goal': document.getElementById('goal-container'),
+                'ticker': document.getElementById('ticker-container'),
+                'particles': document.getElementById('particles-canvas')
+            };
+
+            // 3. Скрываем ненужное и ставим нужное в левый верхний угол
+            for (const [key, element] of Object.entries(widgetMap)) {
+                if (!element) continue;
+
+                if (key === activeWidget) {
+                    // --- НАСТРОЙКА АКТИВНОГО ВИДЖЕТА ---
+                    if (key !== 'particles') {
+                        // Сбрасываем CSS позиционирование (прижимаем в угол OBS)
+                        element.style.position = 'absolute';
+                        element.style.top = '0';
+                        element.style.left = '0';
+                        element.style.bottom = 'auto';
+                        element.style.right = 'auto';
+                        element.style.transform = 'none';
+                        element.style.margin = '0';
+                    }
+                    
+                    // Особые правки для удобства растягивания окна в OBS
+                    if (key === 'chat') {
+                        element.style.height = '100vh';
+                        element.style.width = '100vw';
+                        element.style.padding = '10px';
+                        // Если хочешь убрать эффект исчезновения сверху чата, раскомментируй строку ниже:
+                        // element.style.webkitMaskImage = 'none'; 
+                    }
+                    else if (key === 'music' || key === 'cam' || key === 'socials') {
+                        element.style.width = '100vw';
+                        element.style.height = '100vh';
+                    }
+                } else {
+                    // --- СКРЫВАЕМ НЕАКТИВНЫЕ ВИДЖЕТЫ ---
+                    element.style.display = 'none';
+                }
+            }
+        }
+    </script>
 </body>
 </html>

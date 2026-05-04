@@ -60,7 +60,7 @@ body, html {
 @keyframes slideOutChat {
     from { opacity: 1; transform: scale(1); height: auto; margin-bottom: 14px; }
     to { opacity: 0; transform: scale(0.8) translateX(-20px); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none; }
-}
+}                   
 
 /* ================= ВЕБКА (СЛЕВА СВЕРХУ) ================= */
 #webcam-container {
