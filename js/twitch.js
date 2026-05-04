@@ -26,7 +26,15 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
             }
             break;
 
-        // --- КОМАНДЫ МОДЕРАТОРОВ (Медиа и Плеер) ---
+        // --- КОМАНДЫ МОДЕРАТОРОВ ---
+        case "so":
+        case "shoutout":
+            if (isMod && message !== "") {
+                window.AppShoutout.add(message);
+                console.log(`[Twitch] Вызван Shoutout для: ${message}`);
+            }
+            break;
+
         case "skip":
             if (isMod) window.AppQueue.next();
             break;
@@ -70,7 +78,6 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
 };
 
 // 4. СОБЫТИЯ ПОДПИСОК (АЛЕРТЫ)
-
 ComfyJS.onSub = (user, message, subTierInfo, extra) => {
     window.AppAlerts.add(user, 'sub', message);
 };
