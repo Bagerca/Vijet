@@ -30,14 +30,22 @@
 
         <div id="alert-container" class="hidden"></div>
         <div id="shoutout-container" class="hidden"></div>
+        
+        <!-- Ротатор соцсетей (Справа Сверху) -->
         <div id="social-rotator" class="fade-out"></div>
+        
+        <!-- НОВОЕ: Счетчик смертей (Чистый минимализм - только текст) -->
+        <div id="deaths-container" class="hidden">
+            <div class="deaths-title">DEATHS</div>
+            <div id="deaths-count">0</div>
+        </div>
 
         <div id="chat-container">
             <div id="chat-messages"></div>
         </div>
 
+        <!-- Рамка веб-камеры 4:3 -->
         <div id="webcam-container">
-            <video id="webcam-video" autoplay muted playsinline></video>
             <div id="webcam-frame"></div>
         </div>
 
@@ -78,6 +86,7 @@
     <script src="js/shoutout.js"></script>
     <script src="js/goal.js"></script>
     <script src="js/ticker.js"></script>
+    <script src="js/deaths.js"></script>
     <script src="js/twitch.js"></script>
 
     <!-- СИСТЕМА РАЗДЕЛЕНИЯ НА ВИДЖЕТЫ (СОХРАНЯЯ 1920x1080) -->
@@ -86,31 +95,23 @@
         const activeWidget = urlParams.get('widget');
 
         if (activeWidget) {
-            // 1. ЖЕСТКО УБИВАЕМ МЕДИА-ПРОЦЕССЫ В НЕАКТИВНЫХ ВИДЖЕТАХ
-            
-            // Если это окно НЕ для музыки — вырезаем плеер Ютуба с корнями
             if (activeWidget !== 'music') {
                 const ytPlayer = document.getElementById('yt-player');
-                if (ytPlayer) ytPlayer.remove(); // Нет плеера = нет звука
-                if (window.AppPlayer) window.AppPlayer.play = function(){}; // Блокируем команды запуска
-                if (window.AppQueue) window.AppQueue.add = function(){};    // Блокируем добавление в очередь
+                if (ytPlayer) ytPlayer.remove(); 
+                if (window.AppPlayer) window.AppPlayer.play = function(){}; 
+                if (window.AppQueue) window.AppQueue.add = function(){};    
             }
 
-            // Если это окно НЕ для камеры — удаляем захват микрофона и видео
             if (activeWidget !== 'cam') {
-                const cam = document.getElementById('webcam-video');
-                if (cam) cam.remove();
-                if (window.AppMedia) window.AppMedia.init = function(){}; // Блокируем включение эквалайзера
+                if (window.AppMedia) window.AppMedia.init = function(){}; 
             }
 
-            // Если это окно НЕ для частиц — удаляем холст (чтобы не жрало ресурсы видеокарты)
             if (activeWidget !== 'particles') {
                 const canvas = document.getElementById('particles-canvas');
                 if (canvas) canvas.remove();
                 if (window.AppParticles) window.AppParticles.animate = function(){};
             }
 
-            // 2. Скрываем все остальные контейнеры
             const widgets = {
                 'chat': 'chat-container',
                 'cam': 'webcam-container',
@@ -120,6 +121,7 @@
                 'shoutout': 'shoutout-container',
                 'goal': 'goal-container',
                 'ticker': 'ticker-container',
+                'deaths': 'deaths-container',
                 'particles': 'particles-canvas'
             };
 
@@ -127,12 +129,8 @@
                 if (key !== activeWidget) {
                     const el = document.getElementById(id);
                     if (el) {
-                        // Прячем элемент
                         el.style.setProperty('display', 'none', 'important');
-                        // Дополнительная защита: очищаем внутренности элемента (кроме чата, чтобы не сбивать логику)
-                        if (key !== 'chat') { 
-                            el.innerHTML = ''; 
-                        }
+                        if (key !== 'chat') el.innerHTML = ''; 
                     }
                 }
             }

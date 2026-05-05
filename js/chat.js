@@ -16,16 +16,14 @@ window.AppChat = {
         msgDiv.className = 'chat-message';
         msgDiv.style.borderLeft = `4px solid ${userColor}`;
         
-        // Сразу вставляем правильный URL аватарки
+        // НОВАЯ СТРУКТУРА: Аватарка и ник в одном ряду, текст под ними
         msgDiv.innerHTML = `
-            <img src="${avatarUrl}" class="chat-avatar">
-            <div class="chat-content">
-                <div class="chat-header">
-                    <span class="chat-user" style="color: ${userColor}">${user}</span>
-                    <span class="chat-time">${time}</span>
-                </div>
-                <div class="chat-text">${parsedMessage}</div>
+            <div class="chat-header">
+                <img src="${avatarUrl}" class="chat-avatar">
+                <span class="chat-user" style="color: ${userColor}">${user}</span>
+                <span class="chat-time">${time}</span>
             </div>
+            <div class="chat-text">${parsedMessage}</div>
         `;
         
         // 4. Добавляем в контейнер
