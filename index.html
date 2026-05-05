@@ -4,25 +4,18 @@
     <meta charset="UTF-8">
     <title>Ultimate Stream Overlay</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Подключение стилей -->
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- Библиотеки -->
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
 
-    <!-- Задний фон: Частицы -->
     <canvas id="particles-canvas"></canvas>
 
     <div id="scene-wrapper">
         
-        <!-- ========================================== -->
-        <!-- СЦЕНА: ОЖИДАНИЕ (ПРЕМИУМ ЭСТЕТИКА)         -->
-        <!-- style="display: none;" блокирует показ на других сценах -->
-        <!-- ========================================== -->
+        <!-- СЦЕНА: ОЖИДАНИЕ (ПРЕМИУМ ЭСТЕТИКА) -->
         <div id="starting-container" style="display: none;">
             <div class="starting-glass-card">
                 <div class="starting-status">
@@ -33,13 +26,24 @@
                 <div class="starting-subtitle">Заваривайте чаёк, скоро начинаем ☕</div>
             </div>
         </div>
+
+        <!-- ========================================== -->
+        <!-- СЦЕНА: ЗАВЕРШЕНИЕ (А ВСЁ)                  -->
+        <!-- ========================================== -->
+        <div id="ending-container" style="display: none;">
+            <div class="ending-glass-card">
+                <div class="ending-status">
+                    <div class="status-dot-offline"></div>
+                    ТРАНСЛЯЦИЯ ЗАВЕРШЕНА
+                </div>
+                <h1 class="ending-title">А всё,<br>а надо было раньше</h1>
+                <div class="ending-subtitle">Спасибо всем, кто был сегодня на стриме 💜</div>
+            </div>
+        </div>
         <!-- ========================================== -->
 
-        <!-- Динамический Goal-бар -->
         <div id="goal-container">
-            <div id="goal-bar-bg">
-                <div id="goal-bar-fill"></div>
-            </div>
+            <div id="goal-bar-bg"><div id="goal-bar-fill"></div></div>
             <div id="goal-text">
                 <span id="goal-title">⭐ Цель:</span>
                 <span id="goal-count">0 / 0</span>
@@ -48,11 +52,8 @@
 
         <div id="alert-container" class="hidden"></div>
         <div id="shoutout-container" class="hidden"></div>
-        
-        <!-- Ротатор соцсетей -->
         <div id="social-rotator" class="fade-out"></div>
         
-        <!-- Счетчик смертей -->
         <div id="deaths-container" class="hidden">
             <div class="deaths-title">DEATHS</div>
             <div id="deaths-count">0</div>
@@ -62,18 +63,14 @@
             <div id="chat-messages"></div>
         </div>
 
-        <!-- Рамка веб-камеры 4:3 -->
         <div id="webcam-container">
             <div id="webcam-frame"></div>
         </div>
 
-        <!-- Плеер YouTube -->
         <div id="widget-container" class="hidden">
             <div id="player-wrapper">
                 <div id="yt-player"></div>
-                <div id="yt-progress-container">
-                    <div id="yt-progress-bar"></div>
-                </div>
+                <div id="yt-progress-container"><div id="yt-progress-bar"></div></div>
             </div>
             <div id="info-bar">
                 <div class="info-main">
@@ -87,14 +84,11 @@
             </div>
         </div>
 
-        <!-- Бегущая строка -->
-        <div id="ticker-container">
-            <div id="ticker-text"></div>
-        </div>
+        <div id="ticker-container"><div id="ticker-text"></div></div>
 
     </div>
 
-    <!-- Модули логики (Строгий порядок загрузки) -->
+    <!-- Модули логики -->
     <script src="js/config.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/chat.js"></script>
@@ -109,21 +103,14 @@
     <script src="js/deaths.js"></script>
     <script src="js/twitch.js"></script>
 
-    <!-- СИСТЕМА РАЗДЕЛЕНИЯ НА ВИДЖЕТЫ И СЦЕНЫ -->
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const activeWidget = urlParams.get('widget');
         const sceneParam = urlParams.get('scene');
 
-        // Включение режима сцены "Just Chatting"
-        if (sceneParam === 'chatting') {
-            document.body.classList.add('scene-chatting');
-        }
-
-        // Включение режима сцены "Приветствие"
-        if (sceneParam === 'starting') {
-            document.body.classList.add('scene-starting');
-        }
+        if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
+        if (sceneParam === 'starting') document.body.classList.add('scene-starting');
+        if (sceneParam === 'ending') document.body.classList.add('scene-ending'); // Включаем финал
 
         if (activeWidget) {
             if (activeWidget !== 'music') {
@@ -154,7 +141,8 @@
                 'ticker': 'ticker-container',
                 'deaths': 'deaths-container',
                 'particles': 'particles-canvas',
-                'starting': 'starting-container'
+                'starting': 'starting-container',
+                'ending': 'ending-container'
             };
 
             for (const [key, id] of Object.entries(widgets)) {
