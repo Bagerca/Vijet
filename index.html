@@ -155,6 +155,16 @@
                 }
             }
         }
+        // ВЫКЛЮЧАТЕЛЬ МУЗЫКИ:
+        // Если в ссылке НЕТ ?music=on, мы полностью вырезаем плеер из этой копии
+        if (urlParams.get('music') !== 'on') {
+            const ytPlayer = document.getElementById('yt-player');
+            if (ytPlayer) ytPlayer.remove(); 
+            const widgetContainer = document.getElementById('widget-container');
+            if (widgetContainer) widgetContainer.remove();
+            window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
+            window.AppQueue = { add: function(){}, next: function(){} };
+        }
     </script>
 </body>
 </html>
