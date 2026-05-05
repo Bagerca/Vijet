@@ -252,96 +252,109 @@ body.widget-deaths #deaths-container { display: flex !important; position: absol
    Активируется ссылкой: index.html?scene=chatting
    ======================================================= */
 body.scene-chatting {
-    /* Легкий градиент вместо прозрачности, чтобы элементы не висели в пустоте, 
-       если в OBS не стоит картинка-фон */
-    background: radial-gradient(circle at center, #1a1a24 0%, #0a0a0f 100%);
+    /* Дорогой темный фон с легким свечением в центре */
+    background: radial-gradient(circle at center, #1c1c28 0%, #0d0d12 100%);
 }
 
-/* 1. Огромная веб-камера слева (сохраняем пропорции 4:3) */
+/* 1. ВЕБКАМЕРА: Слева, идеальный формат 16:9 */
 body.scene-chatting #webcam-container {
-    top: 50%; 
-    left: 80px; 
-    transform: translateY(-50%);
-    width: 1160px; 
-    height: 870px; 
-    border-radius: 24px;
+    top: 40px; 
+    left: 40px; 
+    width: 1400px; 
+    height: 788px; 
+    border-radius: 20px;
+    transform: none; /* Убираем центрирование из старого кода */
 }
 body.scene-chatting #webcam-frame {
-    border-width: 6px; 
-    border-radius: 24px;
+    border-width: 4px; 
+    border-radius: 20px;
 }
 
-/* 2. Высокий красивый чат справа */
-body.scene-chatting #chat-container {
+/* 2. GOAL БАР: Справа сверху (ровно над чатом) */
+body.scene-chatting #goal-container {
+    top: 40px; 
+    right: 40px; 
     left: auto; 
-    right: 50px; 
-    top: 50%; 
+    transform: none; 
+    width: 400px; /* Ширина совпадает с чатом */
+    animation: goalFadeIn 1s ease forwards;
+}
+@keyframes goalFadeIn { 
+    0% { transform: translateY(-20px); opacity: 0; } 
+    100% { transform: translateY(0); opacity: 1; } 
+}
+body.scene-chatting #goal-container.goal-completed {
+    animation: victoryPulseChatting 2s infinite alternate ease-in-out;
+}
+@keyframes victoryPulseChatting { 
+    0% { transform: scale(1); } 100% { transform: scale(1.02); } 
+}
+
+/* 3. ЧАТ: Справа, высокий стеклянный контейнер */
+body.scene-chatting #chat-container {
+    top: 100px; /* Отступ сверху (40px) + высота Goal-бара (~40px) + зазор (20px) */
+    right: 40px; 
+    left: auto; 
     bottom: auto;
-    transform: translateY(-50%);
-    width: 550px; 
-    height: 870px; /* Высота ровно с веб-камеру для симметрии */
+    width: 400px; 
+    height: 940px; /* Идет до самого низа (1080 - 100 - 40) */
+    transform: none;
     
-    background: linear-gradient(135deg, rgba(20, 20, 25, 0.6) 0%, rgba(15, 15, 18, 0.3) 100%);
-    border-radius: 24px; 
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Стеклянный дизайн чата */
+    background: linear-gradient(135deg, rgba(20, 20, 25, 0.7) 0%, rgba(15, 15, 18, 0.4) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px; 
     box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-    padding: 30px;
-    
-    /* Убираем исчезновение сверху для красивого стеклянного блока */
-    -webkit-mask-image: none; 
+    padding: 20px;
+    -webkit-mask-image: none; /* Убираем растворение сверху */
     overflow: hidden;
 }
 
-/* 3. Перемещение остальных элементов, чтобы не мешали лицу и чату */
-
-/* Ротатор соцсетей (над вебкой слева) */
-body.scene-chatting #social-rotator {
-    right: auto; 
-    left: 80px; 
-    top: 40px;
-}
-
-/* Цель фолловеров (над чатом справа) */
-body.scene-chatting #goal-container {
-    left: auto; 
-    right: 50px; 
-    top: 40px; 
-    transform: none; 
-    width: 550px;
-}
-/* Фикс для анимации Goal-бара (чтобы он не прыгал в центр экрана) */
-body.scene-chatting #goal-container { animation: goalSlideDownChatting 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-@keyframes goalSlideDownChatting { 0% { transform: translateY(-50px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-body.scene-chatting #goal-container.goal-completed { animation: victoryPulseChatting 2s infinite alternate ease-in-out; }
-@keyframes victoryPulseChatting { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
-
-/* Ютуб-плеер (под вебкой справа) */
-body.scene-chatting #widget-container {
-    left: auto; 
-    right: 680px; /* Ровно по правому краю вебки (1920 - 1240) */
-    bottom: 35px;
-}
-
-/* Бегущая строка (под вебкой слева) */
+/* 4. БЕГУЩАЯ СТРОКА: Снизу, четко под веб-камерой */
 body.scene-chatting #ticker-container {
-    left: 80px; 
-    bottom: 35px; 
+    bottom: 40px; 
+    left: 40px; 
     transform: none; 
-    width: 600px;
+    width: 1400px; /* Ширина совпадает с вебкой */
 }
 body.scene-chatting #ticker-container.visible {
-    transform: translateY(0); /* Убираем дефолтный сдвиг -50% по X */
+    transform: none; 
 }
 
-/* Алерты (Внутри вебки, по центру сверху) */
+/* 5. СОЦСЕТИ: Аккуратно сидят под веб-камерой слева */
+body.scene-chatting #social-rotator {
+    top: auto; 
+    bottom: 110px; /* Над бегущей строкой */
+    left: 40px; 
+    right: auto;
+    transform: none;
+}
+
+/* 6. ПЛЕЕР YOUTUBE: Под веб-камерой справа */
+body.scene-chatting #widget-container {
+    top: auto; 
+    bottom: 110px; /* Над бегущей строкой */
+    left: 1014px; /* Координата: 40(отступ) + 1400(вебка) - 426(плеер) */
+    right: auto;
+    transform: none;
+}
+/* Если плеер скрыт, он уезжает вниз, а не вбок */
+body.scene-chatting #widget-container.hidden { 
+    transform: translateY(50px); 
+    opacity: 0; 
+}
+
+/* 7. АЛЕРТЫ: По центру веб-камеры */
 body.scene-chatting #alert-container {
-    left: 660px; /* Центр вебки: 80 + (1160 / 2) */
-    top: 130px;
+    top: 100px;
+    left: 740px; /* Ровно центр левого блока: 40 + (1400 / 2) */
+    transform: translateX(-50%);
 }
 
-/* Счетчик смертей (над вебкой справа) */
+/* 8. СЧЕТЧИК СМЕРТЕЙ: В правом верхнем углу прямо внутри вебки */
 body.scene-chatting #deaths-container {
-    left: auto; 
-    right: 680px; 
-    top: 40px;
+    top: 60px;
+    left: 1300px; /* Внутри правого угла вебки */
+    right: auto;
+    transform: none;
 }
