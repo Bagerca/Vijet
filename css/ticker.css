@@ -1,0 +1,6 @@
+/* ================= БЕГУЩАЯ СТРОКА ================= */
+#ticker-container { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); width: 600px; height: 44px; background: linear-gradient(135deg, rgba(20, 20, 25, 0.85) 0%, rgba(15, 15, 18, 0.6) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 50px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); display: flex; align-items: center; overflow: hidden; z-index: 50; opacity: 0; transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.5s ease, bottom 0.5s ease; -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%); }
+#ticker-container.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+#ticker-text { white-space: nowrap; color: rgba(255, 255, 255, 0.7); font-size: 15px; font-weight: 600; padding-left: 100%; will-change: transform; }
+#ticker-text.scrolling { animation: tickerScroll 15s linear forwards; }
+@keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }

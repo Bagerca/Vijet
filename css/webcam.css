@@ -1,0 +1,3 @@
+/* ================= РАМКА ВЕБКИ ================= */
+#webcam-container { position: absolute; top: 220px; left: 40px; width: 400px; height: 300px; border-radius: 12px; transition: all 0.5s ease; }
+#webcam-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 4px solid #9146FF; border-radius: 12px; box-sizing: border-box; box-shadow: 0 0 10px rgba(145, 70, 255, 0.2); transition: box-shadow 0.1s ease-out, border-width 0.5s ease; z-index: 2; }

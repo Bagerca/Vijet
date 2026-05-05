@@ -1,0 +1,19 @@
+/* Базовые настройки */
+body, html {
+    margin: 0; padding: 0;
+    width: 1920px; height: 1080px;
+    background: transparent;
+    overflow: hidden;
+    font-family: 'Montserrat', sans-serif;
+}
+
+#particles-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
+#scene-wrapper { position: relative; width: 100%; height: 100%; z-index: 2; }
+
+/* ФИКС ПРОПАДАНИЯ ЭЛЕМЕНТОВ В OBS (Аппаратное ускорение) */
+#scene-wrapper > div {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    perspective: 1000;
+}
