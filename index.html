@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Ultimate Stream Overlay</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Подключение стилей -->
     <link rel="stylesheet" href="css/style.css">
     
     <!-- Библиотеки -->
@@ -17,6 +19,22 @@
 
     <div id="scene-wrapper">
         
+        <!-- ========================================== -->
+        <!-- СЦЕНА: ОЖИДАНИЕ (ПРЕМИУМ ЭСТЕТИКА)         -->
+        <!-- style="display: none;" блокирует показ на других сценах -->
+        <!-- ========================================== -->
+        <div id="starting-container" style="display: none;">
+            <div class="starting-glass-card">
+                <div class="starting-status">
+                    <div class="status-dot"></div>
+                    ОЖИДАНИЕ ТРАНСЛЯЦИИ
+                </div>
+                <h1 class="starting-title">Ало,<br>Здравствуйте,<br>Добрый вечер</h1>
+                <div class="starting-subtitle">Заваривайте чаёк, скоро начинаем ☕</div>
+            </div>
+        </div>
+        <!-- ========================================== -->
+
         <!-- Динамический Goal-бар -->
         <div id="goal-container">
             <div id="goal-bar-bg">
@@ -102,6 +120,11 @@
             document.body.classList.add('scene-chatting');
         }
 
+        // Включение режима сцены "Приветствие"
+        if (sceneParam === 'starting') {
+            document.body.classList.add('scene-starting');
+        }
+
         if (activeWidget) {
             if (activeWidget !== 'music') {
                 const ytPlayer = document.getElementById('yt-player');
@@ -130,7 +153,8 @@
                 'goal': 'goal-container',
                 'ticker': 'ticker-container',
                 'deaths': 'deaths-container',
-                'particles': 'particles-canvas'
+                'particles': 'particles-canvas',
+                'starting': 'starting-container'
             };
 
             for (const [key, id] of Object.entries(widgets)) {

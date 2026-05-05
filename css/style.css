@@ -16,5 +16,8 @@
 @import url('deaths.css');
 @import url('shoutout.css');
 
+/* Сцена приветствия */
+@import url('starting.css'); /* <-- Убедись, что эта строка здесь */
+
 /* Модификаторы (Режимы OBS и сцен). Должны загружаться ПОСЛЕДНИМИ! */
 @import url('modes.css');
