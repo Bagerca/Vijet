@@ -17,7 +17,7 @@
 
     <div id="scene-wrapper">
         
-        <!-- Динамический Goal-бар (Центр Верх) -->
+        <!-- Динамический Goal-бар -->
         <div id="goal-container">
             <div id="goal-bar-bg">
                 <div id="goal-bar-fill"></div>
@@ -31,10 +31,10 @@
         <div id="alert-container" class="hidden"></div>
         <div id="shoutout-container" class="hidden"></div>
         
-        <!-- Ротатор соцсетей (Справа Сверху) -->
+        <!-- Ротатор соцсетей -->
         <div id="social-rotator" class="fade-out"></div>
         
-        <!-- НОВОЕ: Счетчик смертей (Чистый минимализм - только текст) -->
+        <!-- Счетчик смертей -->
         <div id="deaths-container" class="hidden">
             <div class="deaths-title">DEATHS</div>
             <div id="deaths-count">0</div>
@@ -49,6 +49,7 @@
             <div id="webcam-frame"></div>
         </div>
 
+        <!-- Плеер YouTube -->
         <div id="widget-container" class="hidden">
             <div id="player-wrapper">
                 <div id="yt-player"></div>
@@ -68,6 +69,7 @@
             </div>
         </div>
 
+        <!-- Бегущая строка -->
         <div id="ticker-container">
             <div id="ticker-text"></div>
         </div>
@@ -89,10 +91,16 @@
     <script src="js/deaths.js"></script>
     <script src="js/twitch.js"></script>
 
-    <!-- СИСТЕМА РАЗДЕЛЕНИЯ НА ВИДЖЕТЫ (СОХРАНЯЯ 1920x1080) -->
+    <!-- СИСТЕМА РАЗДЕЛЕНИЯ НА ВИДЖЕТЫ И СЦЕНЫ -->
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const activeWidget = urlParams.get('widget');
+        const sceneParam = urlParams.get('scene');
+
+        // Включение режима сцены "Just Chatting"
+        if (sceneParam === 'chatting') {
+            document.body.classList.add('scene-chatting');
+        }
 
         if (activeWidget) {
             if (activeWidget !== 'music') {
