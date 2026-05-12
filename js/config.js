@@ -15,8 +15,8 @@ window.AppConfig = {
         "subnautica": "img/games/subnautica.png",
         "repo": "img/games/repo.png",
         "lethal_company": "img/games/lethal_company.png",
-        "rl": "img/games/rocketleague.png",
-        "jc": "img/games/justchatting.png"
+        "burglin_gnomes": "img/games/burglin_gnomes.png",
+        "winx": "img/games/winx_club_the_magic_is_back.png"
     },
 
     rewardName: "Заказать видео",
