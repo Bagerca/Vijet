@@ -1,13 +1,24 @@
-/* ================= ЧАТ ================= */
+/* ================= ЧАТ (СВЕТЛАЯ ТЕМА) ================= */
 #chat-container { position: absolute; bottom: 50px; left: 20px; width: 440px; height: 500px; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 20px 20px 20px; box-sizing: border-box; -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%); transition: all 0.5s ease; }
 #chat-messages { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; width: 100%; }
-.chat-message { display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; box-sizing: border-box; background: linear-gradient(135deg, rgba(5, 5, 8, 0.98) 0%, rgba(0, 0, 0, 0.95) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); color: #e6e6e6; padding: 16px 20px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05); animation: slideInChat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform-origin: left center; }
+
+/* Светлый фон пузыря с эффектом стекла */
+.chat-message { display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; box-sizing: border-box; background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 240, 245, 0.85) 100%); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); color: #1a1a1a; padding: 16px 20px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1); animation: slideInChat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform-origin: left center; }
+
 .chat-out { animation: slideOutChat 0.4s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
 .chat-header { display: flex; align-items: center; width: 100%; margin-bottom: 6px; }
-.chat-avatar { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; object-fit: cover; background: #1a1a1e; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); }
-.chat-user { font-weight: 800; font-size: 17px; text-shadow: 0 2px 5px rgba(0,0,0,0.9); letter-spacing: 0.3px; }
-.chat-time { font-size: 12px; color: rgba(255, 255, 255, 0.5); font-weight: 600; margin-left: auto; padding-left: 15px; }
-.chat-text { font-size: 16px; line-height: 1.5; word-wrap: break-word; color: #ffffff; font-weight: 600; max-width: 100%; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
-.chat-emote { vertical-align: middle; height: 32px; margin: -5px 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+
+/* Аватарка чуть-чуть осветлена на фоне */
+.chat-avatar { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; object-fit: cover; background: #e0e0e0; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); }
+
+/* Легкая тень у ника, чтобы светлые ники Twitch не терялись на белом фоне */
+.chat-user { font-weight: 800; font-size: 17px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); letter-spacing: 0.3px; }
+
+/* Темный текст для времени и самого сообщения */
+.chat-time { font-size: 12px; color: rgba(0, 0, 0, 0.4); font-weight: 700; margin-left: auto; padding-left: 15px; }
+.chat-text { font-size: 16px; line-height: 1.5; word-wrap: break-word; color: #1a1a1a; font-weight: 600; max-width: 100%; text-shadow: none; }
+
+.chat-emote { vertical-align: middle; height: 32px; margin: -5px 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
+
 @keyframes slideInChat { from { opacity: 0; transform: translateX(-40px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
 @keyframes slideOutChat { from { opacity: 1; transform: scale(1); height: auto; margin-bottom: 16px; } to { opacity: 0; transform: scale(0.8) translateX(-20px); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none; } }
