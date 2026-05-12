@@ -14,7 +14,7 @@ window.AppConfig = {
     gameLogos: {
         "subnautica": "img/games/subnautica.png",
         "repo": "img/games/repo.png",
-        "val": "img/games/valorant.png",
+        "lethal_company": "img/games/lethal_company.png",
         "rl": "img/games/rocketleague.png",
         "jc": "img/games/justchatting.png"
     },
