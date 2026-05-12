@@ -38,7 +38,9 @@ body.scene-chatting #chat-container {
     box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
     padding: 20px; 
     -webkit-mask-image: none; 
-    overflow: hidden; 
+    /* Жесткая блокировка выхода контента за рамки по всем осям */
+    overflow-y: hidden; 
+    overflow-x: hidden; 
 }
 
 body.scene-chatting #ticker-container { bottom: 40px; left: 40px; width: 1120px; transform: translateZ(0) !important; }
