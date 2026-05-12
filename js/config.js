@@ -13,7 +13,7 @@ window.AppConfig = {
     // Слева - то, что пишут в чате (!game cs). Справа - путь к картинке в папке.
     gameLogos: {
         "subnautica": "img/games/subnautica.png",
-        "dota": "img/games/dota.png",
+        "repo": "img/games/repo.png",
         "val": "img/games/valorant.png",
         "rl": "img/games/rocketleague.png",
         "jc": "img/games/justchatting.png"

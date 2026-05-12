@@ -17,8 +17,8 @@ body.widget-deaths #deaths-container { display: flex !important; position: absol
 
 /* ================= СЦЕНА "JUST CHATTING" (СВЕТЛАЯ) ================= */
 body.scene-chatting { background: radial-gradient(circle at center, #f8f9fa 0%, #e9ecef 100%); }
-body.scene-chatting #webcam-container { top: 40px; left: 40px; width: 1120px; height: 840px; border-radius: 20px; transform: translateZ(0) !important; }
-body.scene-chatting #webcam-frame { border-width: 5px; border-radius: 20px; }
+body.scene-chatting #webcam-container { top: 40px; left: 40px; width: 1120px; height: 840px; border-radius: 34px; transform: translateZ(0) !important; }
+body.scene-chatting #webcam-frame { border-width: 5px; border-radius: 34px; }
 body.scene-chatting #goal-container { top: 40px; right: 40px; left: auto; transform: translateZ(0) !important; width: 680px; }
 
 /* Плашка чата стала еще прозрачнее для сцены */

@@ -1,9 +1,46 @@
 /* ================= ЧАТ (СВЕТЛАЯ ТЕМА) ================= */
-#chat-container { position: absolute; bottom: 50px; left: 20px; width: 440px; height: 500px; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 20px 20px 20px; box-sizing: border-box; -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%); transition: all 0.5s ease; }
-#chat-messages { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; width: 100%; }
+#chat-container { 
+    position: absolute; 
+    bottom: 50px; 
+    left: 20px; 
+    /* МЕНЯЕМ ШИРИНУ С 440px НА 420px ДЛЯ ИДЕАЛЬНОГО ВЫРАВНИВАНИЯ С ВЕБКОЙ */
+    width: 420px; 
+    height: 500px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: flex-end; 
+    padding: 0 20px 20px 20px; 
+    box-sizing: border-box; 
+    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%); 
+    transition: all 0.5s ease; 
+}
+#chat-messages { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 16px; 
+    width: 100%; 
+}
 
-/* Светлый фон пузыря с эффектом стекла (ПРОЗРАЧНОСТЬ УВЕЛИЧЕНА) */
-.chat-message { display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; box-sizing: border-box; background: linear-gradient(135deg, rgba(255, 255, 255, 0.80) 0%, rgba(240, 240, 245, 0.70) 100%); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); color: #1a1a1a; padding: 16px 20px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8); animation: slideInChat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform-origin: center bottom; }
+/* Светлый фон пузыря с эффектом стекла */
+.chat-message { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-start; 
+    box-sizing: border-box; 
+    /* МЕНЯЕМ max-width НА ЖЕСТКИЙ width: 100%, ЧТОБЫ ПУЗЫРИ ВСЕГДА БЫЛИ ШИРОКИМИ */
+    width: 100%; 
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.80) 0%, rgba(240, 240, 245, 0.70) 100%); 
+    backdrop-filter: blur(18px); 
+    -webkit-backdrop-filter: blur(18px); 
+    color: #1a1a1a; 
+    padding: 16px 20px; 
+    border-radius: 18px; 
+    border: 1px solid rgba(255, 255, 255, 0.6); 
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8); 
+    animation: slideInChat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+    transform-origin: center bottom; 
+}
 
 .chat-out { animation: slideOutChat 0.4s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
 .chat-header { display: flex; align-items: center; width: 100%; margin-bottom: 6px; }
