@@ -62,16 +62,16 @@ body.scene-chatting #deaths-count {
 /* ================= ЛОГОТИП ИГРЫ В JUST CHATTING ================= */
 body.scene-chatting #game-logo-container {
     bottom: auto;      /* Отменяем привязку к внешней "крыше" */
-    top: 30px;         /* Опускаем логотип ВНУТРЬ вебки (30px от верхнего края) */
+    top: 30px;         /* Опускаем логотип ВНУТРЬ вебки */
     margin-bottom: 0;
 }
 
 body.scene-chatting #game-logo-img {
-    max-height: 120px; /* Увеличиваем лимит высоты, так как вебка огромная */
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7)); /* Делаем тень погуще, чтобы лого читалось на фоне камеры */
+    max-height: 105px; /* Уменьшили! Было 120px, теперь аккуратнее */
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7)); 
 }
 
-/* Корректируем анимацию скрытия (чтобы он плавно улетал чуть вверх, а не падал) */
+/* Корректируем анимацию скрытия */
 body.scene-chatting #game-logo-container.hidden {
     transform: translateX(-50%) translateY(-20px);
     opacity: 0;
