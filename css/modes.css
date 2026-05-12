@@ -17,8 +17,11 @@ body.widget-deaths #deaths-container { display: flex !important; position: absol
 
 /* ================= СЦЕНА "JUST CHATTING" (СВЕТЛАЯ) ================= */
 body.scene-chatting { background: radial-gradient(circle at center, #f8f9fa 0%, #e9ecef 100%); }
+
+/* ОБНОВЛЕНО: border-radius 34px для идеальной единой маски */
 body.scene-chatting #webcam-container { top: 40px; left: 40px; width: 1120px; height: 840px; border-radius: 34px; transform: translateZ(0) !important; }
 body.scene-chatting #webcam-frame { border-width: 5px; border-radius: 34px; }
+
 body.scene-chatting #goal-container { top: 40px; right: 40px; left: auto; transform: translateZ(0) !important; width: 680px; }
 
 /* Плашка чата стала еще прозрачнее для сцены */
@@ -38,4 +41,20 @@ body.scene-chatting #social-rotator { top: auto; bottom: 110px; left: 40px; righ
 body.scene-chatting #widget-container { top: auto; bottom: 110px; left: 734px; right: auto; transform: translateZ(0) !important; }
 body.scene-chatting #widget-container.hidden { opacity: 0; pointer-events: none; }
 body.scene-chatting #alert-container { top: 100px; left: 600px; transform: translateX(-50%) translateZ(0) !important; }
-body.scene-chatting #deaths-container { top: 60px; left: 1000px; right: auto; transform: translateZ(0) !important; }
+
+/* ОБНОВЛЕНО: Смерти в Just Chatting привязаны к большой вебке и увеличены */
+body.scene-chatting #deaths-container { 
+    top: 65px; 
+    left: auto; 
+    /* Экран 1920 - край вебки 1160 + отступ 20px = 780px справа */
+    right: 780px; 
+    transform: translateZ(0) !important; 
+}
+body.scene-chatting .deaths-title { 
+    font-size: 16px; 
+    letter-spacing: 6px; 
+    margin-right: -6px; 
+}
+body.scene-chatting #deaths-count { 
+    font-size: 64px; 
+}
