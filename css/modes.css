@@ -24,7 +24,7 @@ body.scene-chatting { background: radial-gradient(circle at center, #1c1c28 0%, 
 body.scene-chatting #webcam-container { top: 40px; left: 40px; width: 1120px; height: 840px; border-radius: 20px; transform: translateZ(0) !important; }
 body.scene-chatting #webcam-frame { border-width: 5px; border-radius: 20px; }
 body.scene-chatting #goal-container { top: 40px; right: 40px; left: auto; transform: translateZ(0) !important; width: 680px; }
-body.scene-chatting #chat-container { top: 100px; right: 40px; left: auto; bottom: auto; width: 680px; height: 780px; transform: translateZ(0) !important; background: linear-gradient(135deg, rgba(20, 20, 25, 0.7) 0%, rgba(15, 15, 18, 0.4) 100%); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); padding: 20px; -webkit-mask-image: none; }
+body.scene-chatting #chat-container { top: 100px; right: 40px; left: auto; bottom: auto; width: 680px; height: 780px; transform: translateZ(0) !important; background: linear-gradient(135deg, rgba(15, 15, 18, 0.95) 0%, rgba(10, 10, 12, 0.8) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); padding: 20px; -webkit-mask-image: none; }
 body.scene-chatting #ticker-container { bottom: 40px; left: 40px; width: 1120px; transform: translateZ(0) !important; }
 body.scene-chatting #social-rotator { top: auto; bottom: 110px; left: 40px; right: auto; transform: translateZ(0) !important; }
 body.scene-chatting #widget-container { top: auto; bottom: 110px; left: 734px; right: auto; transform: translateZ(0) !important; }
