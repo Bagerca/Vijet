@@ -3,20 +3,21 @@ window.AppChat = {
     avatarCache: {}, 
 
     addMessage: async function(user, message, flags, extra) {
-        // 1. Берем цвет юзера
-        const userColor = extra.userColor || '#9146FF';
+        const userColor = extra.userColor || '#FF4477'; // По умолчанию розовый
         const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        const parsedMessage = this.parseEmotes(message, extra.messageEmotes);
+        
+        // 1. Парсим смайлы и экранируем текст
+        let parsedMessage = this.parseEmotes(message, extra.messageEmotes);
+        
+        // 2. ПРОПУСКАЕМ ЧЕРЕЗ ФИЛЬТР ЗАПРЕТОК
+        parsedMessage = this.filterForbiddenWords(parsedMessage);
 
-        // 2. СНАЧАЛА получаем аватарку (из кэша или API), чтобы не было мерцаний
         const avatarUrl = await this.getAvatar(user, userColor);
 
-        // 3. Создаем элемент сообщения
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-message';
         msgDiv.style.borderLeft = `4px solid ${userColor}`;
         
-        // НОВАЯ СТРУКТУРА: Аватарка и ник в одном ряду, текст под ними
         msgDiv.innerHTML = `
             <div class="chat-header">
                 <img src="${avatarUrl}" class="chat-avatar">
@@ -26,31 +27,42 @@ window.AppChat = {
             <div class="chat-text">${parsedMessage}</div>
         `;
         
-        // 4. Добавляем в контейнер
         this.container.appendChild(msgDiv);
 
-        // 5. Логика лимита сообщений (если превышен maxChatMessages)
-        // Ищем все сообщения, КРОМЕ тех, что уже в процессе удаления
         const activeMessages = Array.from(this.container.children).filter(el => !el.classList.contains('chat-out'));
 
         if (activeMessages.length > window.AppConfig.maxChatMessages) {
-            // Берем самое старое сообщение
             const oldestMsg = activeMessages[0];
-            
-            // Запускаем красивую анимацию исчезновения
             oldestMsg.classList.add('chat-out');
-            
-            // Ждем завершения анимации (0.4с) и физически удаляем из DOM
             setTimeout(() => {
-                if (oldestMsg.parentNode) {
-                    oldestMsg.remove();
-                }
+                if (oldestMsg.parentNode) oldestMsg.remove();
             }, 400);
         }
     },
 
+    // ==========================================
+    // НОВОЕ: УМНЫЙ ФИЛЬТР ЗАПРЕТНЫХ СЛОВ
+    // ==========================================
+    filterForbiddenWords: function(htmlString) {
+        const words = window.AppConfig.forbiddenWords || [];
+        if (words.length === 0) return htmlString;
+
+        let result = htmlString;
+        words.forEach(word => {
+            // Экранируем спецсимволы в самом слове (на всякий случай)
+            const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            
+            // Регулярка: ищет слово без учета регистра (gi), НО игнорирует текст внутри <img...> 
+            // чтобы случайно не сломать смайлики Twitch!
+            const regex = new RegExp(`(?![^<]*>)(${safeWord})`, 'gi');
+            
+            // Оборачиваем найденное слово в наш спан с красивым блюром
+            result = result.replace(regex, `<span class="blurred-word">$1</span>`);
+        });
+        return result;
+    },
+
     getAvatar: async function(username, userColor) {
-        // Если уже загружали эту аватарку, моментально отдаем из кэша
         if (this.avatarCache[username]) return this.avatarCache[username];
         
         try {
@@ -58,13 +70,11 @@ window.AppChat = {
             const data = await response.json();
             
             if (data && data.length > 0 && data[0].logo) {
-                // Сохраняем в кэш
                 this.avatarCache[username] = data[0].logo; 
                 return data[0].logo;
             }
             throw new Error("Нет кастомной аватарки");
         } catch (e) {
-            // Если аватарки нет, генерируем заглушку (с инициалом)
             let hexColor = userColor.replace('#', '');
             let fallbackUrl = `https://ui-avatars.com/api/?name=${username}&background=${hexColor}&color=fff&size=64&bold=true`;
             this.avatarCache[username] = fallbackUrl;

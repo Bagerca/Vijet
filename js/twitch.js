@@ -61,31 +61,41 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
             break;
 
         // ==========================================
-        // НОВОЕ: УПРАВЛЕНИЕ СЧЕТЧИКОМ СМЕРТЕЙ
+        // ЛОГОТИП ИГРЫ НАД ВЕБКОЙ
+        // ==========================================
+        case "game":
+        case "игра":
+            if (hasPermission) {
+                // Если модератор написал !game cs
+                window.AppGameLogo.set(arg);
+            }
+            break;
+
+        // ==========================================
+        // УПРАВЛЕНИЕ СЧЕТЧИКОМ СМЕРТЕЙ
         // ==========================================
         case "death":
         case "deaths":
         case "смерть":
             if (hasPermission) {
                 if (arg === "on" || arg === "show") {
-                    window.AppDeaths.toggle(true); // Включить интерфейс
+                    window.AppDeaths.toggle(true);
                 } 
                 else if (arg === "off" || arg === "hide") {
-                    window.AppDeaths.toggle(false); // Выключить интерфейс
+                    window.AppDeaths.toggle(false);
                 } 
                 else if (arg === "-" || arg === "sub") {
-                    window.AppDeaths.update(1, 'sub'); // Минус 1 смерть
+                    window.AppDeaths.update(1, 'sub');
                 } 
                 else if (arg === "reset" || arg === "clear") {
-                    window.AppDeaths.update(0, 'set'); // Сброс до 0
+                    window.AppDeaths.update(0, 'set');
                 } 
                 else if (arg.startsWith("set ")) {
-                    const num = parseInt(arg.replace("set ", "")); // !death set 15
+                    const num = parseInt(arg.replace("set ", ""));
                     if (!isNaN(num)) window.AppDeaths.update(num, 'set');
                 } 
                 else {
-                    // Если просто написать "!death" или "!death +"
-                    window.AppDeaths.update(1, 'add'); // Плюс 1 смерть
+                    window.AppDeaths.update(1, 'add');
                 }
             }
             break;

@@ -33,7 +33,8 @@ window.AppParticles = {
             if (p.x > this.canvas.width) p.x = 0; if (p.x < 0) p.x = this.canvas.width;
             if (p.y > this.canvas.height) p.y = 0; if (p.y < 0) p.y = this.canvas.height;
 
-            this.ctx.fillStyle = `rgba(145, 70, 255, ${p.opacity})`;
+            // Розовые частицы
+            this.ctx.fillStyle = `rgba(255, 68, 119, ${p.opacity})`;
             this.ctx.beginPath(); this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); this.ctx.fill();
         }
         requestAnimationFrame(this.animate.bind(this));

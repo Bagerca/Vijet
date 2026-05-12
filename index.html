@@ -15,7 +15,7 @@
 
     <div id="scene-wrapper">
         
-        <!-- СЦЕНА: ОЖИДАНИЕ (ПРЕМИУМ ЭСТЕТИКА) -->
+        <!-- СЦЕНА: ОЖИДАНИЕ -->
         <div id="starting-container" style="display: none;">
             <div class="starting-glass-card">
                 <div class="starting-status">
@@ -27,9 +27,7 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- СЦЕНА: ЗАВЕРШЕНИЕ (А ВСЁ)                  -->
-        <!-- ========================================== -->
+        <!-- СЦЕНА: ЗАВЕРШЕНИЕ -->
         <div id="ending-container" style="display: none;">
             <div class="ending-glass-card">
                 <div class="ending-status">
@@ -40,7 +38,6 @@
                 <div class="ending-subtitle">Спасибо всем, кто был сегодня на стриме 💜</div>
             </div>
         </div>
-        <!-- ========================================== -->
 
         <div id="goal-container">
             <div id="goal-bar-bg"><div id="goal-bar-fill"></div></div>
@@ -63,7 +60,13 @@
             <div id="chat-messages"></div>
         </div>
 
+        <!-- ВЕБ-КАМЕРА И ЛОГОТИП ИГРЫ -->
         <div id="webcam-container">
+            <!-- Плашка с логотипом игры -->
+            <div id="game-logo-container" class="hidden">
+                <img id="game-logo-img" src="" alt="Game Logo">
+            </div>
+            
             <div id="webcam-frame"></div>
         </div>
 
@@ -101,6 +104,8 @@
     <script src="js/goal.js"></script>
     <script src="js/ticker.js"></script>
     <script src="js/deaths.js"></script>
+    <!-- НОВЫЙ СКРИПТ ДЛЯ ИГР -->
+    <script src="js/gamelogo.js"></script>
     <script src="js/twitch.js"></script>
 
     <script>
@@ -113,7 +118,6 @@
         if (sceneParam === 'ending') document.body.classList.add('scene-ending'); 
 
         if (activeWidget) {
-            // === ДЕЛАЕМ ФОН ПРОЗРАЧНЫМ В РЕЖИМЕ ВИДЖЕТОВ ===
             document.body.style.setProperty('background', 'transparent', 'important');
 
             if (activeWidget !== 'music') {
@@ -159,8 +163,6 @@
             }
         }
         
-        // ВЫКЛЮЧАТЕЛЬ МУЗЫКИ:
-        // Если в ссылке НЕТ ?music=on, мы полностью вырезаем плеер из этой копии
         if (urlParams.get('music') !== 'on') {
             const ytPlayer = document.getElementById('yt-player');
             if (ytPlayer) ytPlayer.remove(); 
