@@ -138,7 +138,7 @@
     <script src="js/config.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/emotes.js"></script>
-    <script src="js/pet.js"></script> <!-- СКРИПТ ПИТОМЦА -->
+    <script src="js/pet.js"></script> 
     <script src="js/chat.js"></script>
     <script src="js/queue.js"></script>
     <script src="js/youtube.js"></script>
@@ -182,12 +182,10 @@
                 if (window.AppParticles) window.AppParticles.animate = function(){};
             }
             
-            // Если выбран отдельный виджет, и это не эмодзи, глушим спавн смайлов
             if (activeWidget !== 'emotes' && activeWidget !== 'chat') {
                 if (window.AppEmotes) window.AppEmotes.spawn = function(){};
             }
 
-            // Если выбран отдельный виджет, и это не TTS, глушим TTS
             if (activeWidget !== 'tts') {
                 if (window.AppTTS) window.AppTTS.add = function(){};
             }
@@ -206,21 +204,49 @@
                 'emotes': 'emotes-container',
                 'tts': 'tts-container',
                 'starting': 'starting-container',
-                'ending': 'ending-container'
+                'ending': 'ending-container',
+                'pet': 'pet-container' // <--- ДОБАВЛЕН ПИТОМЕЦ
             };
 
-            for (const [key, id] of Object.entries(widgets)) {
-                if (key !== activeWidget) {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.style.setProperty('display', 'none', 'important');
-                        if (key !== 'chat' && key !== 'emotes') el.innerHTML = ''; 
+            // СПЕЦИАЛЬНАЯ ЛОГИКА ДЛЯ РАЗДЕЛЕНИЯ ВЕБКИ И ЛИСЫ В СЛОЯХ OBS
+            if (activeWidget === 'pet') {
+                for (const [key, id] of Object.entries(widgets)) {
+                    if (key !== 'cam' && key !== 'pet') {
+                        const el = document.getElementById(id);
+                        if (el) el.style.setProperty('display', 'none', 'important');
+                    }
+                }
+                // Прячем рамку и лого, оставляем только Лису
+                const frame = document.getElementById('webcam-frame');
+                const logo = document.getElementById('game-logo-container');
+                if(frame) frame.style.setProperty('display', 'none', 'important');
+                if(logo) logo.style.setProperty('display', 'none', 'important');
+
+            } else if (activeWidget === 'cam') {
+                // Если грузим чисто вебку — прячем Лису
+                const pet = document.getElementById('pet-container');
+                if(pet) pet.style.setProperty('display', 'none', 'important');
+                
+                for (const [key, id] of Object.entries(widgets)) {
+                    if (key !== 'cam') {
+                        const el = document.getElementById(id);
+                        if (el) el.style.setProperty('display', 'none', 'important');
+                    }
+                }
+            } else {
+                // Стандартная логика для остальных виджетов
+                for (const [key, id] of Object.entries(widgets)) {
+                    if (key !== activeWidget) {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.style.setProperty('display', 'none', 'important');
+                            if (key !== 'chat' && key !== 'emotes') el.innerHTML = ''; 
+                        }
                     }
                 }
             }
         }
         
-        // Отключаем плеер ТОЛЬКО если в ссылке есть music=off
         if (urlParams.get('music') === 'off') {
             const ytPlayer = document.getElementById('yt-player');
             if (ytPlayer) ytPlayer.remove(); 
