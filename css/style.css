@@ -6,6 +6,9 @@
 @import url('base.css');
 
 /* Модули интерфейса */
+@import url('pet.css');
+@import url('tts.css');
+@import url('emotes.css');
 @import url('chat.css');
 @import url('webcam.css');
 @import url('youtube.css');

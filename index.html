@@ -56,20 +56,63 @@
             <div id="deaths-count">0</div>
         </div>
 
+        <!-- КОНТЕЙНЕР ДЛЯ ЛЕТЯЩИХ ЭМОДЗИ -->
+        <div id="emotes-container"></div>
+
         <div id="chat-container">
             <div id="chat-messages"></div>
         </div>
 
         <!-- ВЕБ-КАМЕРА И ЛОГОТИП ИГРЫ -->
         <div id="webcam-container">
-            <!-- Плашка с логотипом игры -->
             <div id="game-logo-container" class="hidden">
                 <img id="game-logo-img" src="" alt="Game Logo">
             </div>
             
+            <!-- ПИКСЕЛЬНЫЙ ПИТОМЕЦ (ЛИСА) -->
+            <div id="pet-container" class="state-idle">
+                <div class="tail-wrapper">
+                    <div class="fox-part tail-main"><div class="fox-part tail-tip"></div></div>
+                </div>
+                <div class="fox-part body">
+                    <div class="fox-part chest"></div>
+                    <div class="fox-part leg-front"></div>
+                    <div class="fox-part leg-back"></div>
+                </div>
+                <div class="head-wrapper">
+                    <div class="fox-part ear-l"><div class="ear-l-in"></div></div>
+                    <div class="fox-part ear-r"><div class="ear-r-in"></div></div>
+                    <div class="fox-part head-main">
+                        <div class="fox-part cheek-l"></div>
+                        <div class="fox-part cheek-r"></div>
+                        <div class="fox-part snout">
+                            <div class="fox-part nose"></div>
+                            <div class="fox-part mouth"></div>
+                        </div>
+                        <div class="eye eye-l"></div>
+                        <div class="eye eye-r"></div>
+                    </div>
+                </div>
+            </div>
+
             <div id="webcam-frame"></div>
         </div>
 
+        <!-- ПЛАШКА ОЗВУЧКИ (TTS) -->
+        <div id="tts-container" class="hidden">
+            <div class="tts-icon">🎙️</div>
+            <div class="tts-info">
+                <span class="tts-title">Озвучивает</span>
+                <span id="tts-user" class="tts-user">Никнейм</span>
+            </div>
+            <div class="tts-wave">
+                <div class="tts-bar"></div>
+                <div class="tts-bar"></div>
+                <div class="tts-bar"></div>
+            </div>
+        </div>
+
+        <!-- МУЗЫКАЛЬНЫЙ ВИДЖЕТ -->
         <div id="widget-container" class="hidden">
             <div id="player-wrapper">
                 <div id="yt-player"></div>
@@ -94,6 +137,8 @@
     <!-- Модули логики -->
     <script src="js/config.js"></script>
     <script src="js/particles.js"></script>
+    <script src="js/emotes.js"></script>
+    <script src="js/pet.js"></script> <!-- СКРИПТ ПИТОМЦА -->
     <script src="js/chat.js"></script>
     <script src="js/queue.js"></script>
     <script src="js/youtube.js"></script>
@@ -104,8 +149,8 @@
     <script src="js/goal.js"></script>
     <script src="js/ticker.js"></script>
     <script src="js/deaths.js"></script>
-    <!-- НОВЫЙ СКРИПТ ДЛЯ ИГР -->
     <script src="js/gamelogo.js"></script>
+    <script src="js/tts.js"></script>
     <script src="js/twitch.js"></script>
 
     <script>
@@ -136,6 +181,16 @@
                 if (canvas) canvas.remove();
                 if (window.AppParticles) window.AppParticles.animate = function(){};
             }
+            
+            // Если выбран отдельный виджет, и это не эмодзи, глушим спавн смайлов
+            if (activeWidget !== 'emotes' && activeWidget !== 'chat') {
+                if (window.AppEmotes) window.AppEmotes.spawn = function(){};
+            }
+
+            // Если выбран отдельный виджет, и это не TTS, глушим TTS
+            if (activeWidget !== 'tts') {
+                if (window.AppTTS) window.AppTTS.add = function(){};
+            }
 
             const widgets = {
                 'chat': 'chat-container',
@@ -148,6 +203,8 @@
                 'ticker': 'ticker-container',
                 'deaths': 'deaths-container',
                 'particles': 'particles-canvas',
+                'emotes': 'emotes-container',
+                'tts': 'tts-container',
                 'starting': 'starting-container',
                 'ending': 'ending-container'
             };
@@ -157,20 +214,21 @@
                     const el = document.getElementById(id);
                     if (el) {
                         el.style.setProperty('display', 'none', 'important');
-                        if (key !== 'chat') el.innerHTML = ''; 
+                        if (key !== 'chat' && key !== 'emotes') el.innerHTML = ''; 
                     }
                 }
             }
         }
+        
         // Отключаем плеер ТОЛЬКО если в ссылке есть music=off
-if (urlParams.get('music') === 'off') {
-    const ytPlayer = document.getElementById('yt-player');
-    if (ytPlayer) ytPlayer.remove(); 
-    const widgetContainer = document.getElementById('widget-container');
-    if (widgetContainer) widgetContainer.remove();
-    window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
-    window.AppQueue = { add: function(){}, next: function(){} };
-}
+        if (urlParams.get('music') === 'off') {
+            const ytPlayer = document.getElementById('yt-player');
+            if (ytPlayer) ytPlayer.remove(); 
+            const widgetContainer = document.getElementById('widget-container');
+            if (widgetContainer) widgetContainer.remove();
+            window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
+            window.AppQueue = { add: function(){}, next: function(){} };
+        }
     </script>
 </body>
 </html>

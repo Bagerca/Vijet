@@ -2,13 +2,38 @@ window.AppQueue = {
     items: [],
     isPlaying: false,
 
+    init: function() {
+        // Восстанавливаем очередь из хранилища
+        const savedQueue = localStorage.getItem('uso_queue');
+        if (savedQueue) {
+            try {
+                this.items = JSON.parse(savedQueue);
+                this.updateStats();
+                
+                // Если после перезагрузки в очереди остались треки, запускаем первый
+                if (this.items.length > 0) {
+                    setTimeout(() => { this.next(); }, 2000); // Задержка, чтобы плеер успел прогрузиться
+                }
+            } catch (e) {
+                console.error("[Queue] Ошибка чтения очереди из localStorage", e);
+                this.items = [];
+            }
+        }
+    },
+
+    saveQueue: function() {
+        // Сохраняем текущий массив очереди в хранилище
+        localStorage.setItem('uso_queue', JSON.stringify(this.items));
+    },
+
     add: function(url, user) {
         const videoId = this.extractId(url);
         if (videoId) {
             this.items.push({ id: videoId, user: user });
             this.updateStats(); 
+            this.saveQueue(); // Сохраняем изменение
             
-            // НОВОЕ: Передаем информацию в бегущую строку для показа уведомления
+            // Передаем информацию в бегущую строку для показа уведомления
             if (window.AppTicker) {
                 window.AppTicker.showMusicEvent(videoId, user);
             }
@@ -21,7 +46,10 @@ window.AppQueue = {
         if (this.items.length > 0) {
             this.isPlaying = true;
             const nextVideo = this.items.shift();
+            
             this.updateStats(); 
+            this.saveQueue(); // Сохраняем изменение (удалили трек из очереди)
+            
             window.AppPlayer.play(nextVideo.id, nextVideo.user);
         } else {
             this.isPlaying = false;
@@ -33,11 +61,13 @@ window.AppQueue = {
     clear: function() {
         this.items = [];
         this.updateStats();
+        this.saveQueue(); // Сохраняем очистку
         this.next(); 
     },
 
     updateStats: function() {
         const countEl = document.getElementById('queue-count');
+        if (!countEl) return;
         countEl.innerText = this.items.length;
         
         countEl.classList.remove('animate-pop');
@@ -51,3 +81,6 @@ window.AppQueue = {
         return (match && match[1].length === 11) ? match[1] : null;
     }
 };
+
+// Инициализация очереди
+setTimeout(() => window.AppQueue.init(), 500);

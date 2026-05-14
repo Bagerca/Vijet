@@ -4,6 +4,17 @@ window.AppDeaths = {
     count: 0,
     isVisible: false,
 
+    init: function() {
+        // Пытаемся достать сохраненные смерти из локального хранилища
+        const savedDeaths = localStorage.getItem('uso_deaths');
+        if (savedDeaths !== null) {
+            this.count = parseInt(savedDeaths, 10) || 0;
+            this.render();
+            // Если смертей больше 0, сразу показываем плашку при загрузке
+            if (this.count > 0) this.toggle(true);
+        }
+    },
+
     toggle: function(forceState) {
         this.isVisible = forceState !== undefined ? forceState : !this.isVisible;
         
@@ -23,6 +34,9 @@ window.AppDeaths = {
 
         if (this.count < 0) this.count = 0;
 
+        // СОХРАНЯЕМ В ЛОКАЛЬНОЕ ХРАНИЛИЩЕ
+        localStorage.setItem('uso_deaths', this.count);
+
         this.render();
         
         // Авто-показ если есть смерти
@@ -35,6 +49,9 @@ window.AppDeaths = {
             this.container.classList.remove('damage-shake');
             void this.container.offsetWidth; 
             this.container.classList.add('damage-shake');
+
+            // ПИТОМЕЦ ПУГАЕТСЯ ПРИ СМЕРТИ НА 3 СЕКУНДЫ
+            if (window.AppPet) window.AppPet.setEmotion('scared', 3000);
         }
     },
 
@@ -47,3 +64,6 @@ window.AppDeaths = {
         this.countText.classList.add('animate-pop-red');
     }
 };
+
+// Запускаем инициализацию при загрузке скрипта
+setTimeout(() => window.AppDeaths.init(), 500);

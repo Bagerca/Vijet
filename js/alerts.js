@@ -3,8 +3,9 @@ window.AppAlerts = {
     queue: [],
     isPlaying: false,
 
-    add: function(user, type, message = "", months = 0) {
-        this.queue.push({ user, type, message, months });
+    // value используем для цифр (месяцы подписки или количество стримов подряд)
+    add: function(user, type, message = "", value = 0) {
+        this.queue.push({ user, type, message, value });
         if (!this.isPlaying) this.playNext();
     },
 
@@ -20,6 +21,9 @@ window.AppAlerts = {
     },
 
     render: function(data) {
+        // ПИТОМЕЦ ПУСКАЕТ СЕРДЕЧКИ ПРИ ЛЮБЫХ АЛЕРТАХ
+        if (window.AppPet) window.AppPet.setEmotion('love', window.AppConfig.alertDuration || 5000);
+
         let icon = ""; let color = ""; let titleText = ""; let subText = data.message;
 
         switch (data.type) {
@@ -33,21 +37,25 @@ window.AppAlerts = {
                 break;
             case 'resub':
                 icon = `🔥`; color = `#FF4500`; 
-                titleText = `<span class="alert-user" style="color: ${color}">${data.user}</span> с нами уже ${data.months} мес.!`;
+                titleText = `<span class="alert-user" style="color: ${color}">${data.user}</span> с нами уже ${data.value} мес.!`;
                 break;
             case 'gift':
                 icon = `🎁`; color = `#9146FF`; 
                 titleText = `<span class="alert-user" style="color: ${color}">${data.user}</span> подарил подписку!`;
                 break;
+            // НОВЫЙ ТИП: СЕРИЯ ПРОСМОТРОВ (WATCH STREAK)
+            case 'streak':
+                icon = `📺`; color = `#00E5FF`; // Неоново-голубой цвет
+                titleText = `<span class="alert-user" style="color: ${color}">${data.user}</span> смотрит ${data.value} стримов подряд!`;
+                break;
         }
 
         // Передаем цвета в CSS для создания ровного неона
         this.container.style.setProperty('--alert-color', color);
-        this.container.style.setProperty('--alert-glow', `${color}55`); // полупрозрачный цвет
+        this.container.style.setProperty('--alert-glow', `${color}55`);
 
         this.container.innerHTML = `
             <div class="alert-card">
-                <!-- Идеально ровный круг для эмодзи с собственным неоном -->
                 <div class="alert-icon-wrap" style="box-shadow: 0 0 20px var(--alert-glow), inset 0 0 10px var(--alert-glow);">
                     <div class="alert-icon" style="text-shadow: 0 0 15px ${color};">${icon}</div>
                 </div>

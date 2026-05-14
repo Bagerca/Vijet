@@ -2,7 +2,22 @@ window.AppChat = {
     container: document.getElementById('chat-messages'),
     avatarCache: {}, 
 
+    init: function() {
+        // Восстанавливаем кеш аватарок из хранилища (чтобы не спамить API при перезагрузке)
+        const savedAvatars = localStorage.getItem('uso_avatars');
+        if (savedAvatars) {
+            try {
+                this.avatarCache = JSON.parse(savedAvatars);
+            } catch (e) {
+                this.avatarCache = {};
+            }
+        }
+    },
+
     addMessage: async function(user, message, flags, extra) {
+        // СБРОС ТАЙМЕРА СНА ДЛЯ ПИТОМЦА ПРИ КАЖДОМ СООБЩЕНИИ
+        if (window.AppPet) window.AppPet.resetSleepTimer();
+
         const userColor = extra.userColor || '#FF4477'; // По умолчанию розовый
         const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         
@@ -11,6 +26,13 @@ window.AppChat = {
         
         // 2. ПРОПУСКАЕМ ЧЕРЕЗ ФИЛЬТР ЗАПРЕТОК
         parsedMessage = this.filterForbiddenWords(parsedMessage);
+
+        // ==========================================
+        // ПЕРЕДАЕМ ЭМОДЗИ ДЛЯ АНИМАЦИИ НА ЭКРАНЕ
+        // ==========================================
+        if (extra.messageEmotes && window.AppEmotes) {
+            window.AppEmotes.spawn(extra.messageEmotes);
+        }
 
         const avatarUrl = await this.getAvatar(user, userColor);
 
@@ -40,29 +62,33 @@ window.AppChat = {
         }
     },
 
-    // ==========================================
-    // НОВОЕ: УМНЫЙ ФИЛЬТР ЗАПРЕТНЫХ СЛОВ
-    // ==========================================
     filterForbiddenWords: function(htmlString) {
         const words = window.AppConfig.forbiddenWords || [];
         if (words.length === 0) return htmlString;
 
         let result = htmlString;
+        let hasForbidden = false; // Флаг для определения запреток
+
         words.forEach(word => {
-            // Экранируем спецсимволы в самом слове (на всякий случай)
             const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            
-            // Регулярка: ищет слово без учета регистра (gi), НО игнорирует текст внутри <img...> 
-            // чтобы случайно не сломать смайлики Twitch!
             const regex = new RegExp(`(?![^<]*>)(${safeWord})`, 'gi');
             
-            // Оборачиваем найденное слово в наш спан с красивым блюром
+            // Если найдено плохое слово, ставим флаг
+            if (regex.test(result)) hasForbidden = true; 
+            
             result = result.replace(regex, `<span class="blurred-word">$1</span>`);
         });
+
+        // Если в сообщении была запретка, лисичка злится на 4 секунды
+        if (hasForbidden && window.AppPet) {
+            window.AppPet.setEmotion('angry', 4000);
+        }
+
         return result;
     },
 
     getAvatar: async function(username, userColor) {
+        // Если есть в локальном кеше — сразу отдаем
         if (this.avatarCache[username]) return this.avatarCache[username];
         
         try {
@@ -71,13 +97,21 @@ window.AppChat = {
             
             if (data && data.length > 0 && data[0].logo) {
                 this.avatarCache[username] = data[0].logo; 
+                
+                // Обновляем базу аватарок в localStorage
+                localStorage.setItem('uso_avatars', JSON.stringify(this.avatarCache));
+                
                 return data[0].logo;
             }
             throw new Error("Нет кастомной аватарки");
         } catch (e) {
             let hexColor = userColor.replace('#', '');
             let fallbackUrl = `https://ui-avatars.com/api/?name=${username}&background=${hexColor}&color=fff&size=64&bold=true`;
+            
             this.avatarCache[username] = fallbackUrl;
+            // Обновляем базу
+            localStorage.setItem('uso_avatars', JSON.stringify(this.avatarCache));
+            
             return fallbackUrl;
         }
     },
@@ -106,3 +140,6 @@ window.AppChat = {
 
     escapeHTML: function(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 };
+
+// Инициализация чата
+window.AppChat.init();

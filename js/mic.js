@@ -1,11 +1,16 @@
 window.AppMedia = {
     container: document.getElementById('webcam-container'),
     frame: document.getElementById('webcam-frame'),
-    camEnabled: true, micEnabled: true,
+    camEnabled: true, 
+    micEnabled: true,
+    audioCtx: null,
+    analyser: null,
     
     init: function() {
-        this.initMic();
         this.container.style.transition = "opacity 0.4s ease";
+        // Запускаем инициализацию с небольшой задержкой, 
+        // чтобы OBS успел прогрузить браузерный движок
+        setTimeout(() => this.initMic(), 1500);
     },
 
     toggleCam: function(forceState) {
@@ -17,43 +22,76 @@ window.AppMedia = {
         this.micEnabled = forceState !== undefined ? forceState : !this.micEnabled;
         if (!this.micEnabled) {
             this.frame.style.boxShadow = `0 0 15px rgba(255, 68, 119, 0.2)`;
+        } else {
+            // Если включили обратно, пытаемся разбудить AudioContext
+            if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                this.audioCtx.resume();
+            }
         }
     },
 
     initMic: async function() {
         try {
-            const audioConstraints = { echoCancellation: false, autoGainControl: false, noiseSuppression: false };
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false });
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const analyser = audioCtx.createAnalyser();
-            const source = audioCtx.createMediaStreamSource(stream);
+            // Запрашиваем микрофон (по умолчанию в Windows)
+            const audioConstraints = { 
+                echoCancellation: false, 
+                autoGainControl: false, 
+                noiseSuppression: false 
+            };
             
-            source.connect(analyser);
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false });
+            
+            // Создаем аудио-контекст
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            this.analyser = this.audioCtx.createAnalyser();
+            const source = this.audioCtx.createMediaStreamSource(stream);
+            
+            source.connect(this.analyser);
+            this.analyser.fftSize = 256;
+            const bufferLength = this.analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
 
+            // ФУНКЦИЯ-ХАК ДЛЯ OBS: Принудительно будим аудиоконтекст
+            const wakeUpAudio = () => {
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+            };
+            
+            // Запускаем пробуждение каждые 2 секунды (если OBS решит его усыпить)
+            setInterval(wakeUpAudio, 2000);
+            wakeUpAudio();
+
+            // Цикл отрисовки (Эквалайзер)
             const draw = () => {
                 requestAnimationFrame(draw);
+                
                 if (!this.micEnabled) return;
 
-                analyser.getByteFrequencyData(dataArray);
+                this.analyser.getByteFrequencyData(dataArray);
                 let sum = 0;
-                for(let i = 0; i < bufferLength; i++) sum += dataArray[i];
+                for(let i = 0; i < bufferLength; i++) {
+                    sum += dataArray[i];
+                }
                 let average = sum / bufferLength;
 
+                // Если звук громче порога (average > 10) — рамка пульсирует
                 if (average > 10) {
-                    let glow = 10 + (average * 2);
-                    // РОЗОВОЕ СВЕЧЕНИЕ
+                    let glow = 10 + (average * 2); // Чем громче, тем шире свечение
+                    // РОЗОВОЕ СВЕЧЕНИЕ (можешь поменять цвет здесь)
                     this.frame.style.boxShadow = `0 0 ${glow}px rgba(255, 68, 119, 0.8), inset 0 0 15px rgba(255, 68, 119, 0.5)`;
                 } else {
+                    // Спокойное состояние (тишина)
                     this.frame.style.boxShadow = `0 0 15px rgba(255, 68, 119, 0.2)`;
                 }
             };
+            
             draw();
+
         } catch (err) {
-            console.warn("[Media] Ошибка доступа к МИКРОФОНУ.", err);
+            console.warn("[Media] Ошибка доступа к МИКРОФОНУ. Проверь настройки Windows по умолчанию.", err);
         }
     }
 };
-setTimeout(() => window.AppMedia.init(), 1000);
+
+window.AppMedia.init();
