@@ -3,8 +3,8 @@
     position: absolute; 
     bottom: 50px; 
     left: 20px; 
-    /* МЕНЯЕМ ШИРИНУ С 440px НА 420px ДЛЯ ИДЕАЛЬНОГО ВЫРАВНИВАНИЯ С ВЕБКОЙ */
-    width: 420px; 
+    /* Уменьшили ширину контейнера для игровой сцены */
+    width: 380px; 
     height: 500px; 
     display: flex; 
     flex-direction: column; 
@@ -14,64 +14,124 @@
     -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%); 
     transition: all 0.5s ease; 
 }
+
 #chat-messages { 
     display: flex; 
     flex-direction: column; 
     align-items: flex-start; 
-    gap: 16px; 
+    gap: 12px; /* Чуть плотнее */
     width: 100%; 
 }
 
-/* Светлый фон пузыря с эффектом стекла */
 .chat-message { 
     display: flex; 
     flex-direction: column; 
     align-items: flex-start; 
     box-sizing: border-box; 
-    /* МЕНЯЕМ max-width НА ЖЕСТКИЙ width: 100%, ЧТОБЫ ПУЗЫРИ ВСЕГДА БЫЛИ ШИРОКИМИ */
-    width: 100%; 
+    
+    /* ДИНАМИЧЕСКАЯ ШИРИНА */
+    width: fit-content; 
+    max-width: 100%; 
+    
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.80) 0%, rgba(240, 240, 245, 0.70) 100%); 
     backdrop-filter: blur(18px); 
     -webkit-backdrop-filter: blur(18px); 
     color: #1a1a1a; 
-    padding: 16px 20px; 
-    border-radius: 18px; 
+    
+    /* Уменьшили отступы внутри бабла */
+    padding: 12px 16px; 
+    border-radius: 16px; 
     border: 1px solid rgba(255, 255, 255, 0.6); 
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8); 
     animation: slideInChat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
-    transform-origin: center bottom; 
+    transform-origin: left bottom; 
 }
 
 .chat-out { animation: slideOutChat 0.4s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
-.chat-header { display: flex; align-items: center; width: 100%; margin-bottom: 6px; }
+.chat-header { display: flex; align-items: center; width: 100%; margin-bottom: 4px; }
 
-/* Аватарка чуть-чуть осветлена на фоне */
-.chat-avatar { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; object-fit: cover; background: #e0e0e0; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); }
+/* Уменьшенная аватарка */
+.chat-avatar { width: 26px; height: 26px; border-radius: 50%; margin-right: 8px; object-fit: cover; background: #e0e0e0; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); }
 
-/* Легкая тень у ника, текст увеличен до 19px */
-.chat-user { font-weight: 800; font-size: 19px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); letter-spacing: 0.3px; }
+/* Уменьшенный шрифт ника */
+.chat-user { font-weight: 800; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); letter-spacing: 0.3px; white-space: nowrap; }
 
-/* Время чуть-чуть увеличено для баланса */
-.chat-time { font-size: 13px; color: rgba(0, 0, 0, 0.4); font-weight: 700; margin-left: auto; padding-left: 15px; }
+/* Уменьшенное время */
+.chat-time { font-size: 11px; color: rgba(0, 0, 0, 0.4); font-weight: 700; margin-left: auto; padding-left: 15px; }
 
-/* Текст сообщения увеличен до 18px, интервал чуть сжат, чтобы пузырь не пухнул */
-.chat-text { font-size: 18px; line-height: 1.4; word-wrap: break-word; color: #1a1a1a; font-weight: 600; max-width: 100%; text-shadow: none; }
+/* Уменьшенный шрифт текста */
+.chat-text { font-size: 15px; line-height: 1.4; word-wrap: break-word; color: #1a1a1a; font-weight: 600; max-width: 100%; text-shadow: none; }
+.chat-emote { vertical-align: middle; height: 26px; margin: -4px 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
 
-.chat-emote { vertical-align: middle; height: 32px; margin: -5px 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
+/* ================= СТИЛЬ ДЛЯ РЕПЛАЕВ (ОТВЕТОВ) ================= */
+.chat-reply {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* Мягкая затемненная подложка */
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.02);
+    /* Отступ слева увеличен, чтобы вместить парящую линию */
+    padding: 6px 12px 6px 16px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden; 
+}
 
-/* Анимация снизу-вверх, чтобы не резало левый край */
-@keyframes slideInChat { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes slideOutChat { from { opacity: 1; transform: scale(1); height: auto; margin-bottom: 16px; } to { opacity: 0; transform: scale(0.8) translateX(-20px); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none; } }
+/* Парящая акцентная линия слева */
+.chat-reply::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 6px;
+    width: 3px;
+    background: #FF4477;
+    border-radius: 3px;
+    opacity: 0.8;
+}
+
+.chat-reply-user {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #FF4477;
+    margin-bottom: 2px;
+}
+
+/* Стили для SVG иконки ответа */
+.reply-icon {
+    width: 11px;
+    height: 11px;
+    fill: currentColor;
+    opacity: 0.8;
+}
+
+.chat-reply-text {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 /* ================= ЭСТЕТИЧНЫЙ БЛЮР ЗАПРЕТНЫХ СЛОВ ================= */
 .blurred-word {
-    color: transparent; /* Прячем сам текст */
-    text-shadow: 0 0 10px rgba(26, 26, 26, 0.9); /* Размываем очертания букв */
-    background: rgba(255, 68, 119, 0.15); /* Нежно-розовая подложка */
-    border: 1px solid rgba(255, 68, 119, 0.3); /* Тонкая граница */
+    color: transparent; 
+    text-shadow: 0 0 10px rgba(26, 26, 26, 0.9); 
+    background: rgba(255, 68, 119, 0.15); 
+    border: 1px solid rgba(255, 68, 119, 0.3); 
     padding: 0 6px;
     border-radius: 8px;
-    user-select: none; /* Запрещаем выделять слово мышкой */
+    user-select: none; 
     display: inline-block;
     transition: all 0.3s ease;
 }
+
+@keyframes slideInChat { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes slideOutChat { from { opacity: 1; transform: scale(1); height: auto; margin-bottom: 12px; } to { opacity: 0; transform: scale(0.8) translateX(-20px); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none; } }

@@ -47,7 +47,6 @@ window.AppShoutout = {
 
         // Передаем основной цвет в CSS-переменную для гибкой стилизации
         this.container.style.setProperty('--user-color', userColor);
-        // Создаем полупрозрачную версию цвета для теней (грязный хак с добавлением hex-прозрачности '44' = ~25%)
         this.container.style.setProperty('--user-glow', `${userColor}44`);
 
         this.container.innerHTML = `
@@ -68,7 +67,8 @@ window.AppShoutout = {
                         ВНИМАНИЕ, РЕКОМЕНДАЦИЯ
                     </div>
                     
-                    <div class="so-name" style="background-image: linear-gradient(90deg, #fff 0%, ${userColor} 150%);">
+                    <!-- ИСПРАВЛЕН ГРАДИЕНТ НИКА: теперь он переходит в тёмно-серый (#1a1a1a) для идеальной читаемости -->
+                    <div class="so-name" style="background-image: linear-gradient(90deg, ${userColor} 0%, #1a1a1a 120%);">
                         ${displayName}
                     </div>
                     
@@ -84,10 +84,20 @@ window.AppShoutout = {
             </div>
         `;
 
-        // Сбрасываем классы
         this.container.classList.remove('hidden');
         this.container.classList.remove('shoutout-out');
         
+        // ВОСПРОИЗВЕДЕНИЕ ЗВУКА РЕКЛАМЫ (SHOUTOUT)
+        if (window.AppConfig.shoutoutSound) {
+            try {
+                const audio = new Audio(window.AppConfig.shoutoutSound);
+                audio.volume = (window.AppConfig.alertVolume || 50) / 100;
+                audio.play().catch(e => console.warn("[Shoutout] Звук заблокирован браузером:", e));
+            } catch (e) {
+                console.warn("[Shoutout] Ошибка воспроизведения звука:", e);
+            }
+        }
+
         // Запускаем анимацию появления
         this.container.classList.add('shoutout-in');
 

@@ -24,7 +24,6 @@ body.scene-chatting #webcam-frame { border-width: 5px; border-radius: 34px; }
 
 body.scene-chatting #goal-container { top: 40px; right: 40px; left: auto; transform: translateZ(0) !important; width: 680px; }
 
-/* Плашка чата стала еще прозрачнее для сцены */
 body.scene-chatting #chat-container { 
     top: 100px; right: 40px; left: auto; bottom: auto; width: 680px; height: 780px; 
     transform: translateZ(0) !important; 
@@ -34,6 +33,11 @@ body.scene-chatting #chat-container {
     box-shadow: 0 20px 50px rgba(0,0,0,0.05); 
     padding: 20px; -webkit-mask-image: none; 
     overflow-y: hidden; overflow-x: hidden; 
+}
+
+/* ВОЗВРАЩАЕМ 100% ШИРИНУ БАБЛОВ ДЛЯ JUST CHATTING */
+body.scene-chatting .chat-message {
+    width: 100% !important;
 }
 
 body.scene-chatting #ticker-container { bottom: 40px; left: 40px; width: 1120px; transform: translateZ(0) !important; }
@@ -61,17 +65,16 @@ body.scene-chatting #deaths-count {
 
 /* ================= ЛОГОТИП ИГРЫ В JUST CHATTING ================= */
 body.scene-chatting #game-logo-container {
-    bottom: auto;      /* Отменяем привязку к внешней "крыше" */
-    top: 30px;         /* Опускаем логотип ВНУТРЬ вебки */
+    bottom: auto;      
+    top: 30px;         
     margin-bottom: 0;
 }
 
 body.scene-chatting #game-logo-img {
-    max-height: 105px; /* Уменьшили! Было 120px, теперь аккуратнее */
+    max-height: 105px; 
     filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7)); 
 }
 
-/* Корректируем анимацию скрытия */
 body.scene-chatting #game-logo-container.hidden {
     transform: translateX(-50%) translateY(-20px);
     opacity: 0;

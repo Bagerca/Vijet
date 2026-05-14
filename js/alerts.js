@@ -43,12 +43,25 @@ window.AppAlerts = {
                 icon = `🎁`; color = `#9146FF`; 
                 titleText = `<span class="alert-user" style="color: ${color}">${data.user}</span> подарил подписку!`;
                 break;
-            // НОВЫЙ ТИП: СЕРИЯ ПРОСМОТРОВ (WATCH STREAK)
             case 'streak':
-                icon = `📺`; color = `#00E5FF`; // Неоново-голубой цвет
+                icon = `📺`; color = `#00E5FF`; 
                 titleText = `<span class="alert-user" style="color: ${color}">${data.user}</span> смотрит ${data.value} стримов подряд!`;
                 break;
         }
+
+        // ==========================================
+        // ВОСПРОИЗВЕДЕНИЕ ЗВУКА
+        // ==========================================
+        if (window.AppConfig.alertSounds && window.AppConfig.alertSounds[data.type]) {
+            try {
+                const audio = new Audio(window.AppConfig.alertSounds[data.type]);
+                audio.volume = (window.AppConfig.alertVolume || 50) / 100;
+                audio.play().catch(err => console.warn("[Alerts] Ошибка автоплея (браузер заблокировал):", err));
+            } catch (e) {
+                console.warn("[Alerts] Не удалось загрузить звук:", e);
+            }
+        }
+        // ==========================================
 
         // Передаем цвета в CSS для создания ровного неона
         this.container.style.setProperty('--alert-color', color);

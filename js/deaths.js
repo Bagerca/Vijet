@@ -44,14 +44,26 @@ window.AppDeaths = {
             this.toggle(true);
         }
 
-        // Если смерти добавились - запускаем эффект жесткой "тряски"
+        // Если смерти добавились (урон получен)
         if (this.count > oldCount) {
+            // Эффект жесткой "тряски"
             this.container.classList.remove('damage-shake');
             void this.container.offsetWidth; 
             this.container.classList.add('damage-shake');
 
             // ПИТОМЕЦ ПУГАЕТСЯ ПРИ СМЕРТИ НА 3 СЕКУНДЫ
             if (window.AppPet) window.AppPet.setEmotion('scared', 3000);
+
+            // ВОСПРОИЗВЕДЕНИЕ ЗВУКА СМЕРТИ
+            if (window.AppConfig.deathSound) {
+                try {
+                    const audio = new Audio(window.AppConfig.deathSound);
+                    audio.volume = (window.AppConfig.alertVolume || 50) / 100;
+                    audio.play().catch(e => console.warn("[Deaths] Звук заблокирован браузером:", e));
+                } catch (e) {
+                    console.warn("[Deaths] Ошибка воспроизведения звука:", e);
+                }
+            }
         }
     },
 

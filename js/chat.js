@@ -3,44 +3,67 @@ window.AppChat = {
     avatarCache: {}, 
 
     init: function() {
-        // Восстанавливаем кеш аватарок из хранилища (чтобы не спамить API при перезагрузке)
         const savedAvatars = localStorage.getItem('uso_avatars');
         if (savedAvatars) {
-            try {
-                this.avatarCache = JSON.parse(savedAvatars);
-            } catch (e) {
-                this.avatarCache = {};
-            }
+            try { this.avatarCache = JSON.parse(savedAvatars); } 
+            catch (e) { this.avatarCache = {}; }
         }
     },
 
     addMessage: async function(user, message, flags, extra) {
-        // СБРОС ТАЙМЕРА СНА ДЛЯ ПИТОМЦА ПРИ КАЖДОМ СООБЩЕНИИ
         if (window.AppPet) window.AppPet.resetSleepTimer();
 
-        const userColor = extra.userColor || '#FF4477'; // По умолчанию розовый
+        const userColor = extra.userColor || '#FF4477'; 
         const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         
-        // 1. Парсим смайлы и экранируем текст
+        // 1. Сначала парсим смайлы и запретки
         let parsedMessage = this.parseEmotes(message, extra.messageEmotes);
-        
-        // 2. ПРОПУСКАЕМ ЧЕРЕЗ ФИЛЬТР ЗАПРЕТОК
         parsedMessage = this.filterForbiddenWords(parsedMessage);
 
-        // ==========================================
-        // ПЕРЕДАЕМ ЭМОДЗИ ДЛЯ АНИМАЦИИ НА ЭКРАНЕ
-        // ==========================================
         if (extra.messageEmotes && window.AppEmotes) {
             window.AppEmotes.spawn(extra.messageEmotes);
         }
 
         const avatarUrl = await this.getAvatar(user, userColor);
 
+        // ==========================================
+        // ЛОГИКА ОФИЦИАЛЬНЫХ ОТВЕТОВ TWITCH (REPLY)
+        // ==========================================
+        let replyHTML = '';
+        const userState = extra.userState || {};
+
+        if (userState['reply-parent-display-name']) {
+            const replyUser = userState['reply-parent-display-name'];
+            let replyTextRaw = (userState['reply-parent-msg-body'] || '').replace(/\\s/g, ' '); 
+            
+            // ИСПРАВЛЕНИЕ: Удаляем @Никнейм в начале ЦИТИРУЕМОГО текста (если человек ответил на ответ)
+            replyTextRaw = replyTextRaw.replace(/^@[a-zA-Z0-9_]+\s*,?\s*/i, '');
+
+            let cleanReplyText = this.filterForbiddenWords(this.escapeHTML(replyTextRaw)); 
+
+            // НОВЫЙ ВИЗУАЛ: Добавлена SVG-иконка стрелочки
+            replyHTML = `
+                <div class="chat-reply">
+                    <div class="chat-reply-user">
+                        <svg class="reply-icon" viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+                        ${replyUser}
+                    </div>
+                    <div class="chat-reply-text">${cleanReplyText}</div>
+                </div>
+            `;
+
+            // Убираем визуальное "@Никнейм " в начале самого сообщения (отвечающего)
+            const mentionRegex = new RegExp(`^@${replyUser}\\s*,?\\s*`, 'i');
+            parsedMessage = parsedMessage.replace(mentionRegex, '');
+        }
+        // ==========================================
+
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-message';
         msgDiv.style.borderLeft = `4px solid ${userColor}`;
         
         msgDiv.innerHTML = `
+            ${replyHTML}
             <div class="chat-header">
                 <img src="${avatarUrl}" class="chat-avatar">
                 <span class="chat-user" style="color: ${userColor}">${user}</span>
@@ -67,28 +90,21 @@ window.AppChat = {
         if (words.length === 0) return htmlString;
 
         let result = htmlString;
-        let hasForbidden = false; // Флаг для определения запреток
+        let hasForbidden = false; 
 
         words.forEach(word => {
             const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const regex = new RegExp(`(?![^<]*>)(${safeWord})`, 'gi');
             
-            // Если найдено плохое слово, ставим флаг
             if (regex.test(result)) hasForbidden = true; 
-            
             result = result.replace(regex, `<span class="blurred-word">$1</span>`);
         });
 
-        // Если в сообщении была запретка, лисичка злится на 4 секунды
-        if (hasForbidden && window.AppPet) {
-            window.AppPet.setEmotion('angry', 4000);
-        }
-
+        if (hasForbidden && window.AppPet) window.AppPet.setEmotion('angry', 4000);
         return result;
     },
 
     getAvatar: async function(username, userColor) {
-        // Если есть в локальном кеше — сразу отдаем
         if (this.avatarCache[username]) return this.avatarCache[username];
         
         try {
@@ -97,21 +113,15 @@ window.AppChat = {
             
             if (data && data.length > 0 && data[0].logo) {
                 this.avatarCache[username] = data[0].logo; 
-                
-                // Обновляем базу аватарок в localStorage
                 localStorage.setItem('uso_avatars', JSON.stringify(this.avatarCache));
-                
                 return data[0].logo;
             }
             throw new Error("Нет кастомной аватарки");
         } catch (e) {
             let hexColor = userColor.replace('#', '');
             let fallbackUrl = `https://ui-avatars.com/api/?name=${username}&background=${hexColor}&color=fff&size=64&bold=true`;
-            
             this.avatarCache[username] = fallbackUrl;
-            // Обновляем базу
             localStorage.setItem('uso_avatars', JSON.stringify(this.avatarCache));
-            
             return fallbackUrl;
         }
     },
@@ -141,5 +151,4 @@ window.AppChat = {
     escapeHTML: function(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 };
 
-// Инициализация чата
 window.AppChat.init();
