@@ -23,7 +23,8 @@
                     ОЖИДАНИЕ ТРАНСЛЯЦИИ
                 </div>
                 <h1 class="starting-title">Ало,<br>Здравствуйте,<br>Добрый вечер</h1>
-                <div class="starting-subtitle">Заваривайте чаёк, скоро начинаем ☕</div>
+                <!-- Сюда добавлен id="starting-timer" для работы countdown.js -->
+                <div class="starting-subtitle">Заваривайте чаёк, скоро начинаем ☕ <span id="starting-timer"></span></div>
             </div>
         </div>
 
@@ -151,6 +152,8 @@
     <script src="js/deaths.js"></script>
     <script src="js/gamelogo.js"></script>
     <script src="js/tts.js"></script>
+    <!-- Подключаем countdown.js для таймера на старте -->
+    <script src="js/countdown.js"></script> 
     <script src="js/twitch.js"></script>
 
     <script>
@@ -158,13 +161,48 @@
         const activeWidget = urlParams.get('widget');
         const sceneParam = urlParams.get('scene');
 
+        // ==============================================================
+        // 1. УСТАНОВКА КЛАССОВ СЦЕН (Для CSS)
+        // ==============================================================
         if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
         if (sceneParam === 'starting') document.body.classList.add('scene-starting');
         if (sceneParam === 'ending') document.body.classList.add('scene-ending'); 
 
-        if (activeWidget) {
-            document.body.style.setProperty('background', 'transparent', 'important');
+        // ==============================================================
+        // 2. УМНАЯ ИЗОЛЯЦИЯ ДЛЯ СЦЕН "СТАРТ" И "КОНЕЦ"
+        // Теперь тебе не нужно писать &music=off&tts=off в ссылке. 
+        // Скрипт сам убьет все звуки и виджеты, оставив только визуал ожидания.
+        // ==============================================================
+        if (sceneParam === 'starting' || sceneParam === 'ending') {
+            // Глушим логику всех интерактивных модулей
+            window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
+            window.AppQueue = { add: function(){}, next: function(){}, clear: function(){} };
+            window.AppTTS = { add: function(){}, stop: function(){} };
+            window.AppAlerts = { add: function(){} };
+            window.AppShoutout = { add: function(){} };
+            window.AppDeaths = { update: function(){}, toggle: function(){} };
+            window.AppEmotes = { spawn: function(){}, toggle: function(){}, setMode: function(){} };
+            
+            // Физически удаляем плеер YouTube, чтобы он не грузил систему
+            const ytPlayer = document.getElementById('yt-player');
+            if (ytPlayer) ytPlayer.remove(); 
+            const widgetContainer = document.getElementById('widget-container');
+            if (widgetContainer) widgetContainer.remove();
 
+            // Перехватываем звуки алертов
+            window.Audio = function() {
+                return { play: function() { return Promise.resolve(); }, set volume(v) {} };
+            };
+        }
+
+        // ==============================================================
+        // 3. РЕЖИМ ВИДЖЕТОВ (Слои для Чатинга и Стриминга)
+        // ==============================================================
+        if (activeWidget) {
+            document.body.classList.add('is-widget');
+            document.body.classList.add('widget-' + activeWidget);
+
+            // Отключаем фоновые вычисления для модулей, которые не используются в данном источнике
             if (activeWidget !== 'music') {
                 const ytPlayer = document.getElementById('yt-player');
                 if (ytPlayer) ytPlayer.remove(); 
@@ -190,17 +228,19 @@
                 if (window.AppTTS) window.AppTTS.add = function(){};
             }
 
-            // === ИЗОЛЯЦИЯ ЗВУКОВЫХ МОДУЛЕЙ (ЧТОБЫ НЕ БЫЛО ЭХА) ===
             if (activeWidget !== 'alerts') {
                 if (window.AppAlerts) window.AppAlerts.add = function(){};
             }
+            
             if (activeWidget !== 'shoutout') {
                 if (window.AppShoutout) window.AppShoutout.add = function(){};
             }
+            
             if (activeWidget !== 'deaths') {
                 if (window.AppDeaths) window.AppDeaths.update = function(){};
             }
 
+            // Физически прячем неиспользуемые HTML-контейнеры
             const widgets = {
                 'chat': 'chat-container',
                 'cam': 'webcam-container',
@@ -253,42 +293,12 @@
                 }
             }
         }
-        
-        // ==============================================================
-        // ОТКЛЮЧЕНИЕ МОДУЛЕЙ ДЛЯ МУЛЬТИ-СЦЕН (Starting / Ending)
-        // ==============================================================
-
-        // Отключение YouTube плеера
-        if (urlParams.get('music') === 'off') {
-            const ytPlayer = document.getElementById('yt-player');
-            if (ytPlayer) ytPlayer.remove(); 
-            const widgetContainer = document.getElementById('widget-container');
-            if (widgetContainer) widgetContainer.remove();
-            window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
-            window.AppQueue = { add: function(){}, next: function(){} };
-        }
-
-        // Отключение Голосовой Озвучки (TTS)
-        if (urlParams.get('tts') === 'off') {
-            if (window.AppTTS) window.AppTTS.add = function(){};
-            const ttsContainer = document.getElementById('tts-container');
-            if(ttsContainer) ttsContainer.remove();
-        }
-
-        // Отключение Алертов (Фолловы/Сабки), Смертей и Шаутаута
-        if (urlParams.get('alerts') === 'off') {
-            if (window.AppAlerts) window.AppAlerts.add = function(){};
-            if (window.AppShoutout) window.AppShoutout.add = function(){};
-            if (window.AppDeaths) window.AppDeaths.update = function(){};
-            const alertContainer = document.getElementById('alert-container');
-            if(alertContainer) alertContainer.remove();
-        }
 
         // ==============================================================
-        // ГЛОБАЛЬНЫЙ МЬЮТ ЗВУКОВ (Для дублирующихся локальных виджетов)
+        // 4. ГЛОБАЛЬНЫЙ МЬЮТ ЗВУКОВ (Для визуальных слоев в Чатинге/Стриминге)
+        // Если в OBS в конце ссылки стоит &mute=true, скрипт обрезает звуки
         // ==============================================================
         if (urlParams.get('mute') === 'true') {
-            // Перехватываем создание новых аудио-файлов, чтобы они молчали
             window.Audio = function() {
                 return { 
                     play: function() { return Promise.resolve(); }, 
