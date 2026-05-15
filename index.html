@@ -190,6 +190,17 @@
                 if (window.AppTTS) window.AppTTS.add = function(){};
             }
 
+            // === ИЗОЛЯЦИЯ ЗВУКОВЫХ МОДУЛЕЙ (ЧТОБЫ НЕ БЫЛО ЭХА) ===
+            if (activeWidget !== 'alerts') {
+                if (window.AppAlerts) window.AppAlerts.add = function(){};
+            }
+            if (activeWidget !== 'shoutout') {
+                if (window.AppShoutout) window.AppShoutout.add = function(){};
+            }
+            if (activeWidget !== 'deaths') {
+                if (window.AppDeaths) window.AppDeaths.update = function(){};
+            }
+
             const widgets = {
                 'chat': 'chat-container',
                 'cam': 'webcam-container',
@@ -271,6 +282,19 @@
             if (window.AppDeaths) window.AppDeaths.update = function(){};
             const alertContainer = document.getElementById('alert-container');
             if(alertContainer) alertContainer.remove();
+        }
+
+        // ==============================================================
+        // ГЛОБАЛЬНЫЙ МЬЮТ ЗВУКОВ (Для дублирующихся локальных виджетов)
+        // ==============================================================
+        if (urlParams.get('mute') === 'true') {
+            // Перехватываем создание новых аудио-файлов, чтобы они молчали
+            window.Audio = function() {
+                return { 
+                    play: function() { return Promise.resolve(); }, 
+                    set volume(v) {} 
+                };
+            };
         }
 
     </script>
