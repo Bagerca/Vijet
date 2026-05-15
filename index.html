@@ -160,7 +160,7 @@
         const sceneParam = urlParams.get('scene');
 
         // ==============================================================
-        // 1. УСТАНОВКА СЦЕН (CSS классы)
+        // 1. УСТАНОВКА СЦЕН
         // ==============================================================
         if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
         if (sceneParam === 'starting') document.body.classList.add('scene-starting');
@@ -188,13 +188,14 @@
         }
 
         // ==============================================================
-        // 3. РЕЖИМ СЛОЕВ (Виджеты)
+        // 3. РЕЖИМ СЛОЕВ (СТРОГАЯ ИЗОЛЯЦИЯ ЗВУКОВ)
         // ==============================================================
         if (activeWidget) {
             document.body.style.setProperty('background', 'transparent', 'important');
             document.documentElement.style.setProperty('background', 'transparent', 'important');
 
-            // ОТКЛЮЧАЕМ ТОЛЬКО ТЯЖЕЛЫЕ СКРИПТЫ. Алерты и Смерти работают в фоне (чтобы Лиса реагировала)
+            // --- ЖЕСТКИЕ ГЛУШИЛКИ ЛОГИКИ ---
+            // Если источник - не музыка, убиваем музыку.
             if (activeWidget !== 'music') {
                 const ytPlayer = document.getElementById('yt-player');
                 if (ytPlayer) ytPlayer.remove(); 
@@ -208,6 +209,27 @@
                 const canvas = document.getElementById('particles-canvas');
                 if (canvas) canvas.remove();
                 if (window.AppParticles) window.AppParticles.animate = function(){};
+            }
+            if (activeWidget !== 'emotes' && activeWidget !== 'chat') {
+                if (window.AppEmotes) window.AppEmotes.spawn = function(){};
+            }
+
+            // ИСПРАВЛЕНИЕ БАГА СО ЗВУКАМИ:
+            // Если источник не Алерты - он не должен проигрывать алерты.
+            if (activeWidget !== 'alerts') {
+                if (window.AppAlerts) window.AppAlerts.add = function(){};
+            }
+            // Если источник не Смерти - он не должен проигрывать звук смерти.
+            if (activeWidget !== 'deaths') {
+                if (window.AppDeaths) window.AppDeaths.update = function(){};
+            }
+            // Если источник не Шотаут - он не должен проигрывать звук рекламы.
+            if (activeWidget !== 'shoutout') {
+                if (window.AppShoutout) window.AppShoutout.add = function(){};
+            }
+            // Если источник не TTS - он не должен пытаться синтезировать речь.
+            if (activeWidget !== 'tts') {
+                if (window.AppTTS) window.AppTTS.add = function(){};
             }
 
             // Идеальное скрытие HTML-элементов
@@ -228,7 +250,6 @@
             for (const [key, id] of Object.entries(widgets)) {
                 if (key !== activeWidget) {
                     const el = document.getElementById(id);
-                    // Скрываем визуал, но логика продолжает работать в фоне
                     if (el) el.style.setProperty('display', 'none', 'important');
                 }
             }
@@ -253,14 +274,10 @@
         // 4. ГЛОБАЛЬНЫЙ МЬЮТ ЗВУКОВ (Для визуальных слоев: &mute=true)
         // ==============================================================
         if (urlParams.get('mute') === 'true') {
-            // Мьютим MP3 файлы
             window.Audio = function() {
                 return { play: function() { return Promise.resolve(); }, set volume(v) {} };
             };
-            // Мьютим голос TTS (чтобы Лиса не дублировала голос из системной сцены)
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.speak = function() {};
-            }
+            if ('speechSynthesis' in window) window.speechSynthesis.speak = function() {};
         }
 
         // ==============================================================
