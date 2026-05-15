@@ -23,7 +23,6 @@
                     ОЖИДАНИЕ ТРАНСЛЯЦИИ
                 </div>
                 <h1 class="starting-title">Ало,<br>Здравствуйте,<br>Добрый вечер</h1>
-                <!-- Сюда добавлен id="starting-timer" для работы таймера -->
                 <div class="starting-subtitle">Заваривайте чаёк, скоро начинаем ☕ <span id="starting-timer"></span></div>
             </div>
         </div>
@@ -161,7 +160,7 @@
         const sceneParam = urlParams.get('scene');
 
         // ==============================================================
-        // 1. УСТАНОВКА СЦЕН (Позиционирование элементов)
+        // 1. УСТАНОВКА СЦЕН (CSS классы)
         // ==============================================================
         if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
         if (sceneParam === 'starting') document.body.classList.add('scene-starting');
@@ -184,20 +183,18 @@
             const widgetContainer = document.getElementById('widget-container');
             if (widgetContainer) widgetContainer.remove();
 
-            window.Audio = function() {
-                return { play: function() { return Promise.resolve(); }, set volume(v) {} };
-            };
+            window.Audio = function() { return { play: function() { return Promise.resolve(); }, set volume(v) {} }; };
+            if ('speechSynthesis' in window) window.speechSynthesis.speak = function() {};
         }
 
         // ==============================================================
-        // 3. РЕЖИМ СЛОЕВ (Виджеты для OBS)
+        // 3. РЕЖИМ СЛОЕВ (Виджеты)
         // ==============================================================
         if (activeWidget) {
-            // ПРИНУДИТЕЛЬНО ДЕЛАЕМ ФОН ПРОЗРАЧНЫМ ДЛЯ СЛОЕВ В OBS!
             document.body.style.setProperty('background', 'transparent', 'important');
             document.documentElement.style.setProperty('background', 'transparent', 'important');
 
-            // Глушим логику ненужных скриптов, чтобы не нагружать процессор
+            // ОТКЛЮЧАЕМ ТОЛЬКО ТЯЖЕЛЫЕ СКРИПТЫ. Алерты и Смерти работают в фоне (чтобы Лиса реагировала)
             if (activeWidget !== 'music') {
                 const ytPlayer = document.getElementById('yt-player');
                 if (ytPlayer) ytPlayer.remove(); 
@@ -212,23 +209,8 @@
                 if (canvas) canvas.remove();
                 if (window.AppParticles) window.AppParticles.animate = function(){};
             }
-            if (activeWidget !== 'emotes' && activeWidget !== 'chat') {
-                if (window.AppEmotes) window.AppEmotes.spawn = function(){};
-            }
-            if (activeWidget !== 'tts') {
-                if (window.AppTTS) window.AppTTS.add = function(){};
-            }
-            if (activeWidget !== 'alerts') {
-                if (window.AppAlerts) window.AppAlerts.add = function(){};
-            }
-            if (activeWidget !== 'shoutout') {
-                if (window.AppShoutout) window.AppShoutout.add = function(){};
-            }
-            if (activeWidget !== 'deaths') {
-                if (window.AppDeaths) window.AppDeaths.update = function(){};
-            }
 
-            // Идеальное скрытие HTML-элементов (исключая cam и pet из общего списка)
+            // Идеальное скрытие HTML-элементов
             const widgets = {
                 'chat': 'chat-container',
                 'music': 'widget-container',
@@ -243,44 +225,46 @@
                 'tts': 'tts-container'
             };
 
-            // Прячем базовые виджеты
             for (const [key, id] of Object.entries(widgets)) {
                 if (key !== activeWidget) {
                     const el = document.getElementById(id);
+                    // Скрываем визуал, но логика продолжает работать в фоне
                     if (el) el.style.setProperty('display', 'none', 'important');
                 }
             }
 
-            // Ювелирная работа с Вебкой и Питомцем (т.к. они вложены друг в друга)
+            // Работа с Вебкой и Питомцем
             const webcamContainer = document.getElementById('webcam-container');
             const petContainer = document.getElementById('pet-container');
             const webcamFrame = document.getElementById('webcam-frame');
             const logoContainer = document.getElementById('game-logo-container');
 
             if (activeWidget === 'pet') {
-                // Если нужен только питомец: оставляем контейнер, но прячем рамку и лого
                 if (webcamFrame) webcamFrame.style.setProperty('display', 'none', 'important');
                 if (logoContainer) logoContainer.style.setProperty('display', 'none', 'important');
             } else if (activeWidget === 'cam') {
-                // Если нужна только рамка: оставляем контейнер, прячем питомца
                 if (petContainer) petContainer.style.setProperty('display', 'none', 'important');
             } else {
-                // Если нужен другой виджет (чат, цель и т.д.) - убиваем весь блок вебки
                 if (webcamContainer) webcamContainer.style.setProperty('display', 'none', 'important');
             }
         }
 
         // ==============================================================
-        // 4. ГЛОБАЛЬНЫЙ МЬЮТ ЗВУКОВ (Если в конце ссылки &mute=true)
+        // 4. ГЛОБАЛЬНЫЙ МЬЮТ ЗВУКОВ (Для визуальных слоев: &mute=true)
         // ==============================================================
         if (urlParams.get('mute') === 'true') {
+            // Мьютим MP3 файлы
             window.Audio = function() {
                 return { play: function() { return Promise.resolve(); }, set volume(v) {} };
             };
+            // Мьютим голос TTS (чтобы Лиса не дублировала голос из системной сцены)
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.speak = function() {};
+            }
         }
 
         // ==============================================================
-        // 5. РЕЖИМ "ТОЛЬКО ЗВУК" (Прячет визуал, оставляет аудио)
+        // 5. РЕЖИМ ТОЛЬКО АУДИО (Прячет графику: &audioonly=true)
         // ==============================================================
         if (urlParams.get('audioonly') === 'true') {
             const wrapper = document.getElementById('scene-wrapper');
