@@ -205,10 +205,9 @@
                 'tts': 'tts-container',
                 'starting': 'starting-container',
                 'ending': 'ending-container',
-                'pet': 'pet-container' // <--- ДОБАВЛЕН ПИТОМЕЦ
+                'pet': 'pet-container'
             };
 
-            // СПЕЦИАЛЬНАЯ ЛОГИКА ДЛЯ РАЗДЕЛЕНИЯ ВЕБКИ И ЛИСЫ В СЛОЯХ OBS
             if (activeWidget === 'pet') {
                 for (const [key, id] of Object.entries(widgets)) {
                     if (key !== 'cam' && key !== 'pet') {
@@ -216,14 +215,12 @@
                         if (el) el.style.setProperty('display', 'none', 'important');
                     }
                 }
-                // Прячем рамку и лого, оставляем только Лису
                 const frame = document.getElementById('webcam-frame');
                 const logo = document.getElementById('game-logo-container');
                 if(frame) frame.style.setProperty('display', 'none', 'important');
                 if(logo) logo.style.setProperty('display', 'none', 'important');
 
             } else if (activeWidget === 'cam') {
-                // Если грузим чисто вебку — прячем Лису
                 const pet = document.getElementById('pet-container');
                 if(pet) pet.style.setProperty('display', 'none', 'important');
                 
@@ -234,7 +231,6 @@
                     }
                 }
             } else {
-                // Стандартная логика для остальных виджетов
                 for (const [key, id] of Object.entries(widgets)) {
                     if (key !== activeWidget) {
                         const el = document.getElementById(id);
@@ -247,6 +243,11 @@
             }
         }
         
+        // ==============================================================
+        // ОТКЛЮЧЕНИЕ МОДУЛЕЙ ДЛЯ МУЛЬТИ-СЦЕН (Starting / Ending)
+        // ==============================================================
+
+        // Отключение YouTube плеера
         if (urlParams.get('music') === 'off') {
             const ytPlayer = document.getElementById('yt-player');
             if (ytPlayer) ytPlayer.remove(); 
@@ -255,6 +256,23 @@
             window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
             window.AppQueue = { add: function(){}, next: function(){} };
         }
+
+        // Отключение Голосовой Озвучки (TTS)
+        if (urlParams.get('tts') === 'off') {
+            if (window.AppTTS) window.AppTTS.add = function(){};
+            const ttsContainer = document.getElementById('tts-container');
+            if(ttsContainer) ttsContainer.remove();
+        }
+
+        // Отключение Алертов (Фолловы/Сабки), Смертей и Шаутаута
+        if (urlParams.get('alerts') === 'off') {
+            if (window.AppAlerts) window.AppAlerts.add = function(){};
+            if (window.AppShoutout) window.AppShoutout.add = function(){};
+            if (window.AppDeaths) window.AppDeaths.update = function(){};
+            const alertContainer = document.getElementById('alert-container');
+            if(alertContainer) alertContainer.remove();
+        }
+
     </script>
 </body>
 </html>
