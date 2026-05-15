@@ -23,7 +23,7 @@
                     ОЖИДАНИЕ ТРАНСЛЯЦИИ
                 </div>
                 <h1 class="starting-title">Ало,<br>Здравствуйте,<br>Добрый вечер</h1>
-                <!-- Сюда добавлен id="starting-timer" для работы countdown.js -->
+                <!-- Сюда добавлен id="starting-timer" для работы таймера -->
                 <div class="starting-subtitle">Заваривайте чаёк, скоро начинаем ☕ <span id="starting-timer"></span></div>
             </div>
         </div>
@@ -152,7 +152,6 @@
     <script src="js/deaths.js"></script>
     <script src="js/gamelogo.js"></script>
     <script src="js/tts.js"></script>
-    <!-- Подключаем countdown.js для таймера на старте -->
     <script src="js/countdown.js"></script> 
     <script src="js/twitch.js"></script>
 
@@ -162,19 +161,16 @@
         const sceneParam = urlParams.get('scene');
 
         // ==============================================================
-        // 1. УСТАНОВКА КЛАССОВ СЦЕН (Для CSS)
+        // 1. УСТАНОВКА СЦЕН (Позиционирование элементов)
         // ==============================================================
         if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
         if (sceneParam === 'starting') document.body.classList.add('scene-starting');
         if (sceneParam === 'ending') document.body.classList.add('scene-ending'); 
 
         // ==============================================================
-        // 2. УМНАЯ ИЗОЛЯЦИЯ ДЛЯ СЦЕН "СТАРТ" И "КОНЕЦ"
-        // Теперь тебе не нужно писать &music=off&tts=off в ссылке. 
-        // Скрипт сам убьет все звуки и виджеты, оставив только визуал ожидания.
+        // 2. ИЗОЛЯЦИЯ ДЛЯ СЦЕН "СТАРТ" И "КОНЕЦ"
         // ==============================================================
         if (sceneParam === 'starting' || sceneParam === 'ending') {
-            // Глушим логику всех интерактивных модулей
             window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
             window.AppQueue = { add: function(){}, next: function(){}, clear: function(){} };
             window.AppTTS = { add: function(){}, stop: function(){} };
@@ -183,67 +179,58 @@
             window.AppDeaths = { update: function(){}, toggle: function(){} };
             window.AppEmotes = { spawn: function(){}, toggle: function(){}, setMode: function(){} };
             
-            // Физически удаляем плеер YouTube, чтобы он не грузил систему
             const ytPlayer = document.getElementById('yt-player');
             if (ytPlayer) ytPlayer.remove(); 
             const widgetContainer = document.getElementById('widget-container');
             if (widgetContainer) widgetContainer.remove();
 
-            // Перехватываем звуки алертов
             window.Audio = function() {
                 return { play: function() { return Promise.resolve(); }, set volume(v) {} };
             };
         }
 
         // ==============================================================
-        // 3. РЕЖИМ ВИДЖЕТОВ (Слои для Чатинга и Стриминга)
+        // 3. РЕЖИМ СЛОЕВ (Виджеты для OBS)
         // ==============================================================
         if (activeWidget) {
-            document.body.classList.add('is-widget');
-            document.body.classList.add('widget-' + activeWidget);
+            // ПРИНУДИТЕЛЬНО ДЕЛАЕМ ФОН ПРОЗРАЧНЫМ ДЛЯ СЛОЕВ В OBS!
+            document.body.style.setProperty('background', 'transparent', 'important');
+            document.documentElement.style.setProperty('background', 'transparent', 'important');
 
-            // Отключаем фоновые вычисления для модулей, которые не используются в данном источнике
+            // Глушим логику ненужных скриптов, чтобы не нагружать процессор
             if (activeWidget !== 'music') {
                 const ytPlayer = document.getElementById('yt-player');
                 if (ytPlayer) ytPlayer.remove(); 
                 if (window.AppPlayer) window.AppPlayer.play = function(){}; 
                 if (window.AppQueue) window.AppQueue.add = function(){};    
             }
-
             if (activeWidget !== 'cam') {
                 if (window.AppMedia) window.AppMedia.init = function(){}; 
             }
-
             if (activeWidget !== 'particles') {
                 const canvas = document.getElementById('particles-canvas');
                 if (canvas) canvas.remove();
                 if (window.AppParticles) window.AppParticles.animate = function(){};
             }
-            
             if (activeWidget !== 'emotes' && activeWidget !== 'chat') {
                 if (window.AppEmotes) window.AppEmotes.spawn = function(){};
             }
-
             if (activeWidget !== 'tts') {
                 if (window.AppTTS) window.AppTTS.add = function(){};
             }
-
             if (activeWidget !== 'alerts') {
                 if (window.AppAlerts) window.AppAlerts.add = function(){};
             }
-            
             if (activeWidget !== 'shoutout') {
                 if (window.AppShoutout) window.AppShoutout.add = function(){};
             }
-            
             if (activeWidget !== 'deaths') {
                 if (window.AppDeaths) window.AppDeaths.update = function(){};
             }
 
-            // Физически прячем неиспользуемые HTML-контейнеры
+            // Идеальное скрытие HTML-элементов (исключая cam и pet из общего списка)
             const widgets = {
                 'chat': 'chat-container',
-                'cam': 'webcam-container',
                 'music': 'widget-container',
                 'socials': 'social-rotator',
                 'alerts': 'alert-container',
@@ -253,57 +240,42 @@
                 'deaths': 'deaths-container',
                 'particles': 'particles-canvas',
                 'emotes': 'emotes-container',
-                'tts': 'tts-container',
-                'starting': 'starting-container',
-                'ending': 'ending-container',
-                'pet': 'pet-container'
+                'tts': 'tts-container'
             };
 
-            if (activeWidget === 'pet') {
-                for (const [key, id] of Object.entries(widgets)) {
-                    if (key !== 'cam' && key !== 'pet') {
-                        const el = document.getElementById(id);
-                        if (el) el.style.setProperty('display', 'none', 'important');
-                    }
+            // Прячем базовые виджеты
+            for (const [key, id] of Object.entries(widgets)) {
+                if (key !== activeWidget) {
+                    const el = document.getElementById(id);
+                    if (el) el.style.setProperty('display', 'none', 'important');
                 }
-                const frame = document.getElementById('webcam-frame');
-                const logo = document.getElementById('game-logo-container');
-                if(frame) frame.style.setProperty('display', 'none', 'important');
-                if(logo) logo.style.setProperty('display', 'none', 'important');
+            }
 
+            // Ювелирная работа с Вебкой и Питомцем (т.к. они вложены друг в друга)
+            const webcamContainer = document.getElementById('webcam-container');
+            const petContainer = document.getElementById('pet-container');
+            const webcamFrame = document.getElementById('webcam-frame');
+            const logoContainer = document.getElementById('game-logo-container');
+
+            if (activeWidget === 'pet') {
+                // Если нужен только питомец: оставляем контейнер, но прячем рамку и лого
+                if (webcamFrame) webcamFrame.style.setProperty('display', 'none', 'important');
+                if (logoContainer) logoContainer.style.setProperty('display', 'none', 'important');
             } else if (activeWidget === 'cam') {
-                const pet = document.getElementById('pet-container');
-                if(pet) pet.style.setProperty('display', 'none', 'important');
-                
-                for (const [key, id] of Object.entries(widgets)) {
-                    if (key !== 'cam') {
-                        const el = document.getElementById(id);
-                        if (el) el.style.setProperty('display', 'none', 'important');
-                    }
-                }
+                // Если нужна только рамка: оставляем контейнер, прячем питомца
+                if (petContainer) petContainer.style.setProperty('display', 'none', 'important');
             } else {
-                for (const [key, id] of Object.entries(widgets)) {
-                    if (key !== activeWidget) {
-                        const el = document.getElementById(id);
-                        if (el) {
-                            el.style.setProperty('display', 'none', 'important');
-                            if (key !== 'chat' && key !== 'emotes') el.innerHTML = ''; 
-                        }
-                    }
-                }
+                // Если нужен другой виджет (чат, цель и т.д.) - убиваем весь блок вебки
+                if (webcamContainer) webcamContainer.style.setProperty('display', 'none', 'important');
             }
         }
 
         // ==============================================================
-        // 4. ГЛОБАЛЬНЫЙ МЬЮТ ЗВУКОВ (Для визуальных слоев в Чатинге/Стриминге)
-        // Если в OBS в конце ссылки стоит &mute=true, скрипт обрезает звуки
+        // 4. ГЛОБАЛЬНЫЙ МЬЮТ ЗВУКОВ (Если в конце ссылки &mute=true)
         // ==============================================================
         if (urlParams.get('mute') === 'true') {
             window.Audio = function() {
-                return { 
-                    play: function() { return Promise.resolve(); }, 
-                    set volume(v) {} 
-                };
+                return { play: function() { return Promise.resolve(); }, set volume(v) {} };
             };
         }
 
