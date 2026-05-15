@@ -1,14 +1,17 @@
 ComfyJS.onChat = (user, message, flags, self, extra) => {
-    window.AppChat.addMessage(user, message, flags, extra);
+    if (window.AppChat) window.AppChat.addMessage(user, message, flags, extra);
+    
+    // Питомец радуется спаму смайлов напрямую!
+    if (extra.messageEmotes && window.AppPet) {
+        window.AppPet.setEmotion('hype', 3000);
+    }
 };
 
 // ОБРАБОТЧИК БАЛЛОВ КАНАЛА
 ComfyJS.onReward = (user, reward, cost, message, extra) => {
-    // 1. Награда: Заказать видео
-    if (reward === window.AppConfig.rewardName) {
+    if (reward === window.AppConfig.rewardName && window.AppQueue) {
         window.AppQueue.add(message, user);
     }
-    // 2. Награда: Озвучить сообщение (TTS)
     if (reward === window.AppConfig.ttsRewardName && window.AppTTS) {
         window.AppTTS.add(user, message);
     }
@@ -25,7 +28,7 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
         
         case "sr":     
         case "play":   
-            if (message !== "") {
+            if (message !== "" && window.AppQueue) {
                 window.AppQueue.add(message, user);
                 console.log(`[Twitch] ${user} заказал трек: ${message}`);
             }
@@ -33,23 +36,23 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
 
         case "so":
         case "shoutout":
-            if (hasPermission && message !== "") window.AppShoutout.add(message);
+            if (hasPermission && message !== "" && window.AppShoutout) window.AppShoutout.add(message);
             break;
 
         case "skip":
-            if (hasPermission) window.AppQueue.next();
+            if (hasPermission && window.AppQueue) window.AppQueue.next();
             break;
             
         case "clear":
-            if (hasPermission) window.AppQueue.clear();
+            if (hasPermission && window.AppQueue) window.AppQueue.clear();
             break;
             
         case "vol":
-            if (hasPermission && message !== "") window.AppPlayer.setVolume(message);
+            if (hasPermission && message !== "" && window.AppPlayer) window.AppPlayer.setVolume(message);
             break;
 
         case "cam":
-            if (hasPermission) {
+            if (hasPermission && window.AppMedia) {
                 if (arg === "off") window.AppMedia.toggleCam(false);
                 else if (arg === "on") window.AppMedia.toggleCam(true);
                 else window.AppMedia.toggleCam();
@@ -57,7 +60,7 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
             break;
 
         case "mic":
-            if (hasPermission) {
+            if (hasPermission && window.AppMedia) {
                 if (arg === "off") window.AppMedia.toggleMic(false);
                 else if (arg === "on") window.AppMedia.toggleMic(true);
                 else window.AppMedia.toggleMic();
@@ -86,50 +89,76 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
 
         case "game":
         case "игра":
-            if (hasPermission) window.AppGameLogo.set(arg);
+            if (hasPermission && window.AppGameLogo) window.AppGameLogo.set(arg);
             break;
 
         case "death":
         case "deaths":
         case "смерть":
             if (hasPermission) {
-                if (arg === "on" || arg === "show") window.AppDeaths.toggle(true);
-                else if (arg === "off" || arg === "hide") window.AppDeaths.toggle(false);
-                else if (arg === "-" || arg === "sub") window.AppDeaths.update(1, 'sub');
-                else if (arg === "reset" || arg === "clear") window.AppDeaths.update(0, 'set');
-                else if (arg.startsWith("set ")) {
-                    const num = parseInt(arg.replace("set ", ""));
-                    if (!isNaN(num)) window.AppDeaths.update(num, 'set');
-                } 
-                else window.AppDeaths.update(1, 'add');
+                // Питомец пугается команды !death напрямую!
+                if (window.AppPet && arg !== "off" && arg !== "hide" && arg !== "-" && arg !== "sub" && arg !== "reset" && arg !== "clear" && !arg.startsWith("set")) {
+                    window.AppPet.setEmotion('scared', 3000);
+                }
+
+                if (window.AppDeaths) {
+                    if (arg === "on" || arg === "show") window.AppDeaths.toggle(true);
+                    else if (arg === "off" || arg === "hide") window.AppDeaths.toggle(false);
+                    else if (arg === "-" || arg === "sub") window.AppDeaths.update(1, 'sub');
+                    else if (arg === "reset" || arg === "clear") window.AppDeaths.update(0, 'set');
+                    else if (arg.startsWith("set ")) {
+                        const num = parseInt(arg.replace("set ", ""));
+                        if (!isNaN(num)) window.AppDeaths.update(num, 'set');
+                    } 
+                    else window.AppDeaths.update(1, 'add');
+                }
             }
             break;
 
         case "alert":
             if (hasPermission) {
-                if (arg === "sub") window.AppAlerts.add("ТестовыйЮзер", "sub");
-                else if (arg === "resub") window.AppAlerts.add("ОлдРесабер", "resub", "Обожаю этот стрим!", 12);
-                else if (arg === "gift") window.AppAlerts.add("Богач", "gift", "для СлучайныйЗритель");
-                // НОВАЯ КОМАНДА ДЛЯ ТЕСТА СЕРИИ ПРОСМОТРОВ
-                else if (arg === "streak") window.AppAlerts.add("ПреданныйЗритель", "streak", "Лучший стример, смотрю каждый день!", 5);
-                else window.AppAlerts.add("НовыйФолловер", "follow");
+                // Питомец пускает сердечки на тест алертов!
+                if (window.AppPet) window.AppPet.setEmotion('love', window.AppConfig.alertDuration || 5000);
+
+                if (window.AppAlerts) {
+                    if (arg === "sub") window.AppAlerts.add("ТестовыйЮзер", "sub");
+                    else if (arg === "resub") window.AppAlerts.add("ОлдРесабер", "resub", "Обожаю этот стрим!", 12);
+                    else if (arg === "gift") window.AppAlerts.add("Богач", "gift", "для СлучайныйЗритель");
+                    else if (arg === "streak") window.AppAlerts.add("ПреданныйЗритель", "streak", "Лучший стример, смотрю каждый день!", 5);
+                    else window.AppAlerts.add("НовыйФолловер", "follow");
+                }
             }
             break;
     }
 };
 
-ComfyJS.onSub = (user, message, subTierInfo, extra) => { window.AppAlerts.add(user, 'sub', message); };
-ComfyJS.onResub = (user, message, streamMonths, cumulativeMonths, subTierInfo, extra) => { window.AppAlerts.add(user, 'resub', message, cumulativeMonths); };
-ComfyJS.onSubGift = (gifterUser, streakMonths, recipientUser, senderCount, subTierInfo, extra) => { window.AppAlerts.add(gifterUser, 'gift', `для ${recipientUser}`); };
-ComfyJS.onSubMysteryGift = (gifterUser, numbOfSubs, senderCount, subTierInfo, extra) => { window.AppAlerts.add(gifterUser, 'gift', `подарил ${numbOfSubs} саб.!`); };
+// Функция-помощник для запуска сердечек у питомца при сабках
+const triggerPetLove = () => {
+    if (window.AppPet) window.AppPet.setEmotion('love', window.AppConfig.alertDuration || 5000);
+};
+
+ComfyJS.onSub = (user, message, subTierInfo, extra) => { 
+    if (window.AppAlerts) window.AppAlerts.add(user, 'sub', message); 
+    triggerPetLove();
+};
+ComfyJS.onResub = (user, message, streamMonths, cumulativeMonths, subTierInfo, extra) => { 
+    if (window.AppAlerts) window.AppAlerts.add(user, 'resub', message, cumulativeMonths); 
+    triggerPetLove();
+};
+ComfyJS.onSubGift = (gifterUser, streakMonths, recipientUser, senderCount, subTierInfo, extra) => { 
+    if (window.AppAlerts) window.AppAlerts.add(gifterUser, 'gift', `для ${recipientUser}`); 
+    triggerPetLove();
+};
+ComfyJS.onSubMysteryGift = (gifterUser, numbOfSubs, senderCount, subTierInfo, extra) => { 
+    if (window.AppAlerts) window.AppAlerts.add(gifterUser, 'gift', `подарил ${numbOfSubs} саб.!`); 
+    triggerPetLove();
+};
 
 // ПОДКЛЮЧЕНИЕ К КАНАЛУ
 if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
     ComfyJS.Init(window.AppConfig.channelName);
 
-    // =================================================================
     // ПЕРЕХВАТ СЫРЫХ СОБЫТИЙ TWITCH (ДЛЯ СЕРИИ ПРОСМОТРОВ)
-    // =================================================================
     const client = ComfyJS.GetClient();
     if (client) {
         client.on("raw_message", (messageCloned, message) => {
@@ -144,7 +173,8 @@ if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_�
                         customMsg = message.params[1];
                     }
 
-                    window.AppAlerts.add(user, "streak", customMsg, streakCount);
+                    if (window.AppAlerts) window.AppAlerts.add(user, "streak", customMsg, streakCount);
+                    triggerPetLove();
                 }
             }
         });
