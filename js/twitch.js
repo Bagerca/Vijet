@@ -1,19 +1,67 @@
 ComfyJS.onChat = (user, message, flags, self, extra) => {
+    // Отправляем сообщение в виджет чата
     if (window.AppChat) window.AppChat.addMessage(user, message, flags, extra);
     
     // Питомец радуется спаму смайлов напрямую!
     if (extra.messageEmotes && window.AppPet) {
         window.AppPet.setEmotion('hype', 3000);
     }
+
+    // === ПЕРЕХВАТ ДЕФОЛТНЫХ НАГРАД TWITCH ("Выделить моё сообщение") ===
+    if (flags.highlighted) {
+        // Выводим в бегущую строку
+        if (window.AppTicker) {
+            window.AppTicker.showRewardEvent(user, "Выделенное сообщение", message);
+        }
+        // Лиса танцует
+        if (window.AppPet) {
+            window.AppPet.setEmotion('hype', 3000);
+        }
+    }
 };
 
-// ОБРАБОТЧИК БАЛЛОВ КАНАЛА
+// ОБРАБОТЧИК БАЛЛОВ КАНАЛА (Кастомные награды, созданные тобой)
 ComfyJS.onReward = (user, reward, cost, message, extra) => {
+    
+    // === 1. ГЛОБАЛЬНЫЕ РЕАКЦИИ НА ЛЮБУЮ НАГРАДУ ===
+    if (window.AppTicker) {
+        window.AppTicker.showRewardEvent(user, reward, message);
+    }
+    
+    if (window.AppPet) {
+        window.AppPet.setEmotion('hype', 3000);
+    }
+
+    // === 2. СПЕЦИФИЧЕСКИЕ НАГРАДЫ ИЗ КОНФИГА ===
+    
+    // Плеер YouTube
     if (reward === window.AppConfig.rewardName && window.AppQueue) {
         window.AppQueue.add(message, user);
     }
+    
+    // Озвучка (TTS)
     if (reward === window.AppConfig.ttsRewardName && window.AppTTS) {
         window.AppTTS.add(user, message);
+    }
+    
+    // Покормить лису
+    if (reward === window.AppConfig.feedRewardName && window.AppPet) {
+        window.AppPet.setEmotion('nom', 6000); 
+    }
+
+    // Алерты наград на экране
+    if (window.AppAlerts && window.AppConfig.rewards) {
+        if (reward === window.AppConfig.rewards.series) {
+            window.AppAlerts.add(user, "reward_series", message);
+        } else if (reward === window.AppConfig.rewards.movie) {
+            window.AppAlerts.add(user, "reward_movie", message);
+        } else if (reward === window.AppConfig.rewards.video) {
+            window.AppAlerts.add(user, "reward_video", message);
+        } else if (reward === window.AppConfig.rewards.game) {
+            window.AppAlerts.add(user, "reward_game", message);
+        } else if (reward === window.AppConfig.rewards.music) {
+            window.AppAlerts.add(user, "reward_music", message);
+        }
     }
 };
 
@@ -30,7 +78,6 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
         case "play":   
             if (message !== "" && window.AppQueue) {
                 window.AppQueue.add(message, user);
-                console.log(`[Twitch] ${user} заказал трек: ${message}`);
             }
             break;
 
@@ -87,6 +134,15 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
             }
             break;
 
+        case "blur":
+        case "блюр":
+            if (hasPermission && window.AppBlur) {
+                if (arg === "off") window.AppBlur.toggle(false);
+                else if (arg === "on") window.AppBlur.toggle(true);
+                else window.AppBlur.toggle();
+            }
+            break;
+
         case "game":
         case "игра":
             if (hasPermission && window.AppGameLogo) window.AppGameLogo.set(arg);
@@ -96,7 +152,6 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
         case "deaths":
         case "смерть":
             if (hasPermission) {
-                // Питомец пугается команды !death напрямую!
                 if (window.AppPet && arg !== "off" && arg !== "hide" && arg !== "-" && arg !== "sub" && arg !== "reset" && arg !== "clear" && !arg.startsWith("set")) {
                     window.AppPet.setEmotion('scared', 3000);
                 }
@@ -115,9 +170,28 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
             }
             break;
 
+        case "fox":
+        case "лиса":
+        case "лис":
+            if (hasPermission && window.AppPet) {
+                const allowedStates = ['idle', 'sleep', 'alert', 'hype', 'love', 'scared', 'angry', 'greet', 'bye', 'jam', 'listen', 'nom'];
+                
+                if (allowedStates.includes(arg)) {
+                    window.AppPet.setEmotion(arg, 5000); 
+                } else if (arg === "кусь" || arg === "ням") {
+                    window.AppPet.setEmotion('nom', 5000);
+                } else if (arg === "привет") {
+                    window.AppPet.setEmotion('greet', 5000);
+                } else if (arg === "пока") {
+                    window.AppPet.setEmotion('bye', 5000);
+                } else if (arg === "танцуй" || arg === "вайб") {
+                    window.AppPet.setEmotion('jam', 5000);
+                }
+            }
+            break;
+
         case "alert":
             if (hasPermission) {
-                // Питомец пускает сердечки на тест алертов!
                 if (window.AppPet) window.AppPet.setEmotion('love', window.AppConfig.alertDuration || 5000);
 
                 if (window.AppAlerts) {
@@ -125,6 +199,13 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
                     else if (arg === "resub") window.AppAlerts.add("ОлдРесабер", "resub", "Обожаю этот стрим!", 12);
                     else if (arg === "gift") window.AppAlerts.add("Богач", "gift", "для СлучайныйЗритель");
                     else if (arg === "streak") window.AppAlerts.add("ПреданныйЗритель", "streak", "Лучший стример, смотрю каждый день!", 5);
+                    
+                    else if (arg === "series") window.AppAlerts.add("Киноман", "reward_series", "Давай смотреть Во все тяжкие!");
+                    else if (arg === "movie") window.AppAlerts.add("Зритель", "reward_movie", "Гарри Поттер пожалуйста");
+                    else if (arg === "video") window.AppAlerts.add("Кекус", "reward_video", "Смешные коты");
+                    else if (arg === "game") window.AppAlerts.add("Геймер", "reward_game", "Го в Доту?");
+                    else if (arg === "music") window.AppAlerts.add("Меломан", "reward_music", "Врубай фонк");
+                    
                     else window.AppAlerts.add("НовыйФолловер", "follow");
                 }
             }
@@ -132,7 +213,6 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
     }
 };
 
-// Функция-помощник для запуска сердечек у питомца при сабках
 const triggerPetLove = () => {
     if (window.AppPet) window.AppPet.setEmotion('love', window.AppConfig.alertDuration || 5000);
 };
@@ -154,11 +234,9 @@ ComfyJS.onSubMysteryGift = (gifterUser, numbOfSubs, senderCount, subTierInfo, ex
     triggerPetLove();
 };
 
-// ПОДКЛЮЧЕНИЕ К КАНАЛУ
 if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
     ComfyJS.Init(window.AppConfig.channelName);
 
-    // ПЕРЕХВАТ СЫРЫХ СОБЫТИЙ TWITCH (ДЛЯ СЕРИИ ПРОСМОТРОВ)
     const client = ComfyJS.GetClient();
     if (client) {
         client.on("raw_message", (messageCloned, message) => {

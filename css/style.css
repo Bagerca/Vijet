@@ -6,6 +6,7 @@
 @import url('base.css');
 
 /* Модули интерфейса */
+@import url('blur.css');
 @import url('pet.css');
 @import url('tts.css');
 @import url('emotes.css');

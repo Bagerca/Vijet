@@ -14,6 +14,23 @@
     <canvas id="particles-canvas"></canvas>
 
     <div id="scene-wrapper">
+
+        <!-- БЛЮР ЭКРАНА (ПРИВАТНЫЙ РЕЖИМ) -->
+        <div id="screen-blur-overlay">
+            <div class="blur-pattern"></div>
+            <div class="blur-card">
+                <div class="blur-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
+                <div class="blur-text-wrapper">
+                    <div class="blur-title">ПРИВАТНЫЙ РЕЖИМ</div>
+                    <div class="blur-subtitle">Экран временно скрыт</div>
+                </div>
+            </div>
+        </div>
         
         <!-- СЦЕНА: ОЖИДАНИЕ -->
         <div id="starting-container" style="display: none;">
@@ -56,7 +73,6 @@
             <div id="deaths-count">0</div>
         </div>
 
-        <!-- КОНТЕЙНЕР ДЛЯ ЛЕТЯЩИХ ЭМОДЗИ -->
         <div id="emotes-container"></div>
 
         <div id="chat-container">
@@ -69,30 +85,43 @@
                 <img id="game-logo-img" src="" alt="Game Logo">
             </div>
             
-            <!-- ПИКСЕЛЬНЫЙ ПИТОМЕЦ (ЛИСА) -->
+            <!-- ПИКСЕЛЬНЫЙ ПИТОМЕЦ V2 (ЛИСА РЕМАСТЕР) -->
             <div id="pet-container" class="state-idle">
-                <div class="tail-wrapper">
+                <div class="tail-pos joint"><div class="tail-anim">
                     <div class="fox-part tail-main"><div class="fox-part tail-tip"></div></div>
-                </div>
-                <div class="fox-part body">
-                    <div class="fox-part chest"></div>
-                    <div class="fox-part leg-front"></div>
-                    <div class="fox-part leg-back"></div>
-                </div>
-                <div class="head-wrapper">
-                    <div class="fox-part ear-l"><div class="ear-l-in"></div></div>
-                    <div class="fox-part ear-r"><div class="ear-r-in"></div></div>
-                    <div class="fox-part head-main">
-                        <div class="fox-part cheek-l"></div>
-                        <div class="fox-part cheek-r"></div>
-                        <div class="fox-part snout">
-                            <div class="fox-part nose"></div>
-                            <div class="fox-part mouth"></div>
-                        </div>
-                        <div class="eye eye-l"></div>
-                        <div class="eye eye-r"></div>
+                </div></div>
+
+                <div class="body-pos joint"><div class="body-anim">
+                    <div class="head-shadow"></div>
+                    <div class="fox-part leg leg-l"></div>
+                    <div class="fox-part leg leg-r"></div>
+                    <div class="fox-part torso"><div class="fox-part chest"></div></div>
+                </div></div>
+
+                <div class="head-pos joint"><div class="head-anim">
+                    <div class="fox-part ear ear-l joint"><div class="ear-in"></div></div>
+                    <div class="fox-part ear ear-r joint"><div class="ear-in"></div></div>
+                    
+                    <div class="fox-part face">
+                        <div class="fox-part cheek cheek-l"></div>
+                        <div class="fox-part cheek cheek-r"></div>
+                        
+                        <div class="jaw-pos joint"><div class="tongue joint"></div></div>
+                        <div class="snout-pos"><div class="nose"></div></div>
+                        
+                        <div class="eyebrow eyebrow-l joint"></div>
+                        <div class="eyebrow eyebrow-r joint"></div>
+                        <div class="eye eye-l joint"></div>
+                        <div class="eye eye-r joint"></div>
                     </div>
-                </div>
+                </div></div>
+
+                <div class="body-pos arms-layer joint"><div class="body-anim">
+                    <div class="arm-pos arm-l joint"><div class="arm-part"><div class="arm-paw"></div></div></div>
+                    <div class="arm-pos arm-r joint"><div class="arm-part"><div class="arm-paw"></div></div>
+                        <div class="item-cookie"></div>
+                    </div>
+                </div></div>
             </div>
 
             <div id="webcam-frame"></div>
@@ -152,6 +181,7 @@
     <script src="js/gamelogo.js"></script>
     <script src="js/tts.js"></script>
     <script src="js/countdown.js"></script> 
+    <script src="js/blur.js"></script>
     <script src="js/twitch.js"></script>
 
     <script>
@@ -159,16 +189,10 @@
         const activeWidget = urlParams.get('widget');
         const sceneParam = urlParams.get('scene');
 
-        // ==============================================================
-        // 1. УСТАНОВКА СЦЕН
-        // ==============================================================
         if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
         if (sceneParam === 'starting') document.body.classList.add('scene-starting');
         if (sceneParam === 'ending') document.body.classList.add('scene-ending'); 
 
-        // ==============================================================
-        // 2. ИЗОЛЯЦИЯ ДЛЯ СЦЕН "СТАРТ" И "КОНЕЦ"
-        // ==============================================================
         if (sceneParam === 'starting' || sceneParam === 'ending') {
             window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
             window.AppQueue = { add: function(){}, next: function(){}, clear: function(){} };
@@ -177,6 +201,7 @@
             window.AppShoutout = { add: function(){} };
             window.AppDeaths = { update: function(){}, toggle: function(){} };
             window.AppEmotes = { spawn: function(){}, toggle: function(){}, setMode: function(){} };
+            window.AppBlur = { toggle: function(){} };
             
             const ytPlayer = document.getElementById('yt-player');
             if (ytPlayer) ytPlayer.remove(); 
@@ -187,15 +212,10 @@
             if ('speechSynthesis' in window) window.speechSynthesis.speak = function() {};
         }
 
-        // ==============================================================
-        // 3. РЕЖИМ СЛОЕВ (СТРОГАЯ ИЗОЛЯЦИЯ ЗВУКОВ)
-        // ==============================================================
         if (activeWidget) {
             document.body.style.setProperty('background', 'transparent', 'important');
             document.documentElement.style.setProperty('background', 'transparent', 'important');
 
-            // --- ЖЕСТКИЕ ГЛУШИЛКИ ЛОГИКИ ---
-            // Если источник - не музыка, убиваем музыку.
             if (activeWidget !== 'music') {
                 const ytPlayer = document.getElementById('yt-player');
                 if (ytPlayer) ytPlayer.remove(); 
@@ -214,25 +234,22 @@
                 if (window.AppEmotes) window.AppEmotes.spawn = function(){};
             }
 
-            // ИСПРАВЛЕНИЕ БАГА СО ЗВУКАМИ:
-            // Если источник не Алерты - он не должен проигрывать алерты.
             if (activeWidget !== 'alerts') {
                 if (window.AppAlerts) window.AppAlerts.add = function(){};
             }
-            // Если источник не Смерти - он не должен проигрывать звук смерти.
             if (activeWidget !== 'deaths') {
                 if (window.AppDeaths) window.AppDeaths.update = function(){};
             }
-            // Если источник не Шотаут - он не должен проигрывать звук рекламы.
             if (activeWidget !== 'shoutout') {
                 if (window.AppShoutout) window.AppShoutout.add = function(){};
             }
-            // Если источник не TTS - он не должен пытаться синтезировать речь.
             if (activeWidget !== 'tts') {
                 if (window.AppTTS) window.AppTTS.add = function(){};
             }
+            if (activeWidget !== 'blur') {
+                if (window.AppBlur) window.AppBlur.toggle = function(){};
+            }
 
-            // Идеальное скрытие HTML-элементов
             const widgets = {
                 'chat': 'chat-container',
                 'music': 'widget-container',
@@ -244,7 +261,8 @@
                 'deaths': 'deaths-container',
                 'particles': 'particles-canvas',
                 'emotes': 'emotes-container',
-                'tts': 'tts-container'
+                'tts': 'tts-container',
+                'blur': 'screen-blur-overlay'
             };
 
             for (const [key, id] of Object.entries(widgets)) {
@@ -254,7 +272,6 @@
                 }
             }
 
-            // Работа с Вебкой и Питомцем
             const webcamContainer = document.getElementById('webcam-container');
             const petContainer = document.getElementById('pet-container');
             const webcamFrame = document.getElementById('webcam-frame');
@@ -270,9 +287,6 @@
             }
         }
 
-        // ==============================================================
-        // 4. ГЛОБАЛЬНЫЙ МЬЮТ ЗВУКОВ (Для визуальных слоев: &mute=true)
-        // ==============================================================
         if (urlParams.get('mute') === 'true') {
             window.Audio = function() {
                 return { play: function() { return Promise.resolve(); }, set volume(v) {} };
@@ -280,14 +294,10 @@
             if ('speechSynthesis' in window) window.speechSynthesis.speak = function() {};
         }
 
-        // ==============================================================
-        // 5. РЕЖИМ ТОЛЬКО АУДИО (Прячет графику: &audioonly=true)
-        // ==============================================================
         if (urlParams.get('audioonly') === 'true') {
             const wrapper = document.getElementById('scene-wrapper');
             if (wrapper) wrapper.style.setProperty('display', 'none', 'important');
         }
-
     </script>
 </body>
 </html>

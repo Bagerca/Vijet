@@ -3,9 +3,9 @@ window.AppPlayer = {
     container: document.getElementById('widget-container'),
     nameLabel: document.getElementById('requester-name'),
     volLabel: document.getElementById('volume-level'),
-    progressBar: document.getElementById('yt-progress-bar'), // Доступ к ползунку
+    progressBar: document.getElementById('yt-progress-bar'), 
     isReady: false,
-    progressInterval: null, // Переменная для таймера
+    progressInterval: null, 
 
     init: function() {
         this.yt = new YT.Player('yt-player', {
@@ -36,10 +36,8 @@ window.AppPlayer = {
         this.nameLabel.innerText = user;
         this.container.classList.remove('hidden');
         
-        // Сброс прогресс-бара перед новым видео
         this.progressBar.style.width = '0%';
         
-        // Запускаем через mute -> unmute, чтобы обойти блокировку автоплея браузером
         this.yt.loadVideoById(videoId);
         this.yt.mute(); 
         this.yt.playVideo(); 
@@ -53,7 +51,7 @@ window.AppPlayer = {
     hide: function() {
         this.container.classList.add('hidden');
         this.container.classList.remove('is-playing');
-        this.stopProgress(); // Останавливаем расчеты
+        this.stopProgress(); 
         if (this.isReady) {
             this.yt.stopVideo();
         }
@@ -67,7 +65,6 @@ window.AppPlayer = {
             
             this.volLabel.innerText = safeVol;
             
-            // Перезапуск анимации цифры
             this.volLabel.classList.remove('animate-pop');
             void this.volLabel.offsetWidth; 
             this.volLabel.classList.add('animate-pop');
@@ -77,10 +74,17 @@ window.AppPlayer = {
     handleStateChange: function(event) {
         if (event.data === 1) { // PLAYING
             this.container.classList.add('is-playing');
-            this.startProgress(); // Включаем прогресс-бар
-        } else {
+            this.startProgress(); 
+            // Лиса начинает вайбовать (качать головой)
+            if (window.AppPet) window.AppPet.setEmotion('jam');
+
+        } else { // PAUSED / BUFFERING
             this.container.classList.remove('is-playing');
-            this.stopProgress(); // Выключаем (пауза/буферизация)
+            this.stopProgress(); 
+            // Лиса перестает вайбовать если музыка на паузе
+            if (window.AppPet && window.AppPet.currentState === 'jam') {
+                window.AppPet.setEmotion('idle');
+            }
         }
         
         if (event.data === 0) { // ENDED
@@ -89,14 +93,9 @@ window.AppPlayer = {
         }
     },
 
-    // ==========================================
-    // ЛОГИКА ПРОГРЕСС-БАРА
-    // ==========================================
     startProgress: function() {
-        // Защита от двойного запуска
         if (this.progressInterval) clearInterval(this.progressInterval);
         
-        // Обновляем каждые 500мс
         this.progressInterval = setInterval(() => {
             if (this.yt && this.yt.getCurrentTime && this.yt.getDuration) {
                 const currentTime = this.yt.getCurrentTime();

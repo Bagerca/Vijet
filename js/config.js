@@ -7,53 +7,64 @@ window.AppConfig = {
     // ==========================================
     forbiddenWords: ["негр", "пидор", "даун", "чурка", "хохол", "кацап", "запретка"],
 
-    alertDuration: 5000,           
-    shoutoutDuration: 8000, 
-
     // ==========================================
     // НАСТРОЙКИ: Звуки алертов
     // ==========================================
-    alertVolume: 40, // Громкость алертов (от 0 до 100)
+    alertVolume: 40,
     alertSounds: {
         "follow": "sounds/follow.mp3",
         "sub": "sounds/sub.mp3",
         "resub": "sounds/sub.mp3",
         "gift": "sounds/gift.mp3",
-        "streak": "sounds/streak.mp3"
+        "streak": "sounds/streak.mp3",
+        "reward_series": "sounds/series.mp3",
+        "reward_movie": "sounds/movie.mp3",
+        "reward_video": "sounds/video.mp3",
+        "reward_game": "sounds/game.mp3",
+        "reward_music": "sounds/music.mp3"
     },
     
-    deathSound: "sounds/death.mp3",       // Звук при добавлении смерти (!death)
-    shoutoutSound: "sounds/shoutout.mp3", // Звук при появлении карточки (!so)
+    deathSound: "sounds/death.mp3",       
+    shoutoutSound: "sounds/shoutout.mp3", 
+
+    // ==========================================
+    // НАСТРОЙКИ: Точные названия наград на Twitch
+    // ==========================================
+    rewards: {
+        series: "Сериал",
+        movie: "Фильм",
+        video: "Видео",
+        game: "Игры",
+        music: "Музыка"
+    },
+
+    rewardName: "Заказать видео",
+    ttsRewardName: "Озвучить сообщение", 
+    feedRewardName: "Покормить лису", // <--- НОВАЯ НАГРАДА ДЛЯ ВКУСНЯШКИ
 
     // ==========================================
     // НАСТРОЙКИ: Пиксельный Питомец
     // ==========================================
     petEnabled: true,
-    petSleepTimeout: 120, // Через сколько СЕКУНД тишины в чате питомец уснет (Zzz)
+    petSleepTimeout: 120,
 
     // ==========================================
-    // НАСТРОЙКИ: Анимации смайликов (Летящие эмодзи)
+    // НАСТРОЙКИ: Анимации смайликов
     // ==========================================
     emotesEnabled: true,      
     emotesMaxPerMessage: 150, 
     emotesMode: "bubble",     
 
-// ==========================================
+    // ==========================================
     // НАСТРОЙКИ: Голосовая озвучка (TTS)
     // ==========================================
     ttsEnabled: true,         
     ttsVolume: 60,            
     ttsMaxLength: 150,        
-    ttsRewardName: "Озвучить сообщение", 
 
-    // КАСТОМНЫЕ ГОЛОСА ДЛЯ КОНКРЕТНЫХ ЛЮДЕЙ
-    // pitch: тональность (от 0.1 до 2.0, где 1.0 - норма)
-    // rate: скорость (от 0.1 до 2.0, где 1.0 - норма)
     ttsCustomVoices: {
-        "bagercaa": { pitch: 0.2, rate: 0.8 }, // Очень низкий и медленный голос (Демон)
-        "to_be_ang": { pitch: 2.0, rate: 1.3 }, // Высокий и быстрый голос (Бурундук)
-        // Можно добавить мужской голос, если он установлен в Windows:
-        // "какойто_ник": { pitch: 1.0, rate: 1.0, voiceName: "Pavel" } 
+        "bagercaa": { pitch: 0.2, rate: 0.8 }, 
+        "to_be_ang": { pitch: 2.0, rate: 1.3 }
     },
 
     // ==========================================
@@ -67,7 +78,6 @@ window.AppConfig = {
         "winx": "img/games/winx_club_the_magic_is_back.png"
     },
 
-    rewardName: "Заказать видео",
     defaultVolume: 30,
     chatMsgLifetime: 15000,
     maxChatMessages: 12,
