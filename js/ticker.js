@@ -11,18 +11,14 @@ window.AppTicker = {
             return;
         }
         
-        // Когда анимация прокрутки текста заканчивается
+        // Когда текст докрутился до конца
         this.textEl.addEventListener('animationend', () => {
             this.textEl.classList.remove('scrolling');
             this.container.classList.remove('visible');
             this.isPlaying = false;
             
-            // Если в очереди есть еще срочные сообщения - показываем через секунду
-            if (this.queue.length > 0) {
-                setTimeout(() => this.processQueue(), 1000);
-            } else {
-                this.scheduleNext();
-            }
+            if (this.queue.length > 0) setTimeout(() => this.processQueue(), 1000);
+            else this.scheduleNext();
         });
         
         this.scheduleNext();
@@ -34,7 +30,6 @@ window.AppTicker = {
         
         this.timerId = setTimeout(() => {
             const msgs = window.AppConfig.tickerMessages;
-            // Берем случайное сообщение из дефолтных
             this.queue.push(msgs[Math.floor(Math.random() * msgs.length)]);
             this.processQueue();
         }, interval);
@@ -46,13 +41,30 @@ window.AppTicker = {
         this.isPlaying = true; 
         clearTimeout(this.timerId);
         
-        // Достаем первое сообщение из очереди
         this.textEl.innerHTML = this.queue.shift();
         this.container.classList.add('visible');
         
-        // Перезапуск анимации CSS
         void this.textEl.offsetWidth;
         this.textEl.classList.add('scrolling');
+    },
+
+    // ===============================================
+    // СИСТЕМА СРОЧНОГО ПЕРЕХВАТА СТРОКИ
+    // ===============================================
+    forceShowImmediate: function(msg) {
+        // Если строка сейчас работает, жестко ее останавливаем
+        this.textEl.classList.remove('scrolling');
+        this.container.classList.remove('visible');
+        this.isPlaying = false;
+        clearTimeout(this.timerId);
+        
+        // Ставим наше важное сообщение САМЫМ ПЕРВЫМ в очередь
+        this.queue.unshift(msg);
+        
+        // Ждем 500мс (пока строка уедет вниз по CSS-анимации) и запускаем заново
+        setTimeout(() => {
+            this.processQueue();
+        }, 500);
     },
 
     // Спец-сообщение: Заказ Музыки
@@ -61,28 +73,24 @@ window.AppTicker = {
             const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
             const data = await response.json();
             const msg = `<span style="color: #FF4477; font-weight: 800;">🎵 ${user}</span> заказал трек: <span style="color: #1a1a1a;">${data.title}</span>`;
-            this.queue.unshift(msg); // Вставляем вне очереди (самым первым)
-            this.processQueue();
+            this.forceShowImmediate(msg);
         } catch (err) {
             const msg = `<span style="color: #FF4477; font-weight: 800;">🎵 ${user}</span> заказал новый трек!`;
-            this.queue.unshift(msg);
-            this.processQueue();
+            this.forceShowImmediate(msg);
         }
     },
 
     // Спец-сообщение: ЛЮБАЯ Награда за Баллы Канала
     showRewardEvent: function(user, rewardName, userInput) {
-        let msg = `<span style="color: #FF4477; font-weight: 800;">💎 ${user}</span> активировал награду: <span style="color: #1a1a1a; font-weight: 800;">${rewardName}</span>`;
+        let msg = `<span style="color: #FF4477; font-weight: 800;">💎 ${user}</span> активировал: <span style="color: #1a1a1a; font-weight: 800;">${rewardName}</span>`;
         
-        // Если зритель ввел текст (например, "Задай вопрос" или "Выпей воды"), добавляем его в строку
+        // Если зритель ввел текст, добавляем его в строку курсивом
         if (userInput && userInput.trim() !== "") {
-            // Экранируем HTML на всякий случай
-            const cleanInput = userInput.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const cleanInput = userInput.replace(/</g, "&lt;").replace(/>/g, "&gt;"); // защита от ломающего HTML кода
             msg += ` <span style="color: rgba(0,0,0,0.5); font-style: italic;">"${cleanInput}"</span>`;
         }
         
-        this.queue.unshift(msg); // Ставим в начало очереди (чтобы вылезло сразу)
-        this.processQueue();
+        this.forceShowImmediate(msg);
     }
 };
 
