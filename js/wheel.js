@@ -15,7 +15,6 @@ window.AppWheel = {
         if (!this.canvas) return;
         this.ctx = this.canvas.getContext('2d');
         
-        // РЕШЕНИЕ ПРОБЛЕМЫ МЫЛА (High-DPI Retina Display Fix)
         const dpr = window.devicePixelRatio || 1;
         this.canvas.width = 600 * dpr;
         this.canvas.height = 600 * dpr;
@@ -25,6 +24,15 @@ window.AppWheel = {
         if (saved) {
             try { this.items = JSON.parse(saved); } catch(e) { this.items = []; }
         }
+
+        // Подписка на события
+        window.AppEvents.listen('WHEEL_ADD', d => this.add(d.text));
+        window.AppEvents.listen('WHEEL_TOGGLE', d => this.toggle(d.state));
+        window.AppEvents.listen('WHEEL_CMD', d => { 
+            if(d.cmd==='clear') this.clear(); 
+            else if(d.cmd==='spin') this.spin(); 
+            else if(d.cmd==='remove') this.remove(d.val); 
+        });
 
         this.draw();
 
@@ -55,14 +63,8 @@ window.AppWheel = {
 
     add: function(text) {
         if (!text || text.trim() === "") return;
-        
-        // ЗАЩИТА ОТ СПАМА (Ограничение на количество секторов)
         const max = window.AppConfig.wheelMaxItems || 15;
-        if (this.items.length >= max) {
-            console.log("[Wheel] Рулетка переполнена!");
-            return;
-        }
-
+        if (this.items.length >= max) return;
         this.items.push(text.trim());
         this.save();
     },
@@ -85,30 +87,21 @@ window.AppWheel = {
 
     draw: function() {
         if (!this.ctx) return;
-        const w = 600; 
-        const h = 600;
-        const cx = w / 2;
-        const cy = h / 2;
-        const radius = w / 2;
+        const w = 600; const h = 600;
+        const cx = w / 2; const cy = h / 2; const radius = w / 2;
 
         this.ctx.clearRect(0, 0, w, h);
 
         if (this.items.length === 0) {
             this.ctx.fillStyle = "rgba(0,0,0,0.1)";
-            this.ctx.beginPath();
-            this.ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
-            this.ctx.fill();
-            this.ctx.fillStyle = "#fff";
-            this.ctx.textAlign = "center";
-            this.ctx.font = "bold 24px Montserrat";
+            this.ctx.beginPath(); this.ctx.arc(cx, cy, radius, 0, 2 * Math.PI); this.ctx.fill();
+            this.ctx.fillStyle = "#fff"; this.ctx.textAlign = "center"; this.ctx.font = "bold 24px Montserrat";
             this.ctx.fillText("Пусто", cx, cy + 8);
             return;
         }
 
         const sliceAngle = (2 * Math.PI) / this.items.length;
         let startAngle = -Math.PI / 2 - (sliceAngle / 2);
-
-        // ДИНАМИЧЕСКИЙ РАЗМЕР ШРИФТА (Чем больше кусков, тем меньше текст)
         let fontSize = Math.min(28, Math.max(12, (radius * sliceAngle) / 2));
 
         for (let i = 0; i < this.items.length; i++) {
@@ -148,14 +141,8 @@ window.AppWheel = {
         this.isSpinning = true;
         this.winnerEl.classList.add('hidden');
 
-        const minSpins = 5;
-        const maxSpins = 10;
-        
-        // ОРГАНИЧЕСКАЯ ОСТАНОВКА (Случайный градус внутри сектора, чтобы стрелка не стояла на линии)
-        const randomSpins = minSpins + Math.random() * (maxSpins - minSpins);
-        const addedRotation = randomSpins * 360;
-        
-        this.currentRotation += addedRotation;
+        const randomSpins = 5 + Math.random() * 5;
+        this.currentRotation += randomSpins * 360;
 
         const duration = window.AppConfig.wheelSpinTime || 8;
         this.canvas.style.transition = `transform ${duration}s cubic-bezier(0.15, 0.9, 0.25, 1)`;
@@ -175,14 +162,7 @@ window.AppWheel = {
         this.winnerName.innerText = winnerText;
         this.winnerEl.classList.remove('hidden');
 
-        // Вызов нашего умного виджета (Он сам разберется, брать из конфига или из Steam)
-        if (window.AppGameInfo) {
-            setTimeout(() => {
-                window.AppGameInfo.set(winnerText);
-            }, 1000); 
-        }
-
-        if (window.AppPet) window.AppPet.setEmotion('hype', 5000);
+        if (window.AppGameInfo) setTimeout(() => window.AppGameInfo.set(winnerText), 1000); 
     }
 };
 

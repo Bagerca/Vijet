@@ -1,11 +1,20 @@
 window.AppEmotes = {
     container: document.getElementById('emotes-container'),
-    mode: "bubble", // по умолчанию
+    mode: "bubble",
     enabled: true,
 
     init: function() {
         if (window.AppConfig.emotesMode) this.mode = window.AppConfig.emotesMode;
         if (window.AppConfig.emotesEnabled !== undefined) this.enabled = window.AppConfig.emotesEnabled;
+
+        // Подписка на события
+        window.AppEvents.listen('EMOTES_SPAWN', d => this.spawn(d));
+        window.AppEvents.listen('EMOTES_CMD', d => { 
+            if(d.cmd==='a' || d.cmd==='bubble') this.setMode('bubble');
+            else if(d.cmd==='b' || d.cmd==='fountain') this.setMode('fountain');
+            else if(d.cmd==='off') this.toggle(false); 
+            else if(d.cmd==='on') this.toggle(true);
+        });
     },
 
     setMode: function(newMode) {
@@ -22,23 +31,18 @@ window.AppEmotes = {
     spawn: function(emotesData) {
         if (!this.enabled || !emotesData || !this.container) return;
 
-        // ПИТОМЕЦ РАДУЕТСЯ, КОГДА СПАМЯТ СМАЙЛЫ В ЧАТ
-        if (window.AppPet) window.AppPet.setEmotion('hype', 3000);
-
         let emoteIds = Object.keys(emotesData);
         if (emoteIds.length === 0) return;
 
         let maxSpawn = window.AppConfig.emotesMaxPerMessage || 100;
         let spawned = 0;
-        let delayIndex = 0; // Индекс для создания красивой очереди вылета
+        let delayIndex = 0;
 
         for (let id of emoteIds) {
             let count = emotesData[id].length; 
             for (let i = 0; i < count; i++) {
                 if (spawned >= maxSpawn) break;
-                
                 this.createEmoteDOM(id, delayIndex);
-                
                 spawned++;
                 delayIndex++;
             }
@@ -52,24 +56,20 @@ window.AppEmotes = {
         const img = document.createElement('img');
         img.src = emoteUrl;
 
-        // Микро-задержка (0.05 сек), чтобы смайлы летели друг за другом, а не кучей
         const staggerDelay = delayIndex * (0.05 + Math.random() * 0.03); 
         
-        // РЕЖИМ А: ПУЗЫРИ (Bubble)
         if (this.mode === 'bubble') {
             wrap.className = 'emote-bubble';
+            const size = Math.random(); 
+            const scale = 0.5 + size * 1.5; 
+            const duration = 5 + (1 - size) * 5; 
             
-            const size = Math.random(); // 0..1
-            const scale = 0.5 + size * 1.5; // от 0.5 до 2.0
-            const duration = 5 + (1 - size) * 5; // Маленькие летят медленнее (до 10с), большие быстрее (до 5с)
-            
-            // Эффект глубины резкости (Camera Focus)
             let blur = '0px';
-            if (size > 0.85) blur = `${(size - 0.8) * 20}px`; // Сильно крупные размыты
-            else if (size < 0.2) blur = '2px'; // Очень мелкие на фоне чуть размыты
+            if (size > 0.85) blur = `${(size - 0.8) * 20}px`; 
+            else if (size < 0.2) blur = '2px'; 
             
-            const xPos = 5 + Math.random() * 90; // Позиция по горизонтали (5% - 95%)
-            const swayDir = Math.random() > 0.5 ? 1 : -1; // В какую сторону качнется сначала
+            const xPos = 5 + Math.random() * 90; 
+            const swayDir = Math.random() > 0.5 ? 1 : -1; 
             
             wrap.style.left = `${xPos}%`;
             wrap.style.animationDelay = `${staggerDelay}s`;
@@ -78,25 +78,20 @@ window.AppEmotes = {
             img.style.setProperty('--e-blur', blur);
             img.style.setProperty('--e-scale', scale);
             img.style.setProperty('--e-dir', swayDir);
-            
             wrap.appendChild(img);
         } 
-        
-        // РЕЖИМ Б: ФОНТАН (Fountain)
         else if (this.mode === 'fountain') {
             wrap.className = 'emote-fountain-x';
             img.className = 'emote-fountain-y';
             
             const dir = Math.random() > 0.5 ? 1 : -1;
-            const distanceX = (100 + Math.random() * 600) * dir; // Разлет в ширину
-            const peakY = -300 - Math.random() * 600; // Разлет в высоту (парабола)
-            const rot = (Math.random() * 720 - 360); // Кручение вокруг своей оси
-            const scale = 0.7 + Math.random() * 1.2; // Разные размеры
+            const distanceX = (100 + Math.random() * 600) * dir; 
+            const peakY = -300 - Math.random() * 600; 
+            const rot = (Math.random() * 720 - 360); 
+            const scale = 0.7 + Math.random() * 1.2; 
             
-            // Немного сдвигаем точку выстрела от центра, чтобы было органичнее
             const startOffsetX = (Math.random() - 0.5) * 100;
             wrap.style.left = `calc(50% + ${startOffsetX}px)`;
-            
             wrap.style.animationDelay = `${staggerDelay}s`;
             img.style.animationDelay = `${staggerDelay}s`;
             
@@ -104,17 +99,12 @@ window.AppEmotes = {
             img.style.setProperty('--f-y', `${peakY}px`);
             img.style.setProperty('--f-rot', `${rot}deg`);
             img.style.setProperty('--f-scale', scale);
-            
             wrap.appendChild(img);
         }
 
         this.container.appendChild(wrap);
-
-        // Уборка мусора
         wrap.addEventListener('animationend', (e) => {
-            if (e.target === wrap) {
-                wrap.remove();
-            }
+            if (e.target === wrap) wrap.remove();
         });
     }
 };

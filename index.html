@@ -39,7 +39,6 @@
                 <canvas id="wheel-canvas"></canvas>
                 <div id="wheel-center"></div>
             </div>
-            <!-- Плашка победителя -->
             <div id="wheel-winner" class="hidden">
                 <div class="winner-title">ВЫПАЛА ИГРА</div>
                 <div id="winner-name">SUBNAUTICA</div>
@@ -92,7 +91,6 @@
         </div>
 
         <div id="webcam-container">
-            <!-- ВИДЖЕТ ИНФОРМАЦИИ ОБ ИГРЕ -->
             <div id="game-info-container" class="hidden">
                 <div class="gi-poster-wrap">
                     <img id="gi-cover" src="" alt="Cover" class="hidden">
@@ -104,61 +102,36 @@
                         <div class="gi-no-text">NO GAME<br><span>AWAITING SIGNAL</span></div>
                     </div>
                 </div>
-                
                 <div class="gi-details">
                     <div id="gi-title">Неизвестно</div>
-                    <div class="gi-row" id="row-rating">
-                        <span class="gi-label">Рейтинг:</span>
-                        <span class="gi-val gi-rating" id="gi-rating">0.0 / 10</span>
-                    </div>
-                    <div class="gi-row" id="row-year">
-                        <span class="gi-label">Год:</span>
-                        <span class="gi-val" id="gi-year">202X</span>
-                    </div>
-                    <div class="gi-row" id="row-genre">
-                        <span class="gi-label">Жанр:</span>
-                        <span class="gi-val" id="gi-genre">Ожидание</span>
-                    </div>
-                    <div class="gi-row" id="row-dev">
-                        <span class="gi-label">Разраб:</span>
-                        <span class="gi-val" id="gi-dev">Студия</span>
-                    </div>
-                    <div class="gi-row" id="row-plat">
-                        <span class="gi-label">Платформа:</span>
-                        <span class="gi-badge" id="gi-plat">N/A</span>
-                    </div>
+                    <div class="gi-row" id="row-rating"><span class="gi-label">Рейтинг:</span><span class="gi-val gi-rating" id="gi-rating">0.0 / 10</span></div>
+                    <div class="gi-row" id="row-year"><span class="gi-label">Год:</span><span class="gi-val" id="gi-year">202X</span></div>
+                    <div class="gi-row" id="row-genre"><span class="gi-label">Жанр:</span><span class="gi-val" id="gi-genre">Ожидание</span></div>
+                    <div class="gi-row" id="row-dev"><span class="gi-label">Разраб:</span><span class="gi-val" id="gi-dev">Студия</span></div>
+                    <div class="gi-row" id="row-plat"><span class="gi-label">Платформа:</span><span class="gi-badge" id="gi-plat">N/A</span></div>
                 </div>
             </div>
             
             <div id="pet-container" class="state-idle">
-                <div class="tail-pos joint"><div class="tail-anim">
-                    <div class="fox-part tail-main"><div class="fox-part tail-tip"></div></div>
-                </div></div>
+                <div class="tail-pos joint"><div class="tail-anim"><div class="fox-part tail-main"><div class="fox-part tail-tip"></div></div></div></div>
                 <div class="body-pos joint"><div class="body-anim">
                     <div class="head-shadow"></div>
-                    <div class="fox-part leg leg-l"></div>
-                    <div class="fox-part leg leg-r"></div>
+                    <div class="fox-part leg leg-l"></div><div class="fox-part leg leg-r"></div>
                     <div class="fox-part torso"><div class="fox-part chest"></div></div>
                 </div></div>
                 <div class="head-pos joint"><div class="head-anim">
-                    <div class="fox-part ear ear-l joint"><div class="ear-in"></div></div>
-                    <div class="fox-part ear ear-r joint"><div class="ear-in"></div></div>
+                    <div class="fox-part ear ear-l joint"><div class="ear-in"></div></div><div class="fox-part ear ear-r joint"><div class="ear-in"></div></div>
                     <div class="fox-part face">
-                        <div class="fox-part cheek cheek-l"></div>
-                        <div class="fox-part cheek cheek-r"></div>
+                        <div class="fox-part cheek cheek-l"></div><div class="fox-part cheek cheek-r"></div>
                         <div class="jaw-pos joint"><div class="tongue joint"></div></div>
                         <div class="snout-pos"><div class="nose"></div></div>
-                        <div class="eyebrow eyebrow-l joint"></div>
-                        <div class="eyebrow eyebrow-r joint"></div>
-                        <div class="eye eye-l joint"></div>
-                        <div class="eye eye-r joint"></div>
+                        <div class="eyebrow eyebrow-l joint"></div><div class="eyebrow eyebrow-r joint"></div>
+                        <div class="eye eye-l joint"></div><div class="eye eye-r joint"></div>
                     </div>
                 </div></div>
                 <div class="body-pos arms-layer joint"><div class="body-anim">
                     <div class="arm-pos arm-l joint"><div class="arm-part"><div class="arm-paw"></div></div></div>
-                    <div class="arm-pos arm-r joint"><div class="arm-part"><div class="arm-paw"></div></div>
-                        <div class="item-cookie"></div>
-                    </div>
+                    <div class="arm-pos arm-r joint"><div class="arm-part"><div class="arm-paw"></div></div><div class="item-cookie"></div></div>
                 </div></div>
             </div>
 
@@ -167,15 +140,8 @@
 
         <div id="tts-container" class="hidden">
             <div class="tts-icon">🎙️</div>
-            <div class="tts-info">
-                <span class="tts-title">Озвучивает</span>
-                <span id="tts-user" class="tts-user">Никнейм</span>
-            </div>
-            <div class="tts-wave">
-                <div class="tts-bar"></div>
-                <div class="tts-bar"></div>
-                <div class="tts-bar"></div>
-            </div>
+            <div class="tts-info"><span class="tts-title">Озвучивает</span><span id="tts-user" class="tts-user">Никнейм</span></div>
+            <div class="tts-wave"><div class="tts-bar"></div><div class="tts-bar"></div><div class="tts-bar"></div></div>
         </div>
 
         <div id="widget-container" class="hidden">
@@ -184,14 +150,8 @@
                 <div id="yt-progress-container"><div id="yt-progress-bar"></div></div>
             </div>
             <div id="info-bar">
-                <div class="info-main">
-                    <span class="icon">🎵</span>
-                    <span id="requester-name">Никнейм</span>
-                </div>
-                <div class="info-stats">
-                    <span title="Громкость">🔊 <span id="volume-level">30</span>%</span>
-                    <span title="В очереди">⏳ <span id="queue-count">0</span></span>
-                </div>
+                <div class="info-main"><span class="icon">🎵</span><span id="requester-name">Никнейм</span></div>
+                <div class="info-stats"><span title="Громкость">🔊 <span id="volume-level">30</span>%</span><span title="В очереди">⏳ <span id="queue-count">0</span></span></div>
             </div>
         </div>
 
@@ -201,12 +161,12 @@
 
     <!-- Модули логики -->
     <script src="js/config.js"></script>
+    <script src="js/event-bus.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/emotes.js"></script>
     <script src="js/pet.js"></script> 
     <script src="js/chat.js"></script>
-    <script src="js/queue.js"></script>
-    <script src="js/youtube.js"></script>
+    <script src="js/youtube.js"></script> 
     <script src="js/mic.js"></script>
     <script src="js/socials.js"></script>
     <script src="js/alerts.js"></script>
@@ -215,15 +175,17 @@
     <script src="js/ticker.js"></script>
     <script src="js/deaths.js"></script>
     <script src="js/gameinfo.js"></script>
-    <script src="js/wheel.js"></script> <!-- НОВЫЙ СКРИПТ -->
+    <script src="js/wheel.js"></script>
     <script src="js/tts.js"></script>
     <script src="js/countdown.js"></script> 
     <script src="js/blur.js"></script>
-    <script src="js/twitch.js"></script>
 
     <script>
+        // ========================================================
+        // ЛОГИКА МАРШРУТИЗАЦИИ СЛОЕВ (OBS MULTI-WIDGET)
+        // ========================================================
         const urlParams = new URLSearchParams(window.location.search);
-        const activeWidget = urlParams.get('widget');
+        const activeWidgetsParam = urlParams.get('widgets'); 
         const sceneParam = urlParams.get('scene');
 
         if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
@@ -232,49 +194,17 @@
 
         if (sceneParam === 'starting' || sceneParam === 'ending') {
             window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
-            window.AppQueue = { add: function(){}, next: function(){}, clear: function(){} };
-            window.AppTTS = { add: function(){}, stop: function(){} };
-            window.AppAlerts = { add: function(){} };
-            window.AppShoutout = { add: function(){} };
-            window.AppDeaths = { update: function(){}, toggle: function(){} };
-            window.AppEmotes = { spawn: function(){}, toggle: function(){}, setMode: function(){} };
-            window.AppBlur = { toggle: function(){} };
-            window.AppWheel = { toggle: function(){}, spin: function(){} };
-            
-            const ytPlayer = document.getElementById('yt-player');
-            if (ytPlayer) ytPlayer.remove(); 
-            const widgetContainer = document.getElementById('widget-container');
-            if (widgetContainer) widgetContainer.remove();
-
-            window.Audio = function() { return { play: function() { return Promise.resolve(); }, set volume(v) {} }; };
-            if ('speechSynthesis' in window) window.speechSynthesis.speak = function() {};
+            const ytPlayer = document.getElementById('yt-player'); if (ytPlayer) ytPlayer.remove(); 
+            const widgetContainer = document.getElementById('widget-container'); if (widgetContainer) widgetContainer.remove();
         }
 
-        if (activeWidget) {
+        if (activeWidgetsParam) {
             document.body.style.setProperty('background', 'transparent', 'important');
             document.documentElement.style.setProperty('background', 'transparent', 'important');
 
-            if (activeWidget !== 'music') {
-                const ytPlayer = document.getElementById('yt-player');
-                if (ytPlayer) ytPlayer.remove(); 
-                if (window.AppPlayer) window.AppPlayer.play = function(){}; 
-                if (window.AppQueue) window.AppQueue.add = function(){};    
-            }
-            if (activeWidget !== 'cam') { if (window.AppMedia) window.AppMedia.init = function(){}; }
-            if (activeWidget !== 'particles') {
-                const canvas = document.getElementById('particles-canvas');
-                if (canvas) canvas.remove();
-                if (window.AppParticles) window.AppParticles.animate = function(){};
-            }
-            if (activeWidget !== 'emotes' && activeWidget !== 'chat') { if (window.AppEmotes) window.AppEmotes.spawn = function(){}; }
-            if (activeWidget !== 'alerts') { if (window.AppAlerts) window.AppAlerts.add = function(){}; }
-            if (activeWidget !== 'deaths') { if (window.AppDeaths) window.AppDeaths.update = function(){}; }
-            if (activeWidget !== 'shoutout') { if (window.AppShoutout) window.AppShoutout.add = function(){}; }
-            if (activeWidget !== 'tts') { if (window.AppTTS) window.AppTTS.add = function(){}; }
-            if (activeWidget !== 'blur') { if (window.AppBlur) window.AppBlur.toggle = function(){}; }
-            if (activeWidget !== 'wheel') { if (window.AppWheel) window.AppWheel.toggle = function(){}; }
+            const activeWidgets = activeWidgetsParam.split(',').map(w => w.trim());
 
-            const widgets = {
+            const widgetMap = {
                 'chat': 'chat-container',
                 'music': 'widget-container',
                 'socials': 'social-rotator',
@@ -287,33 +217,35 @@
                 'emotes': 'emotes-container',
                 'tts': 'tts-container',
                 'blur': 'screen-blur-overlay',
-                'wheel': 'wheel-overlay'
+                'wheel': 'wheel-overlay',
+                'cam': 'webcam-frame', 
+                'gameinfo': 'game-info-container',
+                'pet': 'pet-container'
             };
 
-            for (const [key, id] of Object.entries(widgets)) {
-                if (key !== activeWidget) {
+            for (const [key, id] of Object.entries(widgetMap)) {
+                if (!activeWidgets.includes(key)) {
                     const el = document.getElementById(id);
                     if (el) el.style.setProperty('display', 'none', 'important');
                 }
             }
 
-            const webcamContainer = document.getElementById('webcam-container');
-            const petContainer = document.getElementById('pet-container');
-            const webcamFrame = document.getElementById('webcam-frame');
-            const gameInfoContainer = document.getElementById('game-info-container');
-
-            if (activeWidget === 'pet') {
-                if (webcamFrame) webcamFrame.style.setProperty('display', 'none', 'important');
-                if (gameInfoContainer) gameInfoContainer.style.setProperty('display', 'none', 'important');
-            } else if (activeWidget === 'gameinfo') {
-                if (webcamFrame) webcamFrame.style.setProperty('display', 'none', 'important');
-                if (petContainer) petContainer.style.setProperty('display', 'none', 'important');
-                if (gameInfoContainer) gameInfoContainer.classList.remove('hidden');
-            } else if (activeWidget === 'cam') {
-                if (petContainer) petContainer.style.setProperty('display', 'none', 'important');
-            } else {
-                if (webcamContainer) webcamContainer.style.setProperty('display', 'none', 'important');
+            if (!activeWidgets.includes('cam') && !activeWidgets.includes('pet') && !activeWidgets.includes('gameinfo')) {
+                document.getElementById('webcam-container').style.setProperty('display', 'none', 'important');
             }
+
+            if (!activeWidgets.includes('music')) {
+                const yt = document.getElementById('yt-player'); if(yt) yt.remove();
+                if(window.AppPlayer) window.AppPlayer.play = function(){};
+            }
+            if (!activeWidgets.includes('cam')) { if (window.AppMedia) window.AppMedia.init = function(){}; }
+            if (!activeWidgets.includes('particles')) { if (window.AppParticles) window.AppParticles.animate = function(){}; }
+            if (!activeWidgets.includes('emotes')) { if (window.AppEmotes) window.AppEmotes.spawn = function(){}; }
+            if (!activeWidgets.includes('alerts')) { if (window.AppAlerts) window.AppAlerts.add = function(){}; }
+            if (!activeWidgets.includes('deaths')) { if (window.AppDeaths) window.AppDeaths.update = function(){}; }
+            if (!activeWidgets.includes('shoutout')) { if (window.AppShoutout) window.AppShoutout.add = function(){}; }
+            if (!activeWidgets.includes('blur')) { if (window.AppBlur) window.AppBlur.toggle = function(){}; }
+            if (!activeWidgets.includes('wheel')) { if (window.AppWheel) window.AppWheel.toggle = function(){}; }
         }
     </script>
 </body>

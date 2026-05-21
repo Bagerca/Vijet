@@ -5,19 +5,29 @@ window.AppDeaths = {
     isVisible: false,
 
     init: function() {
-        // Пытаемся достать сохраненные смерти из локального хранилища
         const savedDeaths = localStorage.getItem('uso_deaths');
         if (savedDeaths !== null) {
             this.count = parseInt(savedDeaths, 10) || 0;
             this.render();
-            // Если смертей больше 0, сразу показываем плашку при загрузке
             if (this.count > 0) this.toggle(true);
         }
+
+        // Подписка на события
+        window.AppEvents.listen('DEATHS_CMD', d => {
+            if (d.cmd === "on" || d.cmd === "show") this.toggle(true);
+            else if (d.cmd === "off" || d.cmd === "hide") this.toggle(false);
+            else if (d.cmd === "-" || d.cmd === "sub") this.update(1, 'sub');
+            else if (d.cmd === "reset" || d.cmd === "clear") this.update(0, 'set');
+            else if (d.cmd.startsWith("set ")) { 
+                const num = parseInt(d.cmd.replace("set ", "")); 
+                if (!isNaN(num)) this.update(num, 'set'); 
+            } 
+            else this.update(1, 'add');
+        });
     },
 
     toggle: function(forceState) {
         this.isVisible = forceState !== undefined ? forceState : !this.isVisible;
-        
         if (this.isVisible) {
             this.container.classList.remove('hidden');
         } else {
@@ -34,48 +44,32 @@ window.AppDeaths = {
 
         if (this.count < 0) this.count = 0;
 
-        // СОХРАНЯЕМ В ЛОКАЛЬНОЕ ХРАНИЛИЩЕ
         localStorage.setItem('uso_deaths', this.count);
-
         this.render();
         
-        // Авто-показ если есть смерти
         if (!this.isVisible && this.count > 0) {
             this.toggle(true);
         }
 
-        // Если смерти добавились (урон получен)
         if (this.count > oldCount) {
-            // Эффект жесткой "тряски"
             this.container.classList.remove('damage-shake');
             void this.container.offsetWidth; 
             this.container.classList.add('damage-shake');
 
-            // ПИТОМЕЦ ПУГАЕТСЯ ПРИ СМЕРТИ НА 3 СЕКУНДЫ
             if (window.AppPet) window.AppPet.setEmotion('scared', 3000);
 
-            // ВОСПРОИЗВЕДЕНИЕ ЗВУКА СМЕРТИ
             if (window.AppConfig.deathSound) {
-                try {
-                    const audio = new Audio(window.AppConfig.deathSound);
-                    audio.volume = (window.AppConfig.alertVolume || 50) / 100;
-                    audio.play().catch(e => console.warn("[Deaths] Звук заблокирован браузером:", e));
-                } catch (e) {
-                    console.warn("[Deaths] Ошибка воспроизведения звука:", e);
-                }
+                window.AppEvents.emit('PLAY_SOUND', { path: window.AppConfig.deathSound });
             }
         }
     },
 
     render: function() {
         this.countText.innerText = this.count;
-        
-        // Анимация самой цифры
         this.countText.classList.remove('animate-pop-red');
         void this.countText.offsetWidth; 
         this.countText.classList.add('animate-pop-red');
     }
 };
 
-// Запускаем инициализацию при загрузке скрипта
 setTimeout(() => window.AppDeaths.init(), 500);

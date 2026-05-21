@@ -3,6 +3,23 @@ window.AppAlerts = {
     queue: [],
     isPlaying: false,
 
+    init: function() {
+        // Подписка на события
+        window.AppEvents.listen('ALERT_ADD', d => this.add(d.user, d.type, d.msg, d.val));
+        window.AppEvents.listen('ALERT_TEST', d => {
+            if (d.type === "sub") this.add("ТестовыйЮзер", "sub");
+            else if (d.type === "resub") this.add("ОлдРесабер", "resub", "Обожаю этот стрим!", 12);
+            else if (d.type === "gift") this.add("Богач", "gift", "для СлучайныйЗритель");
+            else if (d.type === "streak") this.add("ПреданныйЗритель", "streak", "Лучший стример, смотрю каждый день!", 5);
+            else if (d.type === "series") this.add("Киноман", "reward_series", "Давай смотреть Во все тяжкие!");
+            else if (d.type === "movie") this.add("Зритель", "reward_movie", "Гарри Поттер пожалуйста");
+            else if (d.type === "video") this.add("Кекус", "reward_video", "Смешные коты");
+            else if (d.type === "game") this.add("Геймер", "reward_game", "Го в Доту?");
+            else if (d.type === "music") this.add("Меломан", "reward_music", "Врубай фонк");
+            else this.add("НовыйФолловер", "follow");
+        });
+    },
+
     add: function(user, type, message = "", value = 0) {
         this.queue.push({ user, type, message, value });
         if (!this.isPlaying) this.playNext();
@@ -13,7 +30,6 @@ window.AppAlerts = {
             this.isPlaying = false;
             return;
         }
-
         this.isPlaying = true;
         const data = this.queue.shift();
         this.render(data);
@@ -47,7 +63,6 @@ window.AppAlerts = {
                 titleText = `<span class="alert-user" style="color: ${color}">${data.user}</span> смотрит ${data.value} стримов подряд!`;
                 break;
 
-            // === ПРЕМИУМ-НАГРАДЫ ЗА БАЛЛЫ ===
             case 'reward_series':
                 isReward = true; rewardCategory = "СЕРИАЛ"; color = `#a29bfe`; 
                 icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>`;
@@ -75,19 +90,13 @@ window.AppAlerts = {
                 break;
         }
 
-        // ВОСПРОИЗВЕДЕНИЕ ЗВУКА
         if (window.AppConfig.alertSounds && window.AppConfig.alertSounds[data.type]) {
-            try {
-                const audio = new Audio(window.AppConfig.alertSounds[data.type]);
-                audio.volume = (window.AppConfig.alertVolume || 50) / 100;
-                audio.play().catch(e => console.warn(e));
-            } catch (e) {}
+            window.AppEvents.emit('PLAY_SOUND', { path: window.AppConfig.alertSounds[data.type] });
         }
 
         this.container.style.setProperty('--alert-color', color);
         this.container.style.setProperty('--alert-glow', `${color}55`);
 
-        // Динамическая сборка HTML (обычный алерт vs Премиум-награда)
         if (isReward) {
             this.container.innerHTML = `
                 <div class="alert-card reward-card">
@@ -128,3 +137,5 @@ window.AppAlerts = {
         }, window.AppConfig.alertDuration || 5000);
     }
 };
+
+setTimeout(() => window.AppAlerts.init(), 1000);

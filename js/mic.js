@@ -8,8 +8,15 @@ window.AppMedia = {
     
     init: function() {
         this.container.style.transition = "opacity 0.4s ease";
-        // Запускаем инициализацию с небольшой задержкой, 
-        // чтобы OBS успел прогрузить браузерный движок
+        
+        // Подписка на события
+        window.AppEvents.listen('MEDIA_CAM', d => { 
+            if(d.state==='off') this.toggleCam(false); else if(d.state==='on') this.toggleCam(true); else this.toggleCam();
+        });
+        window.AppEvents.listen('MEDIA_MIC', d => { 
+            if(d.state==='off') this.toggleMic(false); else if(d.state==='on') this.toggleMic(true); else this.toggleMic();
+        });
+
         setTimeout(() => this.initMic(), 1500);
     },
 
@@ -23,25 +30,15 @@ window.AppMedia = {
         if (!this.micEnabled) {
             this.frame.style.boxShadow = `0 0 15px rgba(255, 68, 119, 0.2)`;
         } else {
-            // Если включили обратно, пытаемся разбудить AudioContext
-            if (this.audioCtx && this.audioCtx.state === 'suspended') {
-                this.audioCtx.resume();
-            }
+            if (this.audioCtx && this.audioCtx.state === 'suspended') this.audioCtx.resume();
         }
     },
 
     initMic: async function() {
         try {
-            // Запрашиваем микрофон (по умолчанию в Windows)
-            const audioConstraints = { 
-                echoCancellation: false, 
-                autoGainControl: false, 
-                noiseSuppression: false 
-            };
-            
+            const audioConstraints = { echoCancellation: false, autoGainControl: false, noiseSuppression: false };
             const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false });
             
-            // Создаем аудио-контекст
             this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             this.analyser = this.audioCtx.createAnalyser();
             const source = this.audioCtx.createMediaStreamSource(stream);
@@ -51,43 +48,27 @@ window.AppMedia = {
             const bufferLength = this.analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
 
-            // ФУНКЦИЯ-ХАК ДЛЯ OBS: Принудительно будим аудиоконтекст
-            const wakeUpAudio = () => {
-                if (this.audioCtx.state === 'suspended') {
-                    this.audioCtx.resume();
-                }
-            };
-            
-            // Запускаем пробуждение каждые 2 секунды (если OBS решит его усыпить)
+            const wakeUpAudio = () => { if (this.audioCtx.state === 'suspended') this.audioCtx.resume(); };
             setInterval(wakeUpAudio, 2000);
             wakeUpAudio();
 
-            // Цикл отрисовки (Эквалайзер)
             const draw = () => {
                 requestAnimationFrame(draw);
-                
                 if (!this.micEnabled) return;
 
                 this.analyser.getByteFrequencyData(dataArray);
                 let sum = 0;
-                for(let i = 0; i < bufferLength; i++) {
-                    sum += dataArray[i];
-                }
+                for(let i = 0; i < bufferLength; i++) sum += dataArray[i];
                 let average = sum / bufferLength;
 
-                // Если звук громче порога (average > 10) — рамка пульсирует
                 if (average > 10) {
-                    let glow = 10 + (average * 2); // Чем громче, тем шире свечение
-                    // РОЗОВОЕ СВЕЧЕНИЕ (можешь поменять цвет здесь)
+                    let glow = 10 + (average * 2); 
                     this.frame.style.boxShadow = `0 0 ${glow}px rgba(255, 68, 119, 0.8), inset 0 0 15px rgba(255, 68, 119, 0.5)`;
                 } else {
-                    // Спокойное состояние (тишина)
                     this.frame.style.boxShadow = `0 0 15px rgba(255, 68, 119, 0.2)`;
                 }
             };
-            
             draw();
-
         } catch (err) {
             console.warn("[Media] Ошибка доступа к МИКРОФОНУ. Проверь настройки Windows по умолчанию.", err);
         }

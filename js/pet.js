@@ -7,7 +7,6 @@ window.AppPet = {
     emotionTimeout: null,
     sleepTimer: null,
     
-    // Блокировка переключения на idle, пока действует другая эмоция
     isEmotionLocked: false, 
 
     init: function() {
@@ -15,13 +14,16 @@ window.AppPet = {
             if(this.container) this.container.style.display = 'none';
             return;
         }
+
+        // Подписка на события
+        window.AppEvents.listen('PET_EMOTION', d => this.setEmotion(d.emotion, d.duration));
+
         this.resetSleepTimer();
     },
 
     setEmotion: function(state, durationMs = 0) {
         if (!this.container) return;
         
-        // Если эмоция заблокирована, не даем чату перебить её обычным idle
         if (this.isEmotionLocked && state === 'idle') return;
 
         clearInterval(this.particleInterval);
@@ -31,7 +33,6 @@ window.AppPet = {
         this.container.classList.add(`state-${state}`);
         this.currentState = state;
 
-        // Генерация частиц в зависимости от состояния
         if (state === 'sleep') {
             this.isSleeping = true;
             this.particleInterval = setInterval(() => this.spawnParticle('Z', 'part-zzz', 60, 50), 800);
@@ -52,7 +53,6 @@ window.AppPet = {
             }, 300);
         }
 
-        // Если задано время, эмоция блокируется на это время, потом возврат в idle
         if (durationMs > 0) {
             this.isEmotionLocked = true;
             this.emotionTimeout = setTimeout(() => {
