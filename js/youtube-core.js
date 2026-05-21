@@ -6,41 +6,79 @@ window.AppPlayerCore = {
     progressInterval: null,
 
     init: function() {
+        window.AppEvents.listen('YT_CORE_PLAY', d => this.play(d));
+        window.AppEvents.listen('YT_CORE_HIDE', () => this.hide());
+        window.AppEvents.listen('PLAYER_VOL', d => this.setVolume(d.vol));
+        this.loadYouTubeAPI();
+    },
+
+    loadYouTubeAPI: function() {
+        if (window.YT && window.YT.Player) {
+            this.createPlayer();
+        } else {
+            const oldOnReady = window.onYouTubeIframeAPIReady;
+            window.onYouTubeIframeAPIReady = () => {
+                if (oldOnReady) oldOnReady();
+                this.createPlayer();
+            };
+            if (!document.getElementById('yt-api-script')) {
+                const tag = document.createElement('script');
+                tag.id = 'yt-api-script';
+                tag.src = "https://www.youtube.com/iframe_api";
+                document.head.appendChild(tag);
+            }
+        }
+    },
+
+    createPlayer: function() {
+        if (!document.getElementById('yt-player-core')) return;
+        
         this.yt = new YT.Player('yt-player-core', {
-            host: 'https://www.youtube-nocookie.com', // ФИКС: Обходим блокировщики рекламы и трекеров
             playerVars: { 
                 'autoplay': 1, 
-                'controls': 0,
-                'origin': window.location.origin // ФИКС: Обязательно для API
+                'controls': 0, 
+                'origin': window.location.origin 
             },
             events: {
                 'onReady': () => {
                     this.isReady = true;
                     this.setVolume(this.currentVol);
-                    // Сообщаем очереди, что плеер готов к работе!
                     window.AppEvents.emit('YT_CORE_READY');
                 },
                 'onStateChange': this.handleStateChange.bind(this),
                 'onError': (e) => {
-                    console.warn("[YT CORE] Ошибка видео. Скипаем.", e);
+                    // РАСШИФРОВКА ОШИБОК YOUTUBE
+                    let reason = "Неизвестная ошибка";
+                    if (e.data === 101 || e.data === 150) reason = "Запрещено правообладателем";
+                    else if (e.data === 100) reason = "Видео удалено или скрыто";
+                    else if (e.data === 2) reason = "Неверная ссылка";
+                    
+                    console.error(`❌ [YT CORE] Ошибка: ${reason} (Код ${e.data})`);
+                    
+                    // Выводим причину скипа в бегущую строку!
+                    window.AppEvents.emit('TICKER_REWARD', { 
+                        user: "Система", 
+                        reward: "Трек пропущен", 
+                        message: reason 
+                    });
+                    
+                    // Пропускаем сломанный трек
                     window.AppEvents.emit('YT_ENDED');
                 }
             }
         });
-
-        window.AppEvents.listen('YT_CORE_PLAY', d => this.play(d));
-        window.AppEvents.listen('YT_CORE_HIDE', () => this.hide());
-        window.AppEvents.listen('PLAYER_VOL', d => this.setVolume(d.vol));
     },
 
     play: function(data) {
-        if (!this.isReady) {
-            console.warn("[YT CORE] Плеер еще не готов! Запрос проигнорирован.");
-            return;
-        }
-        this.yt.loadVideoById(data.id);
-        this.yt.unMute();
+        if (!this.isReady) return;
         
+        this.yt.loadVideoById(data.id);
+        
+        setTimeout(() => {
+            this.yt.unMute();
+            this.yt.playVideo();
+        }, 300);
+
         window.AppEvents.emit('YT_VISUAL_PLAY', { id: data.id, user: data.user, vol: this.currentVol });
     },
 
@@ -80,9 +118,7 @@ window.AppPlayerCore = {
             if (this.yt && this.yt.getCurrentTime && this.yt.getDuration) {
                 const cur = this.yt.getCurrentTime();
                 const tot = this.yt.getDuration();
-                if (tot > 0) {
-                    window.AppEvents.emit('YT_VISUAL_PROGRESS', { percent: (cur / tot) * 100 });
-                }
+                if (tot > 0) window.AppEvents.emit('YT_VISUAL_PROGRESS', { percent: (cur / tot) * 100 });
             }
         }, 500);
     },
@@ -91,6 +127,4 @@ window.AppPlayerCore = {
         if (this.progressInterval) clearInterval(this.progressInterval);
     }
 };
-
-function onYouTubeIframeAPIReady() { window.AppPlayerCore.init(); }
-if (window.YT && window.YT.Player && !window.AppPlayerCore.isReady) { window.AppPlayerCore.init(); }
+window.AppPlayerCore.init();

@@ -1,13 +1,11 @@
-/* ================= ОЧЕРЕДЬ МУЗЫКИ (Только для core.html) ================= */
+/* ================= ОЧЕРЕДЬ МУЗЫКИ ================= */
 window.AppQueueCore = {
     items: [],
     isPlaying: false,
 
     init: function() {
         const saved = localStorage.getItem('uso_queue');
-        if (saved) {
-            try { this.items = JSON.parse(saved); } catch(e) { this.items = []; }
-        }
+        if (saved) { try { this.items = JSON.parse(saved); } catch(e) { this.items = []; } }
 
         window.AppEvents.listen('QUEUE_ADD', d => this.add(d.url, d.user));
         window.AppEvents.listen('QUEUE_CMD', d => {
@@ -15,29 +13,31 @@ window.AppQueueCore = {
             if (d.cmd === 'clear') this.clear();
         });
 
-        window.AppEvents.listen('YT_ENDED', () => {
-            console.log("[QUEUE] Плеер закончил играть трек. Переключаю...");
-            this.next();
+        window.AppEvents.listen('YT_ENDED', () => this.next());
+        
+        window.AppEvents.listen('YT_CORE_READY', () => {
+            if (this.items.length > 0 && !this.isPlaying) {
+                console.log("🔄 [QUEUE] Восстанавливаем треки из памяти...");
+                this.next();
+            }
         });
         
         setTimeout(() => this.broadcastState(), 2000);
     },
 
     add: function(url, user) {
-        console.log(`[QUEUE] Пришел заказ от ${user}. Ссылка: ${url}`);
+        console.log(`📥 [QUEUE] Запрос от ${user}: ${url}`);
         const videoId = this.extractId(url);
         
         if (videoId) {
-            console.log(`[QUEUE] Ссылка успешно распознана! ID видео: ${videoId}`);
+            console.log(`✅ [QUEUE] Распознан ID: ${videoId}`);
             this.items.push({ id: videoId, user: user });
             this.save();
-            
             window.AppEvents.emit('TICKER_MUSIC', { videoId, user });
             
             if (!this.isPlaying) this.next();
-            else console.log(`[QUEUE] Трек добавлен в очередь. Позиция: ${this.items.length}`);
         } else {
-            console.error(`[QUEUE ❌] ОШИБКА: Не удалось достать ID из ссылки! Ссылка инвалидна или формат не поддерживается.`);
+            console.error(`❌ [QUEUE] Ошибка: Не удалось получить ID из ссылки "${url}"`);
         }
     },
 
@@ -46,10 +46,10 @@ window.AppQueueCore = {
             this.isPlaying = true;
             const nextVideo = this.items.shift();
             this.save();
-            console.log(`[QUEUE] Запускаю следующий трек:`, nextVideo);
+            console.log(`▶️ [QUEUE] Отправляем трек в плеер:`, nextVideo);
             window.AppEvents.emit('YT_CORE_PLAY', nextVideo);
         } else {
-            console.log("[QUEUE] Очередь пуста. Выключаю плеер.");
+            console.log("📭 [QUEUE] Очередь пуста.");
             this.isPlaying = false;
             this.save();
             window.AppEvents.emit('YT_CORE_HIDE');
@@ -57,10 +57,10 @@ window.AppQueueCore = {
     },
 
     clear: function() {
-        console.log("[QUEUE] Очередь принудительно очищена.");
+        console.log("🧹 [QUEUE] Очередь очищена!");
         this.items = [];
         this.save();
-        this.next();
+        this.next(); 
     },
 
     save: function() {
@@ -73,11 +73,11 @@ window.AppQueueCore = {
     },
 
     extractId: function(url) {
-        // Улучшенная регулярка, которая ловит и обычные ссылки, и Shorts, и мобильные youtu.be, и параметры с таймингами
-        const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
-        const match = url.match(regExp);
-        return (match && match[1].length === 11) ? match[1] : null;
+        if (!url) return null;
+        let cleanUrl = url.replace(/.*?http/, 'http').trim();
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = cleanUrl.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
     }
 };
-
-setTimeout(() => window.AppQueueCore.init(), 1000);
+window.AppQueueCore.init();
