@@ -128,7 +128,12 @@ window.AppCore = {
                 case "shoutout":
                     if (hasPermission && message !== "") window.AppEvents.emit('SHOUTOUT_ADD', { user: message });
                     break;
-                case "skip": if (hasPermission) window.AppEvents.emit('QUEUE_CMD', { cmd: 'next' }); break;
+                case "skip": 
+    if (hasPermission) {
+        if (argLow === "all") window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_all' });
+        else window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_track' });
+    }
+    break;
                 case "clear": if (hasPermission) window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' }); break;
                 case "vol": if (hasPermission && message !== "") window.AppEvents.emit('PLAYER_VOL', { vol: message }); break;
                 case "cam": if (hasPermission) window.AppEvents.emit('MEDIA_CAM', { state: argLow }); break;

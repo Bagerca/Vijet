@@ -11,8 +11,8 @@ window.AppTicker = {
             return;
         }
         
-        // Подписка на события
-        window.AppEvents.listen('TICKER_MUSIC', d => this.showMusicEvent(d.videoId, d.user));
+        // Подписка на события (обновлено для поддержки плейлистов)
+        window.AppEvents.listen('TICKER_MUSIC', d => this.showMusicEvent(d.data, d.user));
         window.AppEvents.listen('TICKER_REWARD', d => this.showRewardEvent(d.user, d.reward, d.message));
         
         this.textEl.addEventListener('animationend', () => {
@@ -58,14 +58,19 @@ window.AppTicker = {
         setTimeout(() => this.processQueue(), 500);
     },
 
-    showMusicEvent: async function(videoId, user) {
+    showMusicEvent: async function(ytData, user) {
         try {
-            const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-            const data = await response.json();
-            const msg = `<span style="color: #FF4477; font-weight: 800;">🎵 ${user}</span> заказал трек: <span style="color: #1a1a1a;">${data.title}</span>`;
-            this.forceShowImmediate(msg);
+            if (ytData.type === 'playlist') {
+                const msg = `<span style="color: #FF4477; font-weight: 800;">🎵 ${user}</span> заказал целый плейлист!`;
+                this.forceShowImmediate(msg);
+            } else {
+                const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${ytData.id}&format=json`);
+                const data = await response.json();
+                const msg = `<span style="color: #FF4477; font-weight: 800;">🎵 ${user}</span> заказал трек: <span style="color: #1a1a1a;">${data.title}</span>`;
+                this.forceShowImmediate(msg);
+            }
         } catch (err) {
-            const msg = `<span style="color: #FF4477; font-weight: 800;">🎵 ${user}</span> заказал новый трек!`;
+            const msg = `<span style="color: #FF4477; font-weight: 800;">🎵 ${user}</span> заказал новую музыку!`;
             this.forceShowImmediate(msg);
         }
     },

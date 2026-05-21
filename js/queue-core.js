@@ -25,29 +25,49 @@ window.AppQueueCore = {
         setTimeout(() => this.broadcastState(), 2000);
     },
 
+    extractData: function(url) {
+        if (!url) return null;
+        let str = url.trim();
+        
+        // Поиск плейлиста
+        const listMatch = str.match(/[?&]list=([^#&?]+)/);
+        if (listMatch) return { type: 'playlist', id: listMatch[1] };
+        
+        // Поиск стандартного видео
+        let cleanUrl = str.replace(/.*?http/, 'http');
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = cleanUrl.match(regExp);
+        if (match && match[2].length === 11) return { type: 'video', id: match[2] };
+        
+        // Если скинули просто 11-значный ID
+        if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return { type: 'video', id: str };
+        
+        return null;
+    },
+
     add: function(url, user) {
         console.log(`📥 [QUEUE] Запрос от ${user}: ${url}`);
-        const videoId = this.extractId(url);
+        const ytData = this.extractData(url);
         
-        if (videoId) {
-            console.log(`✅ [QUEUE] Распознан ID: ${videoId}`);
-            this.items.push({ id: videoId, user: user });
+        if (ytData) {
+            console.log(`✅ [QUEUE] Распознан формат: ${ytData.type}, ID: ${ytData.id}`);
+            this.items.push({ type: ytData.type, id: ytData.id, user: user });
             this.save();
-            window.AppEvents.emit('TICKER_MUSIC', { videoId, user });
+            window.AppEvents.emit('TICKER_MUSIC', { data: ytData, user: user });
             
             if (!this.isPlaying) this.next();
         } else {
-            console.error(`❌ [QUEUE] Ошибка: Не удалось получить ID из ссылки "${url}"`);
+            console.error(`❌ [QUEUE] Ошибка: Не удалось распознать ссылку "${url}"`);
         }
     },
 
     next: function() {
         if (this.items.length > 0) {
             this.isPlaying = true;
-            const nextVideo = this.items.shift();
+            const nextItem = this.items.shift();
             this.save();
-            console.log(`▶️ [QUEUE] Отправляем трек в плеер:`, nextVideo);
-            window.AppEvents.emit('YT_CORE_PLAY', nextVideo);
+            console.log(`▶️ [QUEUE] Отправляем трек/плейлист в плеер:`, nextItem);
+            window.AppEvents.emit('YT_CORE_PLAY', nextItem);
         } else {
             console.log("📭 [QUEUE] Очередь пуста.");
             this.isPlaying = false;
@@ -70,14 +90,6 @@ window.AppQueueCore = {
 
     broadcastState: function() {
         window.AppEvents.emit('QUEUE_STATE', { count: this.items.length });
-    },
-
-    extractId: function(url) {
-        if (!url) return null;
-        let cleanUrl = url.replace(/.*?http/, 'http').trim();
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = cleanUrl.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
     }
 };
 window.AppQueueCore.init();

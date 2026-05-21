@@ -4,11 +4,30 @@ window.AppPlayerCore = {
     isReady: false,
     currentVol: window.AppConfig.defaultVolume,
     progressInterval: null,
+    currentItem: null,
+    currentVisualId: null,
 
     init: function() {
         window.AppEvents.listen('YT_CORE_PLAY', d => this.play(d));
         window.AppEvents.listen('YT_CORE_HIDE', () => this.hide());
         window.AppEvents.listen('PLAYER_VOL', d => this.setVolume(d.vol));
+        
+        // Интеграция пропусков (с учетом плейлистов)
+        window.AppEvents.listen('QUEUE_CMD', d => {
+            if (d.cmd === 'skip_all') {
+                window.AppEvents.emit('YT_ENDED'); 
+            } else if (d.cmd === 'skip_track') {
+                if (this.currentItem && this.currentItem.type === 'playlist') {
+                    let pl = this.yt.getPlaylist();
+                    let idx = this.yt.getPlaylistIndex();
+                    if (pl && idx < pl.length - 1) this.yt.nextVideo();
+                    else window.AppEvents.emit('YT_ENDED');
+                } else {
+                    window.AppEvents.emit('YT_ENDED');
+                }
+            }
+        });
+
         this.loadYouTubeAPI();
     },
 
@@ -34,11 +53,7 @@ window.AppPlayerCore = {
         if (!document.getElementById('yt-player-core')) return;
         
         this.yt = new YT.Player('yt-player-core', {
-            playerVars: { 
-                'autoplay': 1, 
-                'controls': 0, 
-                'origin': window.location.origin 
-            },
+            playerVars: { 'autoplay': 1, 'controls': 0, 'origin': window.location.origin },
             events: {
                 'onReady': () => {
                     this.isReady = true;
@@ -47,23 +62,18 @@ window.AppPlayerCore = {
                 },
                 'onStateChange': this.handleStateChange.bind(this),
                 'onError': (e) => {
-                    // РАСШИФРОВКА ОШИБОК YOUTUBE
-                    let reason = "Неизвестная ошибка";
-                    if (e.data === 101 || e.data === 150) reason = "Запрещено правообладателем";
-                    else if (e.data === 100) reason = "Видео удалено или скрыто";
-                    else if (e.data === 2) reason = "Неверная ссылка";
-                    
+                    let reason = "Ограничения правообладателя или видео удалено";
                     console.error(`❌ [YT CORE] Ошибка: ${reason} (Код ${e.data})`);
                     
-                    // Выводим причину скипа в бегущую строку!
-                    window.AppEvents.emit('TICKER_REWARD', { 
-                        user: "Система", 
-                        reward: "Трек пропущен", 
-                        message: reason 
-                    });
+                    window.AppEvents.emit('TICKER_REWARD', { user: "Система", reward: "Трек недоступен", message: reason });
                     
-                    // Пропускаем сломанный трек
-                    window.AppEvents.emit('YT_ENDED');
+                    if (this.currentItem && this.currentItem.type === 'playlist') {
+                        let pl = this.yt.getPlaylist();
+                        let idx = this.yt.getPlaylistIndex();
+                        if (pl && idx === pl.length - 1) window.AppEvents.emit('YT_ENDED');
+                    } else {
+                        window.AppEvents.emit('YT_ENDED');
+                    }
                 }
             }
         });
@@ -71,15 +81,16 @@ window.AppPlayerCore = {
 
     play: function(data) {
         if (!this.isReady) return;
+        this.currentItem = data;
+        this.currentVisualId = null; // Сбрасываем старую обложку
         
-        this.yt.loadVideoById(data.id);
+        if (data.type === 'playlist') this.yt.loadPlaylist({ list: data.id });
+        else this.yt.loadVideoById(data.id);
         
         setTimeout(() => {
             this.yt.unMute();
             this.yt.playVideo();
         }, 300);
-
-        window.AppEvents.emit('YT_VISUAL_PLAY', { id: data.id, user: data.user, vol: this.currentVol });
     },
 
     hide: function() {
@@ -99,6 +110,18 @@ window.AppPlayerCore = {
 
     handleStateChange: function(event) {
         if (event.data === 1) { // PLAYING
+            let actualVidId = this.yt.getVideoData().video_id;
+            
+            // Если ID изменился (внутри плейлиста заиграл новый трек)
+            if (actualVidId !== this.currentVisualId && this.currentItem) {
+                this.currentVisualId = actualVidId;
+                window.AppEvents.emit('YT_VISUAL_PLAY', { 
+                    id: actualVidId, 
+                    user: this.currentItem.user, 
+                    vol: this.currentVol 
+                });
+            }
+            
             this.startProgress();
             window.AppEvents.emit('PET_EMOTION', { emotion: 'jam' });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'playing' });
@@ -108,7 +131,13 @@ window.AppPlayerCore = {
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'paused' });
         }
         if (event.data === 0) { // ENDED
-            window.AppEvents.emit('YT_ENDED');
+            if (this.currentItem && this.currentItem.type === 'playlist') {
+                let pl = this.yt.getPlaylist();
+                let idx = this.yt.getPlaylistIndex();
+                if (!pl || idx === pl.length - 1) window.AppEvents.emit('YT_ENDED');
+            } else {
+                window.AppEvents.emit('YT_ENDED');
+            }
         }
     },
 
