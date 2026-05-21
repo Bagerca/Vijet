@@ -5,8 +5,8 @@
     /* Вебка начинается на 220px сверху, отступаем 15px вниз = 235px */
     top: 235px; 
     left: auto;
-    /* Экран 1920px - край вебки 440px + отступ 15px = 1495px справа */
-    right: 1495px; 
+    /* Экран 1920px - (левый отступ 40px + ширина вебки 360px - внутренний отступ 15px) = 1535px */
+    right: 1535px; 
     display: flex; 
     flex-direction: column; 
     align-items: flex-end; 

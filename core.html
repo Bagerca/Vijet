@@ -12,10 +12,50 @@
 
     <script src="js/config.js"></script>
     <script src="js/event-bus.js"></script>
-    <script src="js/core.js"></script>
-    <script src="js/audio-core.js"></script>
-    <script src="js/tts-core.js"></script>
-    <script src="js/queue-core.js"></script>   <!-- ДОБАВЛЕНО -->
-    <script src="js/youtube-core.js"></script> <!-- ДОБАВЛЕНО -->
+
+    <script>
+        // УМНАЯ МАРШРУТИЗАЦИЯ ЯДРА (Разделение звука для OBS)
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode');
+        const scriptsToLoad = [];
+
+        if (!mode) {
+            // Стандартный режим (всё вместе)
+            scriptsToLoad.push('js/core.js', 'js/audio-core.js', 'js/tts-core.js', 'js/queue-core.js', 'js/youtube-core.js');
+        } else {
+            if (mode === 'master') {
+                // Главное ядро: логика Twitch, музыкальный плеер
+                scriptsToLoad.push('js/core.js', 'js/queue-core.js', 'js/youtube-core.js');
+            }
+            if (mode === 'tts') {
+                // Только движок озвучки (TTS)
+                scriptsToLoad.push('js/tts-core.js');
+            }
+            if (mode === 'alerts' || mode === 'deaths') {
+                // Только звуки. Хитрый перехват, чтобы разделить смерти и алерты!
+                const originalListen = window.AppEvents.listen;
+                window.AppEvents.listen = function(eventName, callback) {
+                    if (eventName === 'PLAY_SOUND') {
+                        originalListen.call(window.AppEvents, eventName, (d) => {
+                            const isDeathSound = d.path.includes('death');
+                            if (mode === 'deaths' && !isDeathSound) return;
+                            if (mode === 'alerts' && isDeathSound) return;
+                            callback(d);
+                        });
+                    } else {
+                        originalListen.call(window.AppEvents, eventName, callback);
+                    }
+                };
+                scriptsToLoad.push('js/audio-core.js');
+            }
+        }
+
+        // Динамически загружаем нужные скрипты
+        scriptsToLoad.forEach(src => {
+            const s = document.createElement('script');
+            s.src = src;
+            document.body.appendChild(s);
+        });
+    </script>
 </body>
 </html>
