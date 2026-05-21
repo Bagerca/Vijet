@@ -19,9 +19,11 @@
 @import url('goal.css');
 @import url('deaths.css');
 @import url('shoutout.css');
+@import url('gameinfo.css');
+@import url('wheel.css');
 
 /* Сцена приветствия */
-@import url('starting.css'); /* <-- Убедись, что эта строка здесь */
+@import url('starting.css');
 @import url('ending.css');
 
 /* Модификаторы (Режимы OBS и сцен). Должны загружаться ПОСЛЕДНИМИ! */

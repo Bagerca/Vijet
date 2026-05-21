@@ -1,67 +1,45 @@
 ComfyJS.onChat = (user, message, flags, self, extra) => {
-    // Отправляем сообщение в виджет чата
     if (window.AppChat) window.AppChat.addMessage(user, message, flags, extra);
     
-    // Питомец радуется спаму смайлов напрямую!
     if (extra.messageEmotes && window.AppPet) {
         window.AppPet.setEmotion('hype', 3000);
     }
 
-    // === ПЕРЕХВАТ ДЕФОЛТНЫХ НАГРАД TWITCH ("Выделить моё сообщение") ===
     if (flags.highlighted) {
-        // Выводим в бегущую строку
-        if (window.AppTicker) {
-            window.AppTicker.showRewardEvent(user, "Выделенное сообщение", message);
-        }
-        // Лиса танцует
-        if (window.AppPet) {
-            window.AppPet.setEmotion('hype', 3000);
-        }
+        if (window.AppTicker) window.AppTicker.showRewardEvent(user, "Выделенное сообщение", message);
+        if (window.AppPet) window.AppPet.setEmotion('hype', 3000);
     }
 };
 
-// ОБРАБОТЧИК БАЛЛОВ КАНАЛА (Кастомные награды, созданные тобой)
 ComfyJS.onReward = (user, reward, cost, message, extra) => {
     
-    // === 1. ГЛОБАЛЬНЫЕ РЕАКЦИИ НА ЛЮБУЮ НАГРАДУ ===
-    if (window.AppTicker) {
-        window.AppTicker.showRewardEvent(user, reward, message);
-    }
-    
-    if (window.AppPet) {
-        window.AppPet.setEmotion('hype', 3000);
+    if (window.AppTicker) window.AppTicker.showRewardEvent(user, reward, message);
+    if (window.AppPet) window.AppPet.setEmotion('hype', 3000);
+
+    // === НОВАЯ НАГРАДА: КОЛЕСО ФОРТУНЫ ===
+    if (reward === window.AppConfig.wheelRewardName && window.AppWheel) {
+        window.AppWheel.add(message);
+        window.AppWheel.toggle(true); // Автоматически показываем колесо
     }
 
-    // === 2. СПЕЦИФИЧЕСКИЕ НАГРАДЫ ИЗ КОНФИГА ===
-    
-    // Плеер YouTube
     if (reward === window.AppConfig.rewardName && window.AppQueue) {
         window.AppQueue.add(message, user);
     }
     
-    // Озвучка (TTS)
     if (reward === window.AppConfig.ttsRewardName && window.AppTTS) {
         window.AppTTS.add(user, message);
     }
     
-    // Покормить лису
     if (reward === window.AppConfig.feedRewardName && window.AppPet) {
         window.AppPet.setEmotion('nom', 6000); 
     }
 
-    // Алерты наград на экране
     if (window.AppAlerts && window.AppConfig.rewards) {
-        if (reward === window.AppConfig.rewards.series) {
-            window.AppAlerts.add(user, "reward_series", message);
-        } else if (reward === window.AppConfig.rewards.movie) {
-            window.AppAlerts.add(user, "reward_movie", message);
-        } else if (reward === window.AppConfig.rewards.video) {
-            window.AppAlerts.add(user, "reward_video", message);
-        } else if (reward === window.AppConfig.rewards.game) {
-            window.AppAlerts.add(user, "reward_game", message);
-        } else if (reward === window.AppConfig.rewards.music) {
-            window.AppAlerts.add(user, "reward_music", message);
-        }
+        if (reward === window.AppConfig.rewards.series) window.AppAlerts.add(user, "reward_series", message);
+        else if (reward === window.AppConfig.rewards.movie) window.AppAlerts.add(user, "reward_movie", message);
+        else if (reward === window.AppConfig.rewards.video) window.AppAlerts.add(user, "reward_video", message);
+        else if (reward === window.AppConfig.rewards.game) window.AppAlerts.add(user, "reward_game", message);
+        else if (reward === window.AppConfig.rewards.music) window.AppAlerts.add(user, "reward_music", message);
     }
 };
 
@@ -70,15 +48,31 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
     const isAllowedUser = window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(user.toLowerCase());
     const hasPermission = isMod || isAllowedUser;
     
-    const arg = message.toLowerCase().trim(); 
+    const arg = message.trim(); // Оставляем оригинальный регистр для рулетки
+    const argLow = arg.toLowerCase(); 
 
     switch (command.toLowerCase()) {
         
+        // === КОМАНДЫ РУЛЕТКИ ===
+        case "wheel":
+        case "рулетка":
+            if (hasPermission && window.AppWheel) {
+                if (argLow === "show" || argLow === "on") window.AppWheel.toggle(true);
+                else if (argLow === "hide" || argLow === "off") window.AppWheel.toggle(false);
+                else if (argLow === "clear") window.AppWheel.clear();
+                else if (argLow === "spin") window.AppWheel.spin();
+                else if (argLow.startsWith("add ")) {
+                    window.AppWheel.add(arg.substring(4));
+                }
+                else if (argLow.startsWith("remove ")) {
+                    window.AppWheel.remove(arg.substring(7));
+                }
+            }
+            break;
+
         case "sr":     
         case "play":   
-            if (message !== "" && window.AppQueue) {
-                window.AppQueue.add(message, user);
-            }
+            if (message !== "" && window.AppQueue) window.AppQueue.add(message, user);
             break;
 
         case "so":
@@ -100,16 +94,16 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
 
         case "cam":
             if (hasPermission && window.AppMedia) {
-                if (arg === "off") window.AppMedia.toggleCam(false);
-                else if (arg === "on") window.AppMedia.toggleCam(true);
+                if (argLow === "off") window.AppMedia.toggleCam(false);
+                else if (argLow === "on") window.AppMedia.toggleCam(true);
                 else window.AppMedia.toggleCam();
             }
             break;
 
         case "mic":
             if (hasPermission && window.AppMedia) {
-                if (arg === "off") window.AppMedia.toggleMic(false);
-                else if (arg === "on") window.AppMedia.toggleMic(true);
+                if (argLow === "off") window.AppMedia.toggleMic(false);
+                else if (argLow === "on") window.AppMedia.toggleMic(true);
                 else window.AppMedia.toggleMic();
             }
             break;
@@ -117,52 +111,49 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
         case "emotes":
         case "смайлы":
             if (hasPermission && window.AppEmotes) {
-                if (arg === "a" || arg === "bubble") window.AppEmotes.setMode("bubble");
-                else if (arg === "b" || arg === "fountain") window.AppEmotes.setMode("fountain");
-                else if (arg === "off") window.AppEmotes.toggle(false);
-                else if (arg === "on") window.AppEmotes.toggle(true);
+                if (argLow === "a" || argLow === "bubble") window.AppEmotes.setMode("bubble");
+                else if (argLow === "b" || argLow === "fountain") window.AppEmotes.setMode("fountain");
+                else if (argLow === "off") window.AppEmotes.toggle(false);
+                else if (argLow === "on") window.AppEmotes.toggle(true);
             }
             break;
 
         case "tts":
             if (hasPermission && message !== "" && window.AppTTS) {
-                if (arg === "stop" || arg === "skip") {
-                    window.AppTTS.stop(); 
-                } else {
-                    window.AppTTS.add(user, message);
-                }
+                if (argLow === "stop" || argLow === "skip") window.AppTTS.stop(); 
+                else window.AppTTS.add(user, message);
             }
             break;
 
         case "blur":
         case "блюр":
             if (hasPermission && window.AppBlur) {
-                if (arg === "off") window.AppBlur.toggle(false);
-                else if (arg === "on") window.AppBlur.toggle(true);
+                if (argLow === "off") window.AppBlur.toggle(false);
+                else if (argLow === "on") window.AppBlur.toggle(true);
                 else window.AppBlur.toggle();
             }
             break;
 
         case "game":
         case "игра":
-            if (hasPermission && window.AppGameLogo) window.AppGameLogo.set(arg);
+            if (hasPermission && window.AppGameInfo) window.AppGameInfo.set(argLow);
             break;
 
         case "death":
         case "deaths":
         case "смерть":
             if (hasPermission) {
-                if (window.AppPet && arg !== "off" && arg !== "hide" && arg !== "-" && arg !== "sub" && arg !== "reset" && arg !== "clear" && !arg.startsWith("set")) {
+                if (window.AppPet && argLow !== "off" && argLow !== "hide" && argLow !== "-" && argLow !== "sub" && argLow !== "reset" && argLow !== "clear" && !argLow.startsWith("set")) {
                     window.AppPet.setEmotion('scared', 3000);
                 }
 
                 if (window.AppDeaths) {
-                    if (arg === "on" || arg === "show") window.AppDeaths.toggle(true);
-                    else if (arg === "off" || arg === "hide") window.AppDeaths.toggle(false);
-                    else if (arg === "-" || arg === "sub") window.AppDeaths.update(1, 'sub');
-                    else if (arg === "reset" || arg === "clear") window.AppDeaths.update(0, 'set');
-                    else if (arg.startsWith("set ")) {
-                        const num = parseInt(arg.replace("set ", ""));
+                    if (argLow === "on" || argLow === "show") window.AppDeaths.toggle(true);
+                    else if (argLow === "off" || argLow === "hide") window.AppDeaths.toggle(false);
+                    else if (argLow === "-" || argLow === "sub") window.AppDeaths.update(1, 'sub');
+                    else if (argLow === "reset" || argLow === "clear") window.AppDeaths.update(0, 'set');
+                    else if (argLow.startsWith("set ")) {
+                        const num = parseInt(argLow.replace("set ", ""));
                         if (!isNaN(num)) window.AppDeaths.update(num, 'set');
                     } 
                     else window.AppDeaths.update(1, 'add');
@@ -176,15 +167,15 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
             if (hasPermission && window.AppPet) {
                 const allowedStates = ['idle', 'sleep', 'alert', 'hype', 'love', 'scared', 'angry', 'greet', 'bye', 'jam', 'listen', 'nom'];
                 
-                if (allowedStates.includes(arg)) {
-                    window.AppPet.setEmotion(arg, 5000); 
-                } else if (arg === "кусь" || arg === "ням") {
+                if (allowedStates.includes(argLow)) {
+                    window.AppPet.setEmotion(argLow, 5000); 
+                } else if (argLow === "кусь" || argLow === "ням") {
                     window.AppPet.setEmotion('nom', 5000);
-                } else if (arg === "привет") {
+                } else if (argLow === "привет") {
                     window.AppPet.setEmotion('greet', 5000);
-                } else if (arg === "пока") {
+                } else if (argLow === "пока") {
                     window.AppPet.setEmotion('bye', 5000);
-                } else if (arg === "танцуй" || arg === "вайб") {
+                } else if (argLow === "танцуй" || argLow === "вайб") {
                     window.AppPet.setEmotion('jam', 5000);
                 }
             }
@@ -195,17 +186,15 @@ ComfyJS.onCommand = (user, command, message, flags, extra) => {
                 if (window.AppPet) window.AppPet.setEmotion('love', window.AppConfig.alertDuration || 5000);
 
                 if (window.AppAlerts) {
-                    if (arg === "sub") window.AppAlerts.add("ТестовыйЮзер", "sub");
-                    else if (arg === "resub") window.AppAlerts.add("ОлдРесабер", "resub", "Обожаю этот стрим!", 12);
-                    else if (arg === "gift") window.AppAlerts.add("Богач", "gift", "для СлучайныйЗритель");
-                    else if (arg === "streak") window.AppAlerts.add("ПреданныйЗритель", "streak", "Лучший стример, смотрю каждый день!", 5);
-                    
-                    else if (arg === "series") window.AppAlerts.add("Киноман", "reward_series", "Давай смотреть Во все тяжкие!");
-                    else if (arg === "movie") window.AppAlerts.add("Зритель", "reward_movie", "Гарри Поттер пожалуйста");
-                    else if (arg === "video") window.AppAlerts.add("Кекус", "reward_video", "Смешные коты");
-                    else if (arg === "game") window.AppAlerts.add("Геймер", "reward_game", "Го в Доту?");
-                    else if (arg === "music") window.AppAlerts.add("Меломан", "reward_music", "Врубай фонк");
-                    
+                    if (argLow === "sub") window.AppAlerts.add("ТестовыйЮзер", "sub");
+                    else if (argLow === "resub") window.AppAlerts.add("ОлдРесабер", "resub", "Обожаю этот стрим!", 12);
+                    else if (argLow === "gift") window.AppAlerts.add("Богач", "gift", "для СлучайныйЗритель");
+                    else if (argLow === "streak") window.AppAlerts.add("ПреданныйЗритель", "streak", "Лучший стример, смотрю каждый день!", 5);
+                    else if (argLow === "series") window.AppAlerts.add("Киноман", "reward_series", "Давай смотреть Во все тяжкие!");
+                    else if (argLow === "movie") window.AppAlerts.add("Зритель", "reward_movie", "Гарри Поттер пожалуйста");
+                    else if (argLow === "video") window.AppAlerts.add("Кекус", "reward_video", "Смешные коты");
+                    else if (argLow === "game") window.AppAlerts.add("Геймер", "reward_game", "Го в Доту?");
+                    else if (argLow === "music") window.AppAlerts.add("Меломан", "reward_music", "Врубай фонк");
                     else window.AppAlerts.add("НовыйФолловер", "follow");
                 }
             }

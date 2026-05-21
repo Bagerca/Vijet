@@ -2,14 +2,8 @@ window.AppConfig = {
     channelName: "ksusha__sher",
     allowedUsers: ["bagercaa", "to_be_ang"], 
     
-    // ==========================================
-    // НАСТРОЙКИ: Авто-цензура в чате
-    // ==========================================
     forbiddenWords: ["негр", "пидор", "даун", "чурка", "хохол", "кацап", "запретка"],
 
-    // ==========================================
-    // НАСТРОЙКИ: Звуки алертов
-    // ==========================================
     alertVolume: 40,
     alertSounds: {
         "follow": "sounds/follow.mp3",
@@ -27,37 +21,29 @@ window.AppConfig = {
     deathSound: "sounds/death.mp3",       
     shoutoutSound: "sounds/shoutout.mp3", 
 
-    // ==========================================
-    // НАСТРОЙКИ: Точные названия наград на Twitch
-    // ==========================================
     rewards: {
-        series: "Сериал",
-        movie: "Фильм",
-        video: "Видео",
-        game: "Игры",
-        music: "Музыка"
+        series: "Сериал", movie: "Фильм", video: "Видео", game: "Игры", music: "Музыка"
     },
 
     rewardName: "Заказать видео",
     ttsRewardName: "Озвучить сообщение", 
-    feedRewardName: "Покормить лису", // <--- НОВАЯ НАГРАДА ДЛЯ ВКУСНЯШКИ
+    feedRewardName: "Покормить лису", 
 
     // ==========================================
-    // НАСТРОЙКИ: Пиксельный Питомец
+    // НАСТРОЙКИ: Колесо Фортуны
     // ==========================================
+    wheelRewardName: "Добавить в рулетку", 
+    wheelSpinTime: 8, 
+    wheelColors: ["#FF4477", "#ffffff", "#1a1a25", "#00E5FF"], 
+    wheelMaxItems: 15, 
+
     petEnabled: true,
     petSleepTimeout: 120,
 
-    // ==========================================
-    // НАСТРОЙКИ: Анимации смайликов
-    // ==========================================
     emotesEnabled: true,      
     emotesMaxPerMessage: 150, 
     emotesMode: "bubble",     
 
-    // ==========================================
-    // НАСТРОЙКИ: Голосовая озвучка (TTS)
-    // ==========================================
     ttsEnabled: true,         
     ttsVolume: 60,            
     ttsMaxLength: 150,        
@@ -67,24 +53,54 @@ window.AppConfig = {
         "to_be_ang": { pitch: 2.0, rate: 1.3 }
     },
 
-    // ==========================================
-    // НАСТРОЙКИ: Логотипы игр над вебкой
-    // ==========================================
-    gameLogos: {
-        "subnautica": "img/games/subnautica.png",
-        "repo": "img/games/repo.png",
-        "lethal_company": "img/games/lethal_company.png",
-        "burglin_gnomes": "img/games/burglin_gnomes.png",
-        "winx": "img/games/winx_club_the_magic_is_back.png"
+    gamesDatabase: {
+        "subnautica": { 
+            title: "Subnautica", cover: "img/covers/subnautica.jpg", 
+            rating: "9.5 / 10", year: 2018, genre: "Выживание", 
+            developer: "Unknown Worlds", platform: "PC" 
+        },
+        "subnautica 2": { 
+            title: "Subnautica 2", cover: "img/covers/subnautica_2.jpg", 
+            rating: "Ожидание", year: 2025, genre: "Выживание", 
+            developer: "Unknown Worlds", platform: "PC" 
+        },
+        "lethal company": { 
+            title: "Lethal Company", cover: "img/covers/lethal_company.jpg", 
+            rating: "9.0 / 10", year: 2023, genre: "Кооп Хоррор", 
+            developer: "Zeekerss", platform: "PC" 
+        },
+        "repo": { 
+            title: "R.E.P.O.", cover: "img/covers/repo.jpg", 
+            rating: "8.5 / 10", year: 2024, genre: "Экшен / Хоррор", 
+            developer: "Студия", platform: "PC" 
+        },
+        "winx": { 
+            title: "Winx Club", cover: "img/covers/winx.jpg", 
+            rating: "10 / 10 (Легенда)", year: 2006, genre: "Приключения", 
+            developer: "Konami", platform: "PC / PS2" 
+        },
+        "minecraft": { 
+            title: "Minecraft", cover: "img/covers/minecraft.jpg", 
+            rating: "10 / 10", year: 2011, genre: "Песочница", 
+            developer: "Mojang", platform: "PC" 
+        },
+        "dome keeper": { 
+            title: "Dome Keeper", cover: "img/covers/dome_keeper.jpg", 
+            rating: "8.8 / 10", year: 2022, genre: "Рогалик", 
+            developer: "Bippinbits", platform: "PC" 
+        }
     },
 
     defaultVolume: 30,
     chatMsgLifetime: 15000,
     maxChatMessages: 12,
 
-    goalTarget: 500,
+    // ==========================================
+    // НАСТРОЙКИ: Цель (Фолловеры)
+    // ==========================================
+    goalTarget: 200,             // Изменено на 200
     goalTitle: "⭐ Фолловеры:",
-    goalColor: "#FF4477", 
+    goalColor: "#FF4477",        // ВЕРНУЛ ЦВЕТ!
     goalUpdateInterval: 30000,
 
     socialRotateTime: 30000,       
@@ -93,18 +109,12 @@ window.AppConfig = {
         { id: "tiktok", title: "TikTok", handle: "@_ksusha_sher_", color: "#FF0050" },
         { id: "vk", title: "ВКонтакте", handle: "vk.com/club236843653", color: "#0077FF" }
     ],
-
-    alertDuration: 5000,           
-    shoutoutDuration: 8000,        
-
-    tickerSpeed: 40,               
+    
     tickerInterval: 60000,         
     tickerMessages: [
         "🎵 Пиши !play [ссылка] чтобы заказать трек в очередь",
         "💬 Общайся в чате, задавай вопросы, чувствуй себя как дома",
         "✈️ Подписывайся на Telegram t.me/pizdeckakoi_to, там анонсы и лайф-контент",
-        "🛡️ Уважайте друг друга. Токсики и политота отправляются в бан",
-        "💎 Используй баллы канала, чтобы заказать видео вне очереди",
-        "🔊 Модеры могут менять громкость музыки командой !vol [0-100]"
+        "🛡️ Уважайте друг друга. Токсики и политота отправляются в бан"
     ]
 };

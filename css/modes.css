@@ -63,19 +63,17 @@ body.scene-chatting #deaths-count {
     font-size: 64px; 
 }
 
-/* ================= ЛОГОТИП ИГРЫ В JUST CHATTING ================= */
-body.scene-chatting #game-logo-container {
+/* ================= ВИДЖЕТ ИГРЫ В JUST CHATTING ================= */
+body.scene-chatting #game-info-container {
     bottom: auto;      
-    top: 30px;         
-    margin-bottom: 0;
+    top: 40px;         
+    left: auto;
+    right: 40px; /* Прижимаем к правому краю экрана, над чатом */
+    transform: translateX(0); /* Сбрасываем центрирование */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 
-body.scene-chatting #game-logo-img {
-    max-height: 105px; 
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7)); 
-}
-
-body.scene-chatting #game-logo-container.hidden {
-    transform: translateX(-50%) translateY(-20px);
+body.scene-chatting #game-info-container.hidden {
+    transform: translateX(20px);
     opacity: 0;
 }
