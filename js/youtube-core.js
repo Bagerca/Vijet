@@ -1,4 +1,4 @@
-/* ================= YOUTUBE CORE ПЛЕЕР (Только для core.html) ================= */
+/* ================= YOUTUBE CORE ПЛЕЕР ================= */
 window.AppPlayerCore = {
     yt: null,
     isReady: false,
@@ -7,14 +7,24 @@ window.AppPlayerCore = {
 
     init: function() {
         this.yt = new YT.Player('yt-player-core', {
-            playerVars: { 'autoplay': 1, 'controls': 0 },
+            host: 'https://www.youtube-nocookie.com', // ФИКС: Обходим блокировщики рекламы и трекеров
+            playerVars: { 
+                'autoplay': 1, 
+                'controls': 0,
+                'origin': window.location.origin // ФИКС: Обязательно для API
+            },
             events: {
                 'onReady': () => {
                     this.isReady = true;
                     this.setVolume(this.currentVol);
+                    // Сообщаем очереди, что плеер готов к работе!
+                    window.AppEvents.emit('YT_CORE_READY');
                 },
                 'onStateChange': this.handleStateChange.bind(this),
-                'onError': () => window.AppEvents.emit('YT_ENDED') // Если видео заблокировано, скипаем
+                'onError': (e) => {
+                    console.warn("[YT CORE] Ошибка видео. Скипаем.", e);
+                    window.AppEvents.emit('YT_ENDED');
+                }
             }
         });
 
@@ -24,11 +34,13 @@ window.AppPlayerCore = {
     },
 
     play: function(data) {
-        if (!this.isReady) return;
+        if (!this.isReady) {
+            console.warn("[YT CORE] Плеер еще не готов! Запрос проигнорирован.");
+            return;
+        }
         this.yt.loadVideoById(data.id);
         this.yt.unMute();
         
-        // Командуем виджетам показать клип (без звука)
         window.AppEvents.emit('YT_VISUAL_PLAY', { id: data.id, user: data.user, vol: this.currentVol });
     },
 
@@ -43,7 +55,6 @@ window.AppPlayerCore = {
             this.currentVol = Math.max(0, Math.min(100, parseInt(vol) || window.AppConfig.defaultVolume));
             this.yt.unMute();
             this.yt.setVolume(this.currentVol);
-            // Отправляем виджетам новую цифру громкости для отрисовки
             window.AppEvents.emit('YT_VISUAL_VOL', { vol: this.currentVol });
         }
     },
@@ -53,7 +64,7 @@ window.AppPlayerCore = {
             this.startProgress();
             window.AppEvents.emit('PET_EMOTION', { emotion: 'jam' });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'playing' });
-        } else {
+        } else if (event.data === 2) { // PAUSED
             this.stopProgress();
             window.AppEvents.emit('PET_EMOTION', { emotion: 'idle' });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'paused' });

@@ -10,7 +10,15 @@ window.AppPlayer = {
 
     init: function() {
         this.yt = new YT.Player('yt-player', {
-            playerVars: { 'autoplay': 1, 'controls': 0, 'disablekb': 1, 'modestbranding': 1, 'playsinline': 1 },
+            host: 'https://www.youtube-nocookie.com', // Обход блокировщиков
+            playerVars: { 
+                'autoplay': 1, 
+                'controls': 0, 
+                'disablekb': 1, 
+                'modestbranding': 1, 
+                'playsinline': 1,
+                'origin': window.location.origin // Требование API
+            },
             events: {
                 'onReady': () => { 
                     this.isReady = true;

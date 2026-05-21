@@ -27,7 +27,13 @@ window.AppCore = {
             let { text: cleanText, hasForbidden } = this.filterForbiddenWords(parsedMessage);
             
             if (hasForbidden) window.AppEvents.emit('PET_EMOTION', { emotion: 'angry', duration: 4000 });
-            if (extra.messageEmotes) window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
+            
+            if (extra.messageEmotes) {
+                window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
+                // ВОССТАНОВЛЕНО: Триггер для вылета смайлов!
+                window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes);
+            }
+            
             if (flags.highlighted) {
                 window.AppEvents.emit('TICKER_REWARD', { user, reward: "Выделенное сообщение", message });
                 window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
