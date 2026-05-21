@@ -1,18 +1,21 @@
-/* ================= EVENT BUS (ШИНА СОБЫТИЙ) ================= */
-// Канал связи между Ядром (core.html) и Виджетами (index.html)
+/* ================= EVENT BUS (ШИНА СОБЫТИЙ С ЛОГАМИ) ================= */
 window.StreamBus = new BroadcastChannel('ultimate_overlay_channel');
 
 window.AppEvents = {
-    // Отправить сообщение в канал
     emit: function(eventName, payload = {}) {
+        console.log(`%c[BUS 📤] ${eventName}`, 'color: #FF4477; font-weight: bold;', payload);
         window.StreamBus.postMessage({ event: eventName, payload: payload });
     },
     
-    // Слушать сообщения из канала
     listen: function(eventName, callback) {
         window.StreamBus.addEventListener('message', (e) => {
             if (e.data.event === eventName) {
-                callback(e.data.payload);
+                console.log(`%c[BUS 📥] ${eventName}`, 'color: #00E5FF; font-weight: bold;', e.data.payload);
+                try {
+                    callback(e.data.payload);
+                } catch (err) {
+                    console.error(`[BUS ❌] Ошибка в обработчике события ${eventName}:`, err);
+                }
             }
         });
     }

@@ -9,8 +9,11 @@ window.AppCore = {
         }
 
         if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
+            console.log(`[CORE] Подключение к каналу: ${window.AppConfig.channelName}...`);
             ComfyJS.Init(window.AppConfig.channelName);
             this.setupEvents();
+        } else {
+            console.warn("[CORE ❌] Имя канала не настроено в config.js!");
         }
     },
 
@@ -20,13 +23,11 @@ window.AppCore = {
             const userColor = extra.userColor || '#FF4477'; 
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             
-            // Тяжелые вычисления перенесены в Ядро!
             let parsedMessage = this.parseEmotes(message, extra.messageEmotes);
             let { text: cleanText, hasForbidden } = this.filterForbiddenWords(parsedMessage);
             
             if (hasForbidden) window.AppEvents.emit('PET_EMOTION', { emotion: 'angry', duration: 4000 });
             if (extra.messageEmotes) window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
-            if (extra.messageEmotes) window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes);
             if (flags.highlighted) {
                 window.AppEvents.emit('TICKER_REWARD', { user, reward: "Выделенное сообщение", message });
                 window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
@@ -34,7 +35,6 @@ window.AppCore = {
 
             const avatarUrl = await this.getAvatar(user, userColor);
 
-            // Обработка ответов (Reply)
             let replyData = null;
             if (extra.userState && extra.userState['reply-parent-display-name']) {
                 const replyUser = extra.userState['reply-parent-display-name'];
@@ -48,7 +48,6 @@ window.AppCore = {
                 cleanText = cleanText.replace(mentionRegex, '');
             }
 
-            // Отправляем ГОТОВЫЕ данные в виджет чата
             window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
                 user, color: userColor, avatarUrl, time, htmlText: cleanText, replyData
             });
@@ -56,6 +55,7 @@ window.AppCore = {
 
         // === 2. ОБРАБОТКА НАГРАД ===
         ComfyJS.onReward = (user, reward, cost, message, extra) => {
+            console.log(`[TWITCH 💎] Награда: "${reward}" от ${user}. Сообщение: "${message}"`);
             window.AppEvents.emit('TICKER_REWARD', { user, reward, message });
             window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
 
@@ -93,6 +93,14 @@ window.AppCore = {
             
             const arg = message.trim();
             const argLow = arg.toLowerCase(); 
+
+            // Логирование команд
+            console.log(`[TWITCH 🎮] Команда: !${command} | Пользователь: ${user} | Аргумент: "${arg}"`);
+            
+            const protectedCommands = ['wheel', 'skip', 'clear', 'vol', 'cam', 'mic', 'emotes', 'tts', 'blur', 'game', 'death', 'fox', 'alert'];
+            if (!hasPermission && protectedCommands.includes(command.toLowerCase())) {
+                console.warn(`[TWITCH ⛔] Отказ в доступе: у ${user} нет прав модератора на команду !${command}`);
+            }
 
             switch (command.toLowerCase()) {
                 case "wheel":
@@ -183,7 +191,6 @@ window.AppCore = {
         }
     },
 
-    // Вспомогательные функции, перенесенные из старого чата
     getAvatar: async function(username, userColor) {
         if (this.avatarCache[username]) return this.avatarCache[username];
         try {
