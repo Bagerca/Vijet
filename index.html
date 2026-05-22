@@ -149,10 +149,36 @@
                 <div id="yt-player"></div>
                 <div id="yt-progress-container"><div id="yt-progress-bar"></div></div>
             </div>
+            
+            <!-- НОВЫЙ ИНФО-БАР -->
             <div id="info-bar">
-                <div class="info-main"><span class="icon">🎵</span><span id="requester-name">Никнейм</span></div>
-                <div class="info-stats"><span title="Громкость">🔊 <span id="volume-level">30</span>%</span><span title="В очереди">⏳ <span id="queue-count">0</span></span></div>
+                <div class="info-left">
+                    <div class="info-user-wrap">
+                        <img id="requester-avatar" src="" alt="Avatar">
+                        <div class="avatar-ring"></div>
+                    </div>
+                    <div class="info-main">
+                        <div class="info-label">СЕЙЧАС ИГРАЕТ ЗАКАЗ</div>
+                        <div id="requester-name">Никнейм</div>
+                    </div>
+                </div>
+                <div class="info-stats">
+                    <div class="stat-badge" title="Громкость">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                        <span><span id="volume-level">30</span>%</span>
+                    </div>
+                    <div class="stat-badge stat-queue-badge" title="В очереди">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path>
+                        </svg>
+                        <span id="queue-count">0</span>
+                    </div>
+                </div>
             </div>
+            
         </div>
 
         <div id="ticker-container"><div id="ticker-text"></div></div>

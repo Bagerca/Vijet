@@ -147,7 +147,8 @@ window.AppPlayerCore = {
             if (this.yt && this.yt.getCurrentTime && this.yt.getDuration) {
                 const cur = this.yt.getCurrentTime();
                 const tot = this.yt.getDuration();
-                if (tot > 0) window.AppEvents.emit('YT_VISUAL_PROGRESS', { percent: (cur / tot) * 100 });
+                // НОВОЕ: Передаем не только процент, но и ТОЧНОЕ ВРЕМЯ (cur) для синхронизации картинки!
+                if (tot > 0) window.AppEvents.emit('YT_VISUAL_PROGRESS', { percent: (cur / tot) * 100, currentTime: cur });
             }
         }, 500);
     },
