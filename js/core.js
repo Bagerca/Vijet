@@ -1,9 +1,9 @@
 /* ================= CORE (ЯДРО СИСТЕМЫ) ================= */
 window.AppCore = {
     avatarCache: {},
+    greetedUsers: new Set(), // Память на тех, с кем уже поздоровались
 
     init: function() {
-        // Еженедельная очистка кэша аватаров
         const now = Date.now();
         const lastClear = localStorage.getItem('uso_avatars_last_clear');
         const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
@@ -35,18 +35,32 @@ window.AppCore = {
         ComfyJS.onChat = async (user, message, flags, self, extra) => {
             const userColor = extra.userColor || '#FF4477'; 
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            const lowerUser = user.toLowerCase();
             
-            // Сначала парсим смайлы, чтобы они стали HTML-тегами <img>
             let parsedMessage = this.parseEmotes(message, extra.messageEmotes);
-            
-            // Затем прогоняем через умный фильтр запреток
             let { text: cleanText, hasForbidden } = this.filterForbiddenWords(parsedMessage);
             
-            if (hasForbidden) window.AppEvents.emit('PET_EMOTION', { emotion: 'angry', duration: 4000 });
-            
-            if (extra.messageEmotes) {
-                window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
-                window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes);
+            // --- ЛОГИКА РЕАКЦИЙ ПИТОМЦА ---
+            if (hasForbidden) {
+                // Если мат - Лиса злится (блокирует всё остальное)
+                window.AppEvents.emit('PET_EMOTION', { emotion: 'angry', duration: 4000 });
+            } 
+            else {
+                // Если мата нет, проверяем: это VIP/Стример написал ПЕРВЫЙ РАЗ?
+                const isAllowedUser = window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(lowerUser);
+                const isStreamer = flags.broadcaster;
+                
+                if ((isAllowedUser || isStreamer) && !this.greetedUsers.has(lowerUser)) {
+                    // Радуемся появлению "своего" человека
+                    this.greetedUsers.add(lowerUser);
+                    window.AppEvents.emit('PET_EMOTION', { emotion: 'love', duration: 4000 });
+                } 
+                // Иначе проверяем, есть ли смайлы для стандартной реакции
+                else if (extra.messageEmotes) {
+                    window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
+                    // Смайлы вылетают из чата ТОЛЬКО если нет мата
+                    window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes);
+                }
             }
             
             if (flags.highlighted) {
@@ -111,7 +125,7 @@ window.AppCore = {
             
             const arg = message.trim();
             const argLow = arg.toLowerCase(); 
-            
+
             const protectedCommands = ['wheel', 'skip', 'clear', 'vol', 'cam', 'mic', 'emotes', 'tts', 'blur', 'game', 'death', 'fox', 'alert'];
 
             switch (command.toLowerCase()) {
@@ -227,9 +241,6 @@ window.AppCore = {
         }
     },
 
-    // ==================================================
-    // УМНЫЙ ФИЛЬТР ЗАПРЕТНЫХ СЛОВ (Двухуровневый)
-    // ==================================================
     filterForbiddenWords: function(htmlString) {
         const words = window.AppConfig.forbiddenWords || [];
         if (words.length === 0) return { text: htmlString, hasForbidden: false };
@@ -237,7 +248,6 @@ window.AppCore = {
         let result = htmlString;
         let hasForbidden = false; 
 
-        // УРОВЕНЬ 1: Классический поиск (если написали слово нормально)
         words.forEach(word => {
             const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const regex = new RegExp(`(?![^<]*>)(${safeWord})`, 'gi');
@@ -247,21 +257,14 @@ window.AppCore = {
             }
         });
 
-        // УРОВЕНЬ 2: Агрессивный детектив (поиск обходов, пробелов, leetspeak)
         if (!hasForbidden) {
-            // Вытаскиваем только текст, игнорируя HTML теги (чтобы не сломать смайлы)
             let textOnly = htmlString.replace(/<[^>]*>?/gm, '');
-            
-            // Нормализуем текст (заменяем англ буквы на русские, цифры на буквы)
             let normalized = this.normalizeText(textOnly);
 
             for (let word of words) {
-                // Корни в конфиге тоже приводим к чистой базе
                 let cleanRoot = this.normalizeText(word);
-                
                 if (cleanRoot.length > 2 && normalized.includes(cleanRoot)) {
                     hasForbidden = true;
-                    // Если поймали обход фильтра — скрываем ВСЁ сообщение целиком
                     result = `<span class="blurred-word" style="display:block; width:100%; text-align:center; letter-spacing:2px; font-size:12px; font-weight:800;">[ ЗАПРЕТКА СКРЫТА ]</span>`;
                     break;
                 }
@@ -271,7 +274,6 @@ window.AppCore = {
         return { text: result, hasForbidden };
     },
 
-    // Вспомогательная функция для перевода хитрого текста в базу
     normalizeText: function(text) {
         const map = {
             'a':'а', 'e':'е', 'o':'о', 'p':'р', 'c':'с', 'x':'х', 'y':'у', 
@@ -281,9 +283,8 @@ window.AppCore = {
         let lower = text.toLowerCase();
         let normalized = '';
         for (let char of lower) {
-            normalized += map[char] || char; // Меняем обманки
+            normalized += map[char] || char; 
         }
-        // Удаляем ВСЁ кроме букв (убираем пробелы, точки, дефисы и т.д.)
         return normalized.replace(/[^а-яёa-z]/g, '');
     },
 
