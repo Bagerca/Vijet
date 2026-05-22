@@ -149,7 +149,7 @@ window.AppConfig = {
         },
         "bendy: the cage": {
             title: "Bendy: The Cage", cover: "img/covers/bendy_cage.png",
-            rating: "Ожидание", year: "2024", genre: "Выживание / Хоррор",
+            rating: "Ожидание", year: "2026", genre: "Выживание / Хоррор",
             developer: "Joey Drew Studios", platform: "PC"
         },
         "atomic heart": {
