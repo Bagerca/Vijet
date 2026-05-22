@@ -1,0 +1,167 @@
+/* ==========================================================
+   КАСТОМНЫЙ СТИЛЬ: ksusha__sher (Тема: Subnautica PDA 2.0)
+   ========================================================== */
+
+/* Технологичный sci-fi шрифт */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap');
+
+.chat-message[data-user="ksusha__sher"] {
+    /* Многослойный фон: Подсветка угла + Сетка радара + Стеклянная база */
+    background: 
+        radial-gradient(circle at top left, rgba(0, 255, 234, 0.15) 0%, transparent 50%),
+        linear-gradient(rgba(0, 255, 234, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 234, 0.04) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(4, 18, 30, 0.85) 0%, rgba(9, 30, 50, 0.95) 100%) !important;
+    background-size: 100% 100%, 8px 8px, 8px 8px, 100% 100% !important;
+    
+    /* Эффект стекла (будет слегка размывать то, что находится под чатом в OBS) */
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    
+    /* Идеально скошенные углы */
+    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px)) !important;
+    
+    border: none !important;
+    border-radius: 0 !important;
+    
+    padding: 16px 20px !important;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    position: relative;
+    
+    animation: pdaFloat 4s ease-in-out infinite, pdaBoot 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+/* ==============================================
+   НЕОНОВЫЕ ЛИНИИ КОРПУСА КПК
+   ============================================== */
+
+/* Левая основная линия (идеально стыкуется с нижним скошенным углом) */
+.chat-message[data-user="ksusha__sher"]::before {
+    content: '';
+    position: absolute;
+    left: 0; 
+    top: 0; 
+    bottom: 15px; /* Заканчивается ровно там, где начинается скос */
+    width: 3px;
+    background: #00ffea;
+    box-shadow: 0 0 15px rgba(0, 255, 234, 0.8);
+    z-index: 5;
+}
+
+/* Верхняя линия (стыкуется с правым скошенным углом и плавно затухает) */
+.chat-message[data-user="ksusha__sher"]::after {
+    content: '';
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    right: 15px; /* Заканчивается ровно перед скосом */
+    height: 2px;
+    background: linear-gradient(90deg, #00ffea 0%, transparent 100%);
+    box-shadow: 0 0 10px rgba(0, 255, 234, 0.5);
+    z-index: 5;
+}
+
+/* ==============================================
+   ШАПКА И АВАТАРКА
+   ============================================== */
+
+.chat-message[data-user="ksusha__sher"] .chat-header {
+    border-bottom: 1px solid rgba(0, 255, 234, 0.2) !important;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+/* Бегущий луч сканера базы данных */
+.chat-message[data-user="ksusha__sher"] .chat-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0;
+    width: 25%;
+    height: 1px;
+    background: #ffffff;
+    box-shadow: 0 0 8px #00ffea, 0 0 15px #00ffea;
+    animation: scanlineMove 3s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+/* Аватарка (Стиль: Модуль загрузки) */
+.chat-message[data-user="ksusha__sher"] .chat-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 2px !important;
+    
+    /* Двойная технологичная рамка */
+    border: 1px solid rgba(0, 255, 234, 0.6) !important;
+    padding: 2px !important;
+    background: rgba(0, 255, 234, 0.1) !important;
+    
+    box-shadow: 0 0 15px rgba(0, 255, 234, 0.2) !important;
+    
+    /* Легкий голографический оттенок */
+    filter: sepia(0.3) hue-rotate(180deg) saturate(2) brightness(1.1) !important;
+}
+
+/* Имя пользователя */
+.chat-message[data-user="ksusha__sher"] .chat-user {
+    font-family: 'Rajdhani', sans-serif !important;
+    color: #00ffea !important;
+    font-size: 21px !important;
+    font-weight: 700 !important;
+    text-shadow: 0 0 10px rgba(0, 255, 234, 0.5) !important;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+/* Значок Alterra перед ником */
+.chat-message[data-user="ksusha__sher"] .chat-user::before {
+    content: '▲';
+    font-size: 13px;
+    color: #00ffea;
+    margin-right: 8px;
+    vertical-align: 2px;
+}
+
+/* Время */
+.chat-message[data-user="ksusha__sher"] .chat-time {
+    font-family: 'Rajdhani', sans-serif !important;
+    color: rgba(0, 255, 234, 0.5) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+
+/* ==============================================
+   ТЕКСТ СООБЩЕНИЯ
+   ============================================== */
+.chat-message[data-user="ksusha__sher"] .chat-text {
+    font-family: 'Rajdhani', sans-serif !important;
+    
+    /* Не чисто белый, а с оттенком интерфейса */
+    color: #a9e0dd !important; 
+    
+    font-size: 17px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    
+    /* Легкое свечение экрана */
+    text-shadow: 0 0 4px rgba(0, 255, 234, 0.3) !important;
+}
+
+/* ==============================================
+   АНИМАЦИИ
+   ============================================== */
+@keyframes pdaBoot {
+    0% { transform: perspective(500px) rotateX(15deg) translateY(20px); opacity: 0; filter: blur(5px); }
+    100% { transform: perspective(500px) rotateX(0) translateY(0); opacity: 1; filter: blur(0); }
+}
+
+@keyframes pdaFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+@keyframes scanlineMove {
+    0% { left: 0; width: 10%; opacity: 0.8; }
+    50% { width: 40%; opacity: 1; }
+    100% { left: 75%; width: 10%; opacity: 0.8; }
+}

@@ -1,0 +1,136 @@
+/* ==========================================================
+   КАСТОМНЫЙ СТИЛЬ: dragonsmaddison (Тема: Bendy / Joey Drew Studios)
+   ========================================================== */
+
+/* Подключаем винтажные шрифты: Постерный для ника и печатную машинку для текста */
+@import url('https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&display=swap');
+
+.chat-message[data-user="dragonsmaddison"] {
+    /* Фон старой бумаги: радиальный градиент от светлой сепии к темной */
+    background: radial-gradient(circle at center, #dfca96 0%, #b89c5f 100%) !important;
+    
+    /* Чернильная обводка и жесткая мультяшная тень (2D эффект) */
+    border: 3px solid #13100c !important;
+    border-radius: 6px !important;
+    
+    /* Внутренняя чернильная виньетка (края затемнены) + мультяшная тень */
+    box-shadow: inset 0 0 30px rgba(19, 16, 12, 0.6), 6px 6px 0px rgba(19, 16, 12, 0.9) !important;
+    
+    padding: 18px 20px 16px 20px !important;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    position: relative;
+    overflow: hidden;
+    
+    /* Легкое дрожание старой кинопленки */
+    animation: filmFlicker 4s infinite, slideInChat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+/* ==============================================
+   ЧЕРНИЛЬНЫЕ ПЯТНА (Магия CSS)
+   ============================================== */
+/* Создаем чернильные подтеки в углах */
+.chat-message[data-user="dragonsmaddison"]::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+        radial-gradient(circle at 0% 0%, #13100c 15%, transparent 25%),
+        radial-gradient(circle at 100% 100%, #13100c 10%, transparent 20%);
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Эффект шума старой пленки / пыли (накладывается поверх) */
+.chat-message[data-user="dragonsmaddison"]::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; right: -50%; bottom: -50%;
+    background-image: repeating-linear-gradient(45deg, rgba(19,16,12,0.03) 0px, rgba(19,16,12,0.03) 2px, transparent 2px, transparent 4px);
+    pointer-events: none;
+    z-index: 2;
+    animation: filmGrain 0.2s steps(2) infinite;
+}
+
+/* ==============================================
+   ШРИФТЫ И ВНУТРЕННОСТИ
+   ============================================== */
+
+/* Шапка */
+.chat-message[data-user="dragonsmaddison"] .chat-header {
+    /* Разделитель в виде пунктирной линии (как перфорация пленки) */
+    border-bottom: 2px dashed rgba(19, 16, 12, 0.4) !important;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 3; /* Поверх чернил */
+}
+
+/* Имя пользователя (Винтажный постер) */
+.chat-message[data-user="dragonsmaddison"] .chat-user {
+    font-family: 'Rye', serif !important;
+    color: #13100c !important;
+    font-size: 22px !important;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    /* Эффект слегка "поплывшей" типографской краски */
+    text-shadow: 1px 1px 0 rgba(223, 202, 150, 1), 2px 2px 2px rgba(19, 16, 12, 0.5) !important;
+}
+
+/* Время */
+.chat-message[data-user="dragonsmaddison"] .chat-time {
+    font-family: 'Special Elite', monospace !important;
+    color: #4a3e2e !important;
+    font-size: 14px !important;
+    font-weight: bold;
+}
+
+/* Текст сообщения (Печатная машинка) */
+.chat-message[data-user="dragonsmaddison"] .chat-text {
+    font-family: 'Special Elite', monospace !important;
+    color: #13100c !important; /* Цвет густых чернил */
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+    font-weight: 600 !important;
+    position: relative;
+    z-index: 3;
+    text-shadow: 0px 0px 1px rgba(19, 16, 12, 0.2) !important;
+}
+
+/* ==============================================
+   АВАТАРКА (Стиль: Кадр из мультика 30-х)
+   ============================================== */
+.chat-message[data-user="dragonsmaddison"] .chat-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    
+    /* Квадратная форма, как кадр пленки */
+    border-radius: 4px !important; 
+    border: 2px solid #13100c !important;
+    background: #dfca96 !important;
+    
+    /* Превращаем любую цветную аватарку в сепию 1930-х годов! */
+    filter: grayscale(100%) sepia(80%) hue-rotate(5deg) contrast(1.4) brightness(0.9) !important;
+    
+    box-shadow: 2px 2px 0 #13100c !important;
+}
+
+/* ==============================================
+   АНИМАЦИИ
+   ============================================== */
+
+@keyframes filmFlicker {
+    0%, 100% { filter: brightness(1); }
+    48% { filter: brightness(1); }
+    50% { filter: brightness(0.95); }
+    52% { filter: brightness(1); }
+    88% { filter: brightness(1); }
+    90% { filter: brightness(0.92); }
+    92% { filter: brightness(1); }
+}
+
+@keyframes filmGrain {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-2px, 2px); }
+}
