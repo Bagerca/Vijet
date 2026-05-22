@@ -1,7 +1,7 @@
 /* ================= CORE (ЯДРО СИСТЕМЫ) ================= */
 window.AppCore = {
     avatarCache: {},
-    greetedUsers: new Set(), // Память на тех, с кем уже поздоровались
+    greetedUsers: new Set(), 
 
     init: function() {
         const now = Date.now();
@@ -40,25 +40,19 @@ window.AppCore = {
             let parsedMessage = this.parseEmotes(message, extra.messageEmotes);
             let { text: cleanText, hasForbidden } = this.filterForbiddenWords(parsedMessage);
             
-            // --- ЛОГИКА РЕАКЦИЙ ПИТОМЦА ---
             if (hasForbidden) {
-                // Если мат - Лиса злится (блокирует всё остальное)
                 window.AppEvents.emit('PET_EMOTION', { emotion: 'angry', duration: 4000 });
             } 
             else {
-                // Если мата нет, проверяем: это VIP/Стример написал ПЕРВЫЙ РАЗ?
                 const isAllowedUser = window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(lowerUser);
                 const isStreamer = flags.broadcaster;
                 
                 if ((isAllowedUser || isStreamer) && !this.greetedUsers.has(lowerUser)) {
-                    // Радуемся появлению "своего" человека
                     this.greetedUsers.add(lowerUser);
                     window.AppEvents.emit('PET_EMOTION', { emotion: 'love', duration: 4000 });
                 } 
-                // Иначе проверяем, есть ли смайлы для стандартной реакции
                 else if (extra.messageEmotes) {
                     window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
-                    // Смайлы вылетают из чата ТОЛЬКО если нет мата
                     window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes);
                 }
             }
@@ -89,7 +83,6 @@ window.AppCore = {
         };
 
         ComfyJS.onReward = (user, reward, cost, message, extra) => {
-            console.log(`[TWITCH 💎] Награда: "${reward}" от ${user}. Сообщение: "${message}"`);
             window.AppEvents.emit('TICKER_REWARD', { user, reward, message });
             window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
 
@@ -125,8 +118,6 @@ window.AppCore = {
             
             const arg = message.trim();
             const argLow = arg.toLowerCase(); 
-
-            const protectedCommands = ['wheel', 'skip', 'clear', 'vol', 'cam', 'mic', 'emotes', 'tts', 'blur', 'game', 'death', 'fox', 'alert'];
 
             switch (command.toLowerCase()) {
                 case "wheel":
@@ -241,39 +232,60 @@ window.AppCore = {
         }
     },
 
+    // ==================================================
+    // СОВЕРШЕННЫЙ ФИЛЬТР ЗАПРЕТНЫХ СЛОВ (v3)
+    // ==================================================
     filterForbiddenWords: function(htmlString) {
         const words = window.AppConfig.forbiddenWords || [];
         if (words.length === 0) return { text: htmlString, hasForbidden: false };
 
-        let result = htmlString;
         let hasForbidden = false; 
+        
+        // 1. ВРЕМЕННО ПРЯЧЕМ СМАЙЛЫ, чтобы случайно не сломать их теги <img>
+        const tags = [];
+        let safeString = htmlString.replace(/<[^>]+>/g, (match) => {
+            tags.push(match);
+            return `__TAG_${tags.length - 1}__`;
+        });
 
+        // 2. УРОВЕНЬ 1: Классический поиск (точные совпадения)
         words.forEach(word => {
             const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(?![^<]*>)(${safeWord})`, 'gi');
-            if (regex.test(result)) {
+            const regex = new RegExp(`(${safeWord})`, 'gi');
+            if (regex.test(safeString)) {
                 hasForbidden = true;
-                result = result.replace(regex, `<span class="blurred-word" style="font-weight:900;">***</span>`);
+                safeString = safeString.replace(regex, `<span class="censured-badge">CENSURED</span>`);
             }
         });
 
+        // 3. УРОВЕНЬ 2: Агрессивный детектив (обходы, пробелы, цифры, спам буквами)
         if (!hasForbidden) {
-            let textOnly = htmlString.replace(/<[^>]*>?/gm, '');
+            // Вытаскиваем голый текст
+            let textOnly = htmlString.replace(/<[^>]+>/g, '');
+            // Мощная нормализация (убирает пробелы, переводит цифры в буквы, схлопывает "пппппидор")
             let normalized = this.normalizeText(textOnly);
 
             for (let word of words) {
                 let cleanRoot = this.normalizeText(word);
                 if (cleanRoot.length > 2 && normalized.includes(cleanRoot)) {
                     hasForbidden = true;
-                    result = `<span class="blurred-word" style="display:block; width:100%; text-align:center; letter-spacing:2px; font-size:12px; font-weight:800;">[ ЗАПРЕТКА СКРЫТА ]</span>`;
+                    // Если поймали обход - прячем ВСЁ сообщение
+                    safeString = `<div class="censured-message">СООБЩЕНИЕ СКРЫТО ФИЛЬТРОМ</div>`;
+                    tags.length = 0; // Удаляем смайлы из памяти
                     break;
                 }
             }
         }
 
-        return { text: result, hasForbidden };
+        // 4. ВОЗВРАЩАЕМ СМАЙЛЫ НА МЕСТО
+        let finalResult = safeString.replace(/__TAG_(\d+)__/g, (match, p1) => {
+            return tags[p1] || match;
+        });
+
+        return { text: finalResult, hasForbidden };
     },
 
+    // Вспомогательная функция, которая ломает любые уловки зрителей
     normalizeText: function(text) {
         const map = {
             'a':'а', 'e':'е', 'o':'о', 'p':'р', 'c':'с', 'x':'х', 'y':'у', 
@@ -285,7 +297,18 @@ window.AppCore = {
         for (let char of lower) {
             normalized += map[char] || char; 
         }
-        return normalized.replace(/[^а-яёa-z]/g, '');
+        
+        // Оставляем ТОЛЬКО буквы (удаляем точки, тире, пробелы)
+        normalized = normalized.replace(/[^а-яёa-z]/g, '');
+        
+        // Схлопываем повторяющиеся подряд буквы (ннннеееееггггррр -> негр)
+        let deduplicated = '';
+        for (let i = 0; i < normalized.length; i++) {
+            if (normalized[i] !== normalized[i-1]) {
+                deduplicated += normalized[i];
+            }
+        }
+        return deduplicated;
     },
 
     parseEmotes: function(message, emotes) {

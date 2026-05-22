@@ -1,10 +1,10 @@
 /* ================= ЧАТ (СВЕТЛАЯ ТЕМА) ================= */
 #chat-container { 
     position: absolute; 
-    bottom: 140px; /* Увеличено, чтобы освободить место внизу */
+    bottom: 140px;
     left: 20px; 
     width: 380px; 
-    height: 420px; /* Уменьшена общая высота контейнера */
+    height: 420px; 
     display: flex; 
     flex-direction: column; 
     justify-content: flex-end; 
@@ -18,7 +18,7 @@
     display: flex; 
     flex-direction: column; 
     align-items: flex-start; 
-    gap: 8px; /* Сообщения стоят плотнее друг к другу */
+    gap: 8px;
     width: 100%; 
 }
 
@@ -27,17 +27,12 @@
     flex-direction: column; 
     align-items: flex-start; 
     box-sizing: border-box; 
-    
-    /* ДИНАМИЧЕСКАЯ ШИРИНА */
     width: fit-content; 
     max-width: 100%; 
-    
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.80) 0%, rgba(240, 240, 245, 0.70) 100%); 
     backdrop-filter: blur(18px); 
     -webkit-backdrop-filter: blur(18px); 
     color: #1a1a1a; 
-    
-    /* Компактные отступы внутри бабла */
     padding: 8px 12px; 
     border-radius: 14px; 
     border: 1px solid rgba(255, 255, 255, 0.6); 
@@ -49,16 +44,10 @@
 .chat-out { animation: slideOutChat 0.4s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
 .chat-header { display: flex; align-items: center; width: 100%; margin-bottom: 4px; }
 
-/* Уменьшенная аватарка */
 .chat-avatar { width: 26px; height: 26px; border-radius: 50%; margin-right: 8px; object-fit: cover; background: #e0e0e0; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); }
-
-/* Уменьшенный шрифт ника */
 .chat-user { font-weight: 800; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); letter-spacing: 0.3px; white-space: nowrap; }
-
-/* Уменьшенное время */
 .chat-time { font-size: 11px; color: rgba(0, 0, 0, 0.4); font-weight: 700; margin-left: auto; padding-left: 15px; }
 
-/* Уменьшенный шрифт текста */
 .chat-text { font-size: 15px; line-height: 1.4; word-wrap: break-word; color: #1a1a1a; font-weight: 600; max-width: 100%; text-shadow: none; }
 .chat-emote { vertical-align: middle; height: 26px; margin: -4px 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
 
@@ -67,10 +56,8 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    /* Мягкая затемненная подложка */
     background: rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(0, 0, 0, 0.02);
-    /* Отступ слева увеличен, чтобы вместить парящую линию */
     padding: 6px 12px 6px 16px;
     margin-bottom: 10px;
     border-radius: 8px;
@@ -79,7 +66,6 @@
     overflow: hidden; 
 }
 
-/* Парящая акцентная линия слева */
 .chat-reply::before {
     content: "";
     position: absolute;
@@ -92,45 +78,47 @@
     opacity: 0.8;
 }
 
-.chat-reply-user {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    font-weight: 800;
-    color: #FF4477;
-    margin-bottom: 2px;
-}
+.chat-reply-user { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #FF4477; margin-bottom: 2px; }
+.reply-icon { width: 11px; height: 11px; fill: currentColor; opacity: 0.8; }
+.chat-reply-text { font-size: 13px; color: rgba(0, 0, 0, 0.6); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Стили для SVG иконки ответа */
-.reply-icon {
-    width: 11px;
-    height: 11px;
-    fill: currentColor;
-    opacity: 0.8;
-}
 
-.chat-reply-text {
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+/* ================= НОВЫЙ ДИЗАЙН ЦЕНЗУРЫ ================= */
 
-/* ================= ЭСТЕТИЧНЫЙ БЛЮР ЗАПРЕТНЫХ СЛОВ ================= */
-.blurred-word {
-    color: transparent; 
-    text-shadow: 0 0 10px rgba(26, 26, 26, 0.9); 
-    background: rgba(255, 68, 119, 0.15); 
-    border: 1px solid rgba(255, 68, 119, 0.3); 
-    padding: 0 6px;
-    border-radius: 8px;
-    user-select: none; 
+/* Если слово поймано на Уровне 1 (точечная замена) */
+.censured-badge {
+    background: #FF0050;
+    color: #ffffff !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     display: inline-block;
-    transition: all 0.3s ease;
+    vertical-align: middle;
+    margin: 0 2px;
+    box-shadow: 0 2px 8px rgba(255, 0, 80, 0.4);
+    user-select: none;
 }
+
+/* Если слово поймано на Уровне 2 (замена всего сообщения) */
+.censured-message {
+    background: rgba(255, 0, 80, 0.1);
+    border: 1px dashed rgba(255, 0, 80, 0.4);
+    color: #FF0050;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 6px 10px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    user-select: none;
+}
+
 
 @keyframes slideInChat { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes slideOutChat { from { opacity: 1; transform: scale(1); height: auto; margin-bottom: 12px; } to { opacity: 0; transform: scale(0.8) translateX(-20px); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none; } }

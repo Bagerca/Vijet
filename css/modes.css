@@ -18,12 +18,14 @@ body.widget-deaths #deaths-container { display: flex !important; position: absol
 /* ================= СЦЕНА "JUST CHATTING" (СВЕТЛАЯ) ================= */
 body.scene-chatting { background: radial-gradient(circle at center, #f8f9fa 0%, #e9ecef 100%); }
 
-/* ОБНОВЛЕНО: border-radius 34px для идеальной единой маски */
+/* Рамка вебки */
 body.scene-chatting #webcam-container { top: 40px; left: 40px; width: 1120px; height: 840px; border-radius: 34px; transform: translateZ(0) !important; }
 body.scene-chatting #webcam-frame { border-width: 5px; border-radius: 34px; }
 
+/* Цель фолловеров */
 body.scene-chatting #goal-container { top: 40px; right: 40px; left: auto; transform: translateZ(0) !important; width: 680px; }
 
+/* Чат */
 body.scene-chatting #chat-container { 
     top: 100px; right: 40px; left: auto; bottom: auto; width: 680px; height: 780px; 
     transform: translateZ(0) !important; 
@@ -34,46 +36,56 @@ body.scene-chatting #chat-container {
     padding: 20px; -webkit-mask-image: none; 
     overflow-y: hidden; overflow-x: hidden; 
 }
+body.scene-chatting .chat-message { width: 100% !important; }
 
-/* ВОЗВРАЩАЕМ 100% ШИРИНУ БАБЛОВ ДЛЯ JUST CHATTING */
-body.scene-chatting .chat-message {
-    width: 100% !important;
-}
-
+/* Бегущая строка */
 body.scene-chatting #ticker-container { bottom: 40px; left: 40px; width: 1120px; transform: translateZ(0) !important; }
-body.scene-chatting #social-rotator { top: auto; bottom: 110px; left: 40px; right: auto; transform: translateZ(0) !important; }
-body.scene-chatting #widget-container { top: auto; bottom: 110px; left: 734px; right: auto; transform: translateZ(0) !important; }
-body.scene-chatting #widget-container.hidden { opacity: 0; pointer-events: none; }
+
+/* Алерты */
 body.scene-chatting #alert-container { top: 100px; left: 600px; transform: translateX(-50%) translateZ(0) !important; }
 
-/* ОБНОВЛЕНО: Смерти в Just Chatting привязаны к большой вебке и увеличены */
+/* Смерти (остаются справа вверху) */
 body.scene-chatting #deaths-container { 
     top: 65px; 
     left: auto; 
-    /* Экран 1920 - край вебки 1160 + отступ 20px = 780px справа */
     right: 780px; 
     transform: translateZ(0) !important; 
 }
-body.scene-chatting .deaths-title { 
-    font-size: 16px; 
-    letter-spacing: 6px; 
-    margin-right: -6px; 
-}
-body.scene-chatting #deaths-count { 
-    font-size: 64px; 
-}
+body.scene-chatting .deaths-title { font-size: 16px; letter-spacing: 6px; margin-right: -6px; }
+body.scene-chatting #deaths-count { font-size: 64px; }
 
-/* ================= ВИДЖЕТ ИГРЫ В JUST CHATTING ================= */
+
+/* --- ИЗМЕНЕНИЯ ДЛЯ ЛЕВОЙ СТОРОНЫ --- */
+
+/* 1. Плашка Игры (Левый верхний угол внутри вебки) */
 body.scene-chatting #game-info-container {
     bottom: auto;      
-    top: 40px;         
-    left: auto;
-    right: 40px; /* Прижимаем к правому краю экрана, над чатом */
-    transform: translateX(0); /* Сбрасываем центрирование */
+    top: 65px;         
+    left: 65px; 
+    right: auto;
+    transform: translateX(0); 
     box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
-
 body.scene-chatting #game-info-container.hidden {
-    transform: translateX(20px);
+    transform: translateX(-20px); /* Выезжает слева, а не справа */
     opacity: 0;
+}
+
+/* 2. Музыкальный плеер (Левый нижний угол, под вебкой) */
+body.scene-chatting #widget-container { 
+    top: auto; 
+    bottom: 110px; 
+    left: 40px; /* Прижимаем к левому краю */
+    right: auto; 
+    transform: translateZ(0) !important; 
+}
+body.scene-chatting #widget-container.hidden { opacity: 0; pointer-events: none; }
+
+/* 3. Соцсети (Сдвигаем вправо, чтобы плеер их не перекрывал) */
+body.scene-chatting #social-rotator { 
+    top: auto; 
+    bottom: 110px; 
+    left: 490px; /* 40px (отступ) + 426px (ширина плеера) + 24px (красивый зазор) */
+    right: auto; 
+    transform: translateZ(0) !important; 
 }
