@@ -25,7 +25,7 @@ body.scene-chatting #webcam-frame { border-width: 5px; border-radius: 34px; }
 /* Цель фолловеров */
 body.scene-chatting #goal-container { top: 40px; right: 40px; left: auto; transform: translateZ(0) !important; width: 680px; }
 
-/* Чат */
+/* Чат (Правая сторона) */
 body.scene-chatting #chat-container { 
     top: 100px; right: 40px; left: auto; bottom: auto; width: 680px; height: 780px; 
     transform: translateZ(0) !important; 
@@ -38,26 +38,23 @@ body.scene-chatting #chat-container {
 }
 body.scene-chatting .chat-message { width: 100% !important; }
 
-/* Бегущая строка */
-body.scene-chatting #ticker-container { bottom: 40px; left: 40px; width: 1120px; transform: translateZ(0) !important; }
-
 /* Алерты */
 body.scene-chatting #alert-container { top: 100px; left: 600px; transform: translateX(-50%) translateZ(0) !important; }
 
-/* Смерти (остаются справа вверху) */
+/* Смерти (Внутри вебки, правый верхний угол) */
 body.scene-chatting #deaths-container { 
     top: 65px; 
     left: auto; 
-    right: 780px; 
+    right: 780px; /* 1920 - 1160 (край вебки) + 20 (отступ) */
     transform: translateZ(0) !important; 
 }
 body.scene-chatting .deaths-title { font-size: 16px; letter-spacing: 6px; margin-right: -6px; }
 body.scene-chatting #deaths-count { font-size: 64px; }
 
 
-/* --- ИЗМЕНЕНИЯ ДЛЯ ЛЕВОЙ СТОРОНЫ --- */
+/* ================= ИДЕАЛЬНАЯ РАССТАНОВКА (ЛЕВАЯ ЧАСТЬ И НИЗ) ================= */
 
-/* 1. Плашка Игры (Левый верхний угол внутри вебки) */
+/* 1. Плашка Игры (Внутри вебки, левый верхний угол) */
 body.scene-chatting #game-info-container {
     bottom: auto;      
     top: 65px;         
@@ -67,25 +64,38 @@ body.scene-chatting #game-info-container {
     box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 body.scene-chatting #game-info-container.hidden {
-    transform: translateX(-20px); /* Выезжает слева, а не справа */
+    transform: translateX(-20px); 
     opacity: 0;
 }
 
-/* 2. Музыкальный плеер (Левый нижний угол, под вебкой) */
+/* 2. Музыкальный плеер (Внутри вебки, левый нижний угол) */
 body.scene-chatting #widget-container { 
     top: auto; 
-    bottom: 110px; 
-    left: 40px; /* Прижимаем к левому краю */
+    bottom: 225px; /* Расчет: Отступ снизу (200px) + отступ внутри рамки (25px) */
+    left: 65px;    /* Прижимаем к левому краю вебки, на одной линии с игрой */
     right: auto; 
     transform: translateZ(0) !important; 
+    z-index: 10;
 }
-body.scene-chatting #widget-container.hidden { opacity: 0; pointer-events: none; }
+body.scene-chatting #widget-container.hidden { 
+    transform: translateX(-20px); /* Прячется влево, как и игра */
+    opacity: 0; 
+    pointer-events: none; 
+}
 
-/* 3. Соцсети (Сдвигаем вправо, чтобы плеер их не перекрывал) */
+/* 3. Бегущая строка (В самом низу, выровнена строго под вебкой) */
+body.scene-chatting #ticker-container { 
+    bottom: 40px; 
+    left: 40px; 
+    width: 1120px; /* Ширина в точности как у вебки */
+    transform: translateZ(0) !important; 
+}
+
+/* 4. Соцсети (В самом низу, выровнены строго под чатом) */
 body.scene-chatting #social-rotator { 
     top: auto; 
-    bottom: 110px; 
-    left: 490px; /* 40px (отступ) + 426px (ширина плеера) + 24px (красивый зазор) */
-    right: auto; 
+    bottom: 40px; /* На одной линии с бегущей строкой */
+    left: auto; 
+    right: 40px;  /* Прижаты к правому краю экрана */
     transform: translateZ(0) !important; 
 }
