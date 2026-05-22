@@ -180,4 +180,4 @@ window.AppPlayer = {
         this.queueCount.classList.add('animate-pop');
     }
 };
-window.AppPlayer.init();    
+window.AppPlayer.init();
