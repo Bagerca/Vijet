@@ -1,0 +1,134 @@
+/* ==========================================================
+   КАСТОМНЫЙ СТИЛЬ: bagercaa (Тема: Hollow Knight)
+   ========================================================== */
+
+/* Подключаем шрифт в стиле Hollow Knight */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap');
+
+.chat-message[data-user="bagercaa"] {
+    /* Мрачный фон Бездны */
+    background: linear-gradient(180deg, #101520 0%, #06080d 100%) !important;
+    
+    /* Тонкая рамка */
+    border: 1px solid rgba(147, 184, 214, 0.3) !important;
+    border-radius: 8px !important;
+    
+    /* Внутреннее свечение Души */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(147, 184, 214, 0.08) !important;
+    
+    /* Убираем дефолтную левую полоску чата */
+    border-left: 1px solid rgba(147, 184, 214, 0.3) !important;
+    
+    /* Компактные отступы */
+    padding: 20px 16px 20px 16px !important;
+    position: relative !important;
+    min-width: 240px; /* Было 280px, уменьшили */
+    margin-top: 8px;
+    margin-bottom: 8px;
+
+    /* Центрируем весь блок */
+    align-items: center !important;
+    text-align: center !important;
+}
+
+/* ==============================================
+   ИДЕАЛЬНЫЕ ЗАВИТУШКИ (ЧЕРЕЗ МАСКИ)
+   ============================================== */
+.chat-message[data-user="bagercaa"]::before,
+.chat-message[data-user="bagercaa"]::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px; /* Уменьшили под новый размер бабла */
+    height: 20px; /* Сделали чуть тоньше */
+    
+    /* Цвет самих узоров */
+    background: #93b8d6;
+    
+    /* Свечение СТРОГО по контуру рисунка */
+    filter: drop-shadow(0 0 6px rgba(147, 184, 214, 0.8));
+    
+    /* SVG-маска (вырезает форму Hollow Knight UI) */
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='black'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='black' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='black' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='black'/%3E%3Ccircle cx='10' cy='20' r='2' fill='black'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='black' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='black' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='black'/%3E%3Ccircle cx='290' cy='20' r='2' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Прижимаем верхний узор к рамке */
+.chat-message[data-user="bagercaa"]::before {
+    top: -1px;
+}
+
+/* Прижимаем нижний узор к рамке и переворачиваем */
+.chat-message[data-user="bagercaa"]::after {
+    bottom: -1px;
+    transform: translateX(-50%) rotate(180deg);
+}
+
+/* ==============================================
+   ШРИФТЫ И ВНУТРЕННОСТИ
+   ============================================== */
+
+/* Разделительная линия под шапкой и центрирование элементов */
+.chat-message[data-user="bagercaa"] .chat-header {
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(147, 184, 214, 0.2);
+    padding-bottom: 6px;
+    justify-content: center !important; /* Центрируем шапку */
+    width: 100% !important;
+}
+
+/* Убираем отталкивание времени в правый край */
+.chat-message[data-user="bagercaa"] .chat-header-right {
+    margin-left: 10px !important; /* Небольшой отступ от ника */
+}
+
+/* Имя пользователя (уменьшено) */
+.chat-message[data-user="bagercaa"] .chat-user {
+    color: #e6f2ff !important;
+    font-family: 'Cinzel', serif !important;
+    font-size: 19px !important; /* Уменьшено с 22px */
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 8px rgba(147, 184, 214, 0.8), 0 2px 4px rgba(0,0,0,1) !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+}
+
+/* Текст сообщения (уменьшен и отцентрирован) */
+.chat-message[data-user="bagercaa"] .chat-text {
+    color: #b8d4ed !important;
+    font-weight: 500 !important;
+    font-size: 14px !important; /* Уменьшено с 15px */
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
+    
+    text-align: center !important; /* Центрируем текст */
+    width: 100% !important;
+}
+
+/* Время (уменьшено) */
+.chat-message[data-user="bagercaa"] .chat-time {
+    color: rgba(147, 184, 214, 0.5) !important;
+    font-family: 'Cinzel', serif !important;
+    font-weight: 600 !important;
+    font-size: 12px !important; /* Уменьшено с 13px */
+}
+
+/* Аватарка (Стиль амулета, уменьшено) */
+.chat-message[data-user="bagercaa"] .chat-avatar {
+    width: 30px !important; /* Уменьшено с 34px */
+    height: 30px !important;
+    border-radius: 50% !important;
+    border: 2px solid #93b8d6 !important;
+    box-shadow: 0 0 8px rgba(147, 184, 214, 0.6), inset 0 0 5px rgba(0,0,0,0.8) !important;
+    filter: sepia(0.3) hue-rotate(180deg) saturate(0.6) !important;
+}

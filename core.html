@@ -10,6 +10,7 @@
     <!-- Невидимый плеер Ядра -->
     <div id="yt-player-core" style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></div>
 
+    <!-- Базовые конфигурации -->
     <script src="js/config.js"></script>
     <script src="js/event-bus.js"></script>
 
@@ -21,11 +22,25 @@
 
         if (!mode) {
             // Стандартный режим (всё вместе)
-            scriptsToLoad.push('js/core.js', 'js/audio-core.js', 'js/tts-core.js', 'js/queue-core.js', 'js/youtube-core.js');
+            scriptsToLoad.push(
+                'js/services/avatar-manager.js',
+                'js/services/chat-filter.js',
+                'js/core.js', 
+                'js/audio-core.js', 
+                'js/tts-core.js', 
+                'js/queue-core.js', 
+                'js/youtube-core.js'
+            );
         } else {
             if (mode === 'master') {
-                // Главное ядро: логика Twitch, музыкальный плеер
-                scriptsToLoad.push('js/core.js', 'js/queue-core.js', 'js/youtube-core.js');
+                // Главное ядро: логика Twitch, музыкальный плеер, фильтры чата
+                scriptsToLoad.push(
+                    'js/services/avatar-manager.js',
+                    'js/services/chat-filter.js',
+                    'js/core.js', 
+                    'js/queue-core.js', 
+                    'js/youtube-core.js'
+                );
             }
             if (mode === 'tts') {
                 // Только движок озвучки (TTS)

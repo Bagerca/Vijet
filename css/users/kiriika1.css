@@ -1,0 +1,130 @@
+/* ==========================================================
+   КАСТОМНЫЙ СТИЛЬ: kiriika1 (Тема: Minecraft Grass Block)
+   Файл: css/users/kiriika1.css
+   ========================================================== */
+
+/* Подключаем идеальный пиксельный шрифт */
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap');
+
+.chat-message[data-user="kiriika1"] {
+    /* Базовый цвет земли (Dirt) */
+    background-color: #744d32 !important;
+    
+    /* Генерируем пиксельный шум для текстуры земли (CSS-магия) */
+    background-image: 
+        linear-gradient(45deg, rgba(0,0,0,0.15) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.15) 75%, rgba(0,0,0,0.15)),
+        linear-gradient(45deg, rgba(0,0,0,0.15) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.15) 75%, rgba(0,0,0,0.15)) !important;
+    background-size: 8px 8px !important;
+    background-position: 0 0, 4px 4px !important;
+    
+    /* Квадратные углы и темная обводка блока */
+    border-radius: 0 !important;
+    border: 4px solid #3c2617 !important;
+    border-top: none !important; /* Сверху обводку закроет трава */
+    
+    /* Жесткая тень, как в воксельных играх */
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4) !important;
+    
+    padding: 24px 16px 16px 16px !important;
+    position: relative !important;
+    min-width: 260px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+/* ==============================================
+   ВЕРХНЯЯ ЧАСТЬ БЛОКА (ТРАВА)
+   ============================================== */
+.chat-message[data-user="kiriika1"]::before {
+    content: '';
+    position: absolute;
+    top: -4px; left: -4px; right: -4px; 
+    height: 16px;
+    
+    /* Цвет травы */
+    background-color: #5ea936;
+    
+    /* Текстура травы */
+    background-image: 
+        linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.1)),
+        linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.1));
+    background-size: 8px 8px;
+    background-position: 0 0, 4px 4px;
+    
+    border: 4px solid #386b1d;
+    z-index: 1;
+}
+
+/* СВИСАЮЩИЕ ПИКСЕЛИ ТРАВЫ (DRIP) */
+.chat-message[data-user="kiriika1"]::after {
+    content: '';
+    position: absolute;
+    top: 16px; /* Начинается ровно под блоком травы */
+    left: 0; right: 0;
+    height: 8px; /* Длина свисающей травы */
+    
+    /* Чередуем зеленые квадраты и пустоту для эффекта пикселей */
+    background-image: repeating-linear-gradient(to right, #5ea936 0px, #5ea936 8px, transparent 8px, transparent 16px);
+    z-index: 1;
+}
+
+/* ==============================================
+   ШРИФТЫ И ВНУТРЕННОСТИ (Стиль игрового чата)
+   ============================================== */
+
+/* Убираем линию разделения, в майне чат слитный */
+.chat-message[data-user="kiriika1"] .chat-header {
+    border-bottom: none !important;
+    margin-bottom: 4px;
+}
+
+/* ИМЯ ПОЛЬЗОВАТЕЛЯ (Золотой цвет, как у премиум-игроков) */
+.chat-message[data-user="kiriika1"] .chat-user {
+    font-family: 'Pixelify Sans', sans-serif !important;
+    color: #FFAA00 !important; /* Код цвета &e в майнкрафте */
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    /* Классическая жесткая тень текста из Майнкрафта */
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
+    letter-spacing: 1px;
+}
+
+/* ТЕКСТ СООБЩЕНИЯ */
+.chat-message[data-user="kiriika1"] .chat-text {
+    font-family: 'Pixelify Sans', sans-serif !important;
+    color: #FFFFFF !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 2;
+}
+
+/* ВРЕМЯ (Серый цвет, как системные сообщения) */
+.chat-message[data-user="kiriika1"] .chat-time {
+    font-family: 'Pixelify Sans', sans-serif !important;
+    color: #AAAAAA !important; /* Код цвета &7 */
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
+    font-size: 14px !important;
+}
+
+/* ==============================================
+   АВАТАРКА (Стиль: Рамка для предметов / Item Frame)
+   ============================================== */
+.chat-message[data-user="kiriika1"] .chat-avatar {
+    border-radius: 0 !important; /* Делаем голову КВАДРАТНОЙ! */
+    width: 32px !important;
+    height: 32px !important;
+    
+    /* Рамка под дерево/кожу */
+    border: 3px solid #8b6038 !important; 
+    background: #472c19 !important;
+    padding: 2px !important;
+    
+    /* Убираем дефолтную тень и добавляем пиксельную */
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4) !important;
+    
+    /* Заставляем аватарку не мылиться, а оставаться пиксельной (если картинка маленькая) */
+    image-rendering: pixelated !important; 
+}

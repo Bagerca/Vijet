@@ -1,5 +1,4 @@
-/* ================= РАМКА ВЕБКИ ================= */
-/* Размер уменьшен на 10% (было 400x300, стало 360x270). top и left остались прежними! */
+/* ================= РАМКА ВЕБКИ (ФИРМЕННЫЙ РОЗОВЫЙ НЕОН) ================= */
 #webcam-container { 
     position: absolute; 
     top: 220px; 
@@ -16,10 +15,52 @@
     left: 0; 
     width: 100%; 
     height: 100%; 
-    border: 4px solid #FF4477; 
+    border: 4px solid transparent; 
     border-radius: 12px; 
     box-sizing: border-box; 
+    
+    /* Тень от микрофона (mic.js) ложится сюда */
     box-shadow: 0 0 15px rgba(255, 68, 119, 0.2); 
-    transition: box-shadow 0.1s ease-out, border-width 0.5s ease; 
+    transition: box-shadow 0.1s ease-out, border-width 0.5s ease, border-radius 0.5s ease; 
     z-index: 2; 
+}
+
+/* 1. Анимированный неоновый градиент по контуру рамки */
+#webcam-frame::before {
+    content: '';
+    position: absolute;
+    
+    /* Выносим градиент ровно на толщину рамки */
+    top: -4px; left: -4px; right: -4px; bottom: -4px; 
+    border-radius: inherit; 
+    
+    /* Указываем толщину выреза для маски */
+    padding: 4px; 
+    
+    /* Убрал белые/светлые оттенки, оставил чистый розовый неон */
+    background: linear-gradient(135deg, #FF4477, #FF0050, #D81B60, #FF4477);
+    background-size: 300% 300%;
+    
+    /* Идеальная маска без багов и белых слоев в OBS */
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    
+    animation: frameGradientMove 5s linear infinite;
+    pointer-events: none;
+}
+
+/* Адаптация под сцену Just Chatting, где рамка шире (5px) */
+body.scene-chatting #webcam-frame::before {
+    top: -5px; left: -5px; right: -5px; bottom: -5px;
+    padding: 5px;
+}
+
+/* Анимация переливания цветов градиента */
+@keyframes frameGradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }

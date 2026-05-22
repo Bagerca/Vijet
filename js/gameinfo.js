@@ -63,7 +63,9 @@ window.AppGameInfo = {
     },
 
     findLocalGame: function(searchKey) {
-        const db = window.AppConfig.gamesDatabase;
+        // ОБНОВЛЕНО: Теперь берем базу игр из нового глобального объекта
+        const db = window.GamesDatabase || {}; 
+        
         if (db[searchKey]) return db[searchKey]; 
         for (let key in db) {
             if (key.includes(searchKey) || searchKey.includes(key)) return db[key];

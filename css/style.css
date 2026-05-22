@@ -10,7 +10,10 @@
 @import url('pet.css');
 @import url('tts.css');
 @import url('emotes.css');
+
 @import url('chat.css');
+@import url('users/_index.css'); /* ВНИМАНИЕ: Стили кастомных юзеров грузим сразу после базы чата! */
+
 @import url('webcam.css');
 @import url('youtube.css');
 @import url('socials.css');

@@ -150,7 +150,6 @@
                 <div id="yt-progress-container"><div id="yt-progress-bar"></div></div>
             </div>
             
-            <!-- НОВЫЙ ИНФО-БАР -->
             <div id="info-bar">
                 <div class="info-left">
                     <div class="info-user-wrap">
@@ -185,9 +184,12 @@
 
     </div>
 
-    <!-- Модули логики -->
+    <!-- Данные и логика -->
     <script src="js/config.js"></script>
+    <script src="js/games-db.js"></script>
     <script src="js/event-bus.js"></script>
+    
+    <!-- Визуальные модули -->
     <script src="js/particles.js"></script>
     <script src="js/emotes.js"></script>
     <script src="js/pet.js"></script> 
@@ -207,9 +209,7 @@
     <script src="js/blur.js"></script>
 
     <script>
-        // ========================================================
         // ЛОГИКА МАРШРУТИЗАЦИИ СЛОЕВ (OBS MULTI-WIDGET)
-        // ========================================================
         const urlParams = new URLSearchParams(window.location.search);
         const activeWidgetsParam = urlParams.get('widgets'); 
         const sceneParam = urlParams.get('scene');

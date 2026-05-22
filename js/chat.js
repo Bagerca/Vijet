@@ -3,10 +3,8 @@ window.AppChat = {
     container: document.getElementById('chat-messages'),
 
     init: function() {
-        // Подписываемся на события от Ядра
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', (data) => this.renderMessage(data));
         
-        // Сброс таймера сна питомца (пока оставим это здесь, потом перенесем в ядро)
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', () => {
             if (window.AppPet) window.AppPet.resetSleepTimer();
         });
@@ -14,6 +12,9 @@ window.AppChat = {
 
     renderMessage: function(data) {
         let replyHTML = '';
+        let badgeHTML = '';
+        let extraClasses = '';
+        let bellHTML = '';
 
         if (data.replyData) {
             replyHTML = `
@@ -27,23 +28,59 @@ window.AppChat = {
             `;
         }
 
+        if (data.isFirstTime) {
+            extraClasses += ' is-first-time';
+            badgeHTML += `
+                <div class="chat-badge-first">
+                    <svg class="badge-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path>
+                    </svg>
+                    Впервые в чате
+                </div>
+            `;
+        }
+
+        if (data.isHighlighted) {
+            extraClasses += ' is-highlighted';
+            badgeHTML += `
+                <div class="chat-badge-highlight">
+                    <svg class="badge-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    Выделено за баллы
+                </div>
+            `;
+        }
+
+        if (data.isMention) {
+            extraClasses += ' is-mention';
+            bellHTML = `
+                <svg class="chat-ping-bell" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                </svg>
+            `;
+        }
+
         const msgDiv = document.createElement('div');
-        msgDiv.className = 'chat-message';
-        msgDiv.style.borderLeft = `4px solid ${data.color}`;
+        msgDiv.className = `chat-message${extraClasses}`;
+        // НОВОЕ: Добавляем атрибут data-user для кастомных CSS стилей
+        msgDiv.setAttribute('data-user', data.user.toLowerCase());
+        msgDiv.style.setProperty('--user-color', data.color);
         
         msgDiv.innerHTML = `
+            ${badgeHTML}
             ${replyHTML}
             <div class="chat-header">
                 <img src="${data.avatarUrl}" class="chat-avatar">
                 <span class="chat-user" style="color: ${data.color}">${data.user}</span>
-                <span class="chat-time">${data.time}</span>
+                <div class="chat-header-right">
+                    ${bellHTML}
+                    <span class="chat-time">${data.time}</span>
+                </div>
             </div>
             <div class="chat-text">${data.htmlText}</div>
         `;
         
         this.container.appendChild(msgDiv);
 
-        // Удаление старых сообщений
         const activeMessages = Array.from(this.container.children).filter(el => !el.classList.contains('chat-out'));
         if (activeMessages.length > window.AppConfig.maxChatMessages) {
             const oldestMsg = activeMessages[0];

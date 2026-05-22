@@ -23,37 +23,168 @@
 }
 
 .chat-message { 
+    position: relative;
     display: flex; 
     flex-direction: column; 
     align-items: flex-start; 
     box-sizing: border-box; 
     width: fit-content; 
     max-width: 100%; 
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.80) 0%, rgba(240, 240, 245, 0.70) 100%); 
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(245, 245, 250, 0.75) 100%); 
     backdrop-filter: blur(18px); 
     -webkit-backdrop-filter: blur(18px); 
     color: #1a1a1a; 
     padding: 8px 12px; 
     border-radius: 14px; 
+    
     border: 1px solid rgba(255, 255, 255, 0.6); 
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8); 
+    border-left: 4px solid var(--user-color); 
+    
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8); 
     animation: slideInChat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
     transform-origin: left bottom; 
 }
 
+/* ================= СТИЛЬ "ПЕРВОЕ СООБЩЕНИЕ" (PREMIUM) ================= */
+.chat-message.is-first-time {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 248, 255, 0.95) 100%);
+    border: 1px solid rgba(255, 68, 119, 0.15); 
+    border-left: none; 
+    box-shadow: 0 12px 30px rgba(255, 68, 119, 0.1), 0 2px 10px rgba(0, 0, 0, 0.05);
+    overflow: hidden; 
+}
+
+.chat-message.is-first-time::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+    background: var(--user-color);
+    box-shadow: 0 0 12px var(--user-color), 0 0 4px var(--user-color); 
+    z-index: 2;
+}
+
+.chat-badge-first {
+    position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255, 68, 119, 0.08); 
+    border: 1px solid rgba(255, 68, 119, 0.2);
+    color: #D81B60; 
+    font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px;
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 6px;
+}
+
+.chat-badge-first .badge-sparkle {
+    width: 11px; height: 11px; color: #FF4477;
+    animation: spinSparkle 4s linear infinite;
+}
+
+@keyframes spinSparkle {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.15); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+
+/* ================= СТИЛЬ "ВЫДЕЛЕННОЕ СООБЩЕНИЕ" ================= */
+.chat-message.is-highlighted {
+    background: linear-gradient(135deg, rgba(245, 235, 255, 0.98) 0%, rgba(255, 240, 248, 0.95) 100%);
+    border: 1px solid rgba(162, 155, 254, 0.3); 
+    border-left: none; 
+    box-shadow: 0 12px 30px rgba(162, 155, 254, 0.2), inset 0 0 10px rgba(255, 255, 255, 1);
+    overflow: hidden;
+}
+
+.chat-message.is-highlighted::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg, #a29bfe, #fd79a8);
+    box-shadow: 0 0 12px #a29bfe, 0 0 5px #fd79a8;
+    z-index: 2;
+}
+
+.chat-badge-highlight {
+    position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(162, 155, 254, 0.15);
+    border: 1px solid rgba(162, 155, 254, 0.4);
+    color: #6c5ce7;
+    font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px;
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 6px;
+    box-shadow: 0 4px 10px rgba(162, 155, 254, 0.2);
+}
+
+.chat-badge-highlight .badge-star {
+    width: 12px; height: 12px;
+    color: #fdcb6e; 
+    animation: pulseStar 2s infinite alternate;
+    filter: drop-shadow(0 0 4px #fdcb6e);
+}
+
+@keyframes pulseStar {
+    0% { transform: scale(0.9); opacity: 0.8; }
+    100% { transform: scale(1.15); opacity: 1; }
+}
+
+.chat-message.is-first-time::after,
+.chat-message.is-highlighted::after {
+    content: ""; position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+    transform: skewX(-25deg); pointer-events: none; z-index: 1;
+}
+.chat-message.is-first-time::after { animation: premiumShine 5s infinite; }
+.chat-message.is-highlighted::after { animation: premiumShine 4s infinite 1s; } 
+
+@keyframes premiumShine { 0% { left: -150%; } 20%, 100% { left: 200%; } }
+
+/* ================= СТИЛЬ "ПИНГ СТРИМЕРА" ================= */
+.chat-message.is-mention {
+    /* Добавляем правую красную грань, чтобы не сломать левую (которая отвечает за first-time/highlight) */
+    border-right: 3px solid #FF0050; 
+}
+
+/* Оформление самого слова @ТвойНик в тексте */
+.chat-ping {
+    background: rgba(255, 0, 80, 0.15);
+    color: #D81B60;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 0, 80, 0.3);
+    box-shadow: 0 0 10px rgba(255, 0, 80, 0.2);
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Колокольчик в шапке */
+.chat-ping-bell {
+    width: 14px;
+    height: 14px;
+    color: #FF0050;
+    filter: drop-shadow(0 0 4px rgba(255,0,80,0.4));
+    animation: ringBell 2.5s infinite ease-in-out;
+}
+
+@keyframes ringBell {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30%, 50% { transform: rotate(15deg) scale(1.1); }
+    20%, 40% { transform: rotate(-15deg) scale(1.1); }
+    60% { transform: rotate(0deg) scale(1); }
+}
+/* ========================================================== */
+
+
 .chat-out { animation: slideOutChat 0.4s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
-.chat-header { display: flex; align-items: center; width: 100%; margin-bottom: 4px; }
+.chat-header { display: flex; align-items: center; width: 100%; margin-bottom: 4px; position: relative; z-index: 2; }
 
 .chat-avatar { width: 26px; height: 26px; border-radius: 50%; margin-right: 8px; object-fit: cover; background: #e0e0e0; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); }
 .chat-user { font-weight: 800; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); letter-spacing: 0.3px; white-space: nowrap; }
-.chat-time { font-size: 11px; color: rgba(0, 0, 0, 0.4); font-weight: 700; margin-left: auto; padding-left: 15px; }
 
-.chat-text { font-size: 15px; line-height: 1.4; word-wrap: break-word; color: #1a1a1a; font-weight: 600; max-width: 100%; text-shadow: none; }
+/* Обновленная правая часть шапки (время + колокольчик) */
+.chat-header-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.chat-time { font-size: 11px; color: rgba(0, 0, 0, 0.4); font-weight: 700; }
+
+.chat-text { position: relative; z-index: 2; font-size: 15px; line-height: 1.4; word-wrap: break-word; color: #1a1a1a; font-weight: 600; max-width: 100%; text-shadow: none; }
 .chat-emote { vertical-align: middle; height: 26px; margin: -4px 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
 
 /* ================= СТИЛЬ ДЛЯ РЕПЛАЕВ (ОТВЕТОВ) ================= */
 .chat-reply {
     position: relative;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     background: rgba(0, 0, 0, 0.04);
@@ -82,10 +213,7 @@
 .reply-icon { width: 11px; height: 11px; fill: currentColor; opacity: 0.8; }
 .chat-reply-text { font-size: 13px; color: rgba(0, 0, 0, 0.6); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-
 /* ================= НОВЫЙ ДИЗАЙН ЦЕНЗУРЫ ================= */
-
-/* Если слово поймано на Уровне 1 (точечная замена) */
 .censured-badge {
     background: #FF0050;
     color: #ffffff !important;
@@ -102,7 +230,6 @@
     user-select: none;
 }
 
-/* Если слово поймано на Уровне 2 (замена всего сообщения) */
 .censured-message {
     background: rgba(255, 0, 80, 0.1);
     border: 1px dashed rgba(255, 0, 80, 0.4);
@@ -119,6 +246,80 @@
     user-select: none;
 }
 
-
 @keyframes slideInChat { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes slideOutChat { from { opacity: 1; transform: scale(1); height: auto; margin-bottom: 12px; } to { opacity: 0; transform: scale(0.8) translateX(-20px); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none; } }
+
+/* ========================================================== */
+/* КАСТОМНЫЕ СТИЛИ ДЛЯ ИЗБРАННЫХ ЗРИТЕЛЕЙ                     */
+/* ========================================================== */
+
+/* --- ТЕМА: HOLLOW KNIGHT (Для bagercaa) --- */
+.chat-message[data-user="bagercaa"] {
+    /* Фон бездны + 4 железные заклепки по углам (сделаны через градиенты) */
+    background: 
+        radial-gradient(circle at 10px 10px, #b0c4de 2px, #2a3b4c 3px, transparent 4px), /* Лево Верх */
+        radial-gradient(circle at calc(100% - 10px) 10px, #b0c4de 2px, #2a3b4c 3px, transparent 4px), /* Право Верх */
+        radial-gradient(circle at 10px calc(100% - 10px), #b0c4de 2px, #2a3b4c 3px, transparent 4px), /* Лево Низ */
+        radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), #b0c4de 2px, #2a3b4c 3px, transparent 4px), /* Право Низ */
+        linear-gradient(180deg, rgba(16, 20, 30, 0.95) 0%, rgba(8, 11, 18, 0.95) 100%) !important;
+    
+    border: 1px solid rgba(136, 178, 204, 0.4) !important;
+    border-radius: 6px !important; /* Чуть более острые углы, как рамки в игре */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(136, 178, 204, 0.15) !important;
+    border-left: 3px solid #88b2cc !important; /* Цвет душ */
+    padding: 12px 18px !important; /* Чуть больше воздуха внутри */
+    overflow: visible !important;
+}
+
+/* Имя стилизуем под заголовок из игры */
+.chat-message[data-user="bagercaa"] .chat-user {
+    color: #ffffff !important;
+    font-family: 'Times New Roman', serif; /* Классический шрифт с засечками */
+    font-size: 18px !important;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(136, 178, 204, 0.8), 0 0 20px rgba(136, 178, 204, 0.4) !important;
+    font-weight: normal !important;
+}
+
+/* Цвет текста бледно-голубой */
+.chat-message[data-user="bagercaa"] .chat-text {
+    color: #d4e4f7 !important;
+    font-weight: 500 !important;
+}
+
+/* Цвет времени приглушенный голубой */
+.chat-message[data-user="bagercaa"] .chat-time {
+    color: rgba(136, 178, 204, 0.6) !important;
+}
+
+/* Свечение на аватарке */
+.chat-message[data-user="bagercaa"] .chat-avatar {
+    box-shadow: 0 0 10px rgba(136, 178, 204, 0.6) !important;
+    border: 1px solid #88b2cc;
+}
+
+/* Декоративная светящаяся линия (завитушка) СВЕРХУ */
+.chat-message[data-user="bagercaa"]::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: 50%;
+    transform: translateX(-50%);
+    width: 60%; height: 2px;
+    background: linear-gradient(90deg, transparent, #88b2cc, transparent);
+    box-shadow: 0 0 8px #88b2cc, 0 0 15px #88b2cc;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Декоративная светящаяся линия СНИЗУ */
+.chat-message[data-user="bagercaa"]::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 50%;
+    transform: translateX(-50%);
+    width: 40%; height: 2px;
+    background: linear-gradient(90deg, transparent, #88b2cc, transparent);
+    box-shadow: 0 0 8px #88b2cc, 0 0 15px #88b2cc;
+    z-index: 2;
+    pointer-events: none;
+}

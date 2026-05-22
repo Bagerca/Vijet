@@ -1,27 +1,8 @@
 /* ================= CORE (ЯДРО СИСТЕМЫ) ================= */
 window.AppCore = {
-    avatarCache: {},
     greetedUsers: new Set(), 
 
     init: function() {
-        const now = Date.now();
-        const lastClear = localStorage.getItem('uso_avatars_last_clear');
-        const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-
-        if (!lastClear || (now - parseInt(lastClear)) > ONE_WEEK) {
-            console.log("[CORE] Плановая очистка старого кэша аватаров.");
-            localStorage.removeItem('uso_avatars');
-            localStorage.setItem('uso_avatars_last_clear', now.toString());
-            this.avatarCache = {};
-        } else {
-            const savedAvatars = localStorage.getItem('uso_avatars');
-            if (savedAvatars) {
-                try { this.avatarCache = JSON.parse(savedAvatars); } catch (e) { this.avatarCache = {}; }
-            } else {
-                this.avatarCache = {};
-            }
-        }
-
         if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
             console.log(`[CORE] Подключение к каналу: ${window.AppConfig.channelName}...`);
             ComfyJS.Init(window.AppConfig.channelName);
@@ -37,9 +18,21 @@ window.AppCore = {
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             const lowerUser = user.toLowerCase();
             
-            let parsedMessage = this.parseEmotes(message, extra.messageEmotes);
-            let { text: cleanText, hasForbidden } = this.filterForbiddenWords(parsedMessage);
+            // Проверки флагов сообщения
+            const isFirstTime = extra.userState && (extra.userState['first-msg'] === true || extra.userState['first-msg'] === '1');
+            const isTwitchHighlight = flags.highlighted;
+            const isCustomReward = !!extra.customRewardId;
+            const isHighlighted = isTwitchHighlight || isCustomReward;
+
+            // ДЕЛЕГИРОВАНИЕ: Модуль ChatFilter парсит эмодзи и проверяет мат
+            let parsedMessage = window.ChatFilter.parseEmotes(message, extra.messageEmotes);
+            let { text: cleanText, hasForbidden } = window.ChatFilter.processText(parsedMessage, window.AppConfig.forbiddenWords);
             
+            // Проверка на пинг (Упоминание стримера)
+            const streamerName = window.AppConfig.channelName;
+            const mentionRegex = new RegExp(`@${streamerName}\\b`, 'ig');
+            const isMention = mentionRegex.test(cleanText);
+
             if (hasForbidden) {
                 window.AppEvents.emit('PET_EMOTION', { emotion: 'angry', duration: 4000 });
             } 
@@ -55,30 +48,44 @@ window.AppCore = {
                     window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
                     window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes);
                 }
+
+                if (isMention) {
+                    window.AppEvents.emit('PET_EMOTION', { emotion: 'alert', duration: 3000 });
+                    cleanText = cleanText.replace(mentionRegex, `<span class="chat-ping">$&</span>`);
+                }
+
+                // Авто-озвучка дефолтного выделения Twitch
+                if (isTwitchHighlight) {
+                    window.AppEvents.emit('TICKER_REWARD', { user, reward: "Выделенное сообщение", message: cleanText });
+                    window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
+                    
+                    let textForTTS = cleanText.replace(/<[^>]+>/g, ''); // чистим от HTML
+                    window.AppEvents.emit('TTS_ADD', { user: user, text: textForTTS });
+                }
             }
             
-            if (flags.highlighted) {
-                window.AppEvents.emit('TICKER_REWARD', { user, reward: "Выделенное сообщение", message });
-                window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
-            }
+            // ДЕЛЕГИРОВАНИЕ: Модуль AvatarManager сам достает из кэша или качает с API
+            const avatarUrl = await window.AvatarManager.get(user, userColor);
 
-            const avatarUrl = await this.getAvatar(user, userColor);
-
+            // Обработка ответов (реплаев)
             let replyData = null;
             if (extra.userState && extra.userState['reply-parent-display-name']) {
                 const replyUser = extra.userState['reply-parent-display-name'];
                 let replyTextRaw = (extra.userState['reply-parent-msg-body'] || '').replace(/\\s/g, ' '); 
                 replyTextRaw = replyTextRaw.replace(/^@[a-zA-Z0-9_]+\s*,?\s*/i, '');
                 
-                let cleanReply = this.filterForbiddenWords(this.escapeHTML(replyTextRaw)).text;
+                // ДЕЛЕГИРОВАНИЕ: Защита и фильтрация текста ответа
+                let escapedReply = window.ChatFilter.escapeHTML(replyTextRaw);
+                let cleanReply = window.ChatFilter.processText(escapedReply, window.AppConfig.forbiddenWords).text;
                 replyData = { user: replyUser, htmlText: cleanReply };
 
-                const mentionRegex = new RegExp(`^@${replyUser}\\s*,?\\s*`, 'i');
-                cleanText = cleanText.replace(mentionRegex, '');
+                const replyMentionRegex = new RegExp(`^@${replyUser}\\s*,?\\s*`, 'i');
+                cleanText = cleanText.replace(replyMentionRegex, '');
             }
 
+            // Отправка готовых данных в визуализатор (index.html)
             window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                user, color: userColor, avatarUrl, time, htmlText: cleanText, replyData
+                user, color: userColor, avatarUrl, time, htmlText: cleanText, replyData, isFirstTime, isHighlighted, isMention
             });
         };
 
@@ -90,8 +97,8 @@ window.AppCore = {
                 window.AppEvents.emit('WHEEL_ADD', { text: message });
                 window.AppEvents.emit('WHEEL_TOGGLE', { state: true });
             }
-            if (reward === window.AppConfig.rewardName) window.AppEvents.emit('QUEUE_ADD', { user, url: message });
             if (reward === window.AppConfig.ttsRewardName) window.AppEvents.emit('TTS_ADD', { user, text: message });
+            if (reward === window.AppConfig.rewardName) window.AppEvents.emit('QUEUE_ADD', { user, url: message });
             if (reward === window.AppConfig.feedRewardName) window.AppEvents.emit('PET_EMOTION', { emotion: 'nom', duration: 6000 });
 
             const rewards = window.AppConfig.rewards;
@@ -120,6 +127,41 @@ window.AppCore = {
             const argLow = arg.toLowerCase(); 
 
             switch (command.toLowerCase()) {
+                // === ТЕСТОВЫЕ КОМАНДЫ ЧАТА ===
+                case "testfirst":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "Новичок", color: "#00FF7F", avatarUrl: "https://ui-avatars.com/api/?name=Н&background=00FF7F&color=fff",
+                            time: "00:00", htmlText: arg || "Привет, я тут впервые!", replyData: null, isFirstTime: true
+                        });
+                    }
+                    break;
+                case "testhighlight":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "Богач", color: "#a29bfe", avatarUrl: "https://ui-avatars.com/api/?name=Б&background=a29bfe&color=fff",
+                            time: "00:00", htmlText: arg || "Сообщение за баллы!", replyData: null, isHighlighted: true
+                        });
+                    }
+                    break;
+                case "testmention":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "Фанат", color: "#FFD700", avatarUrl: "https://ui-avatars.com/api/?name=Ф&background=FFD700&color=fff",
+                            time: "00:00", htmlText: `Эй, <span class="chat-ping">@${window.AppConfig.channelName}</span> прочитай это!`, replyData: null, isMention: true
+                        });
+                    }
+                    break;
+                case "testhk":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "bagercaa", color: "#8bb9d2", avatarUrl: "https://ui-avatars.com/api/?name=bg&background=10141e&color=8bb9d2",
+                            time: "00:00", htmlText: arg || "Высшее существо, эти слова для тебя одного...", replyData: null
+                        });
+                    }
+                    break;
+                // ===================================
+
                 case "wheel":
                 case "рулетка":
                     if (hasPermission) {
@@ -210,128 +252,7 @@ window.AppCore = {
                 }
             });
         }
-    },
-
-    getAvatar: async function(username, userColor) {
-        if (this.avatarCache[username]) return this.avatarCache[username];
-        try {
-            const response = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${username}`);
-            const data = await response.json();
-            if (data && data.length > 0 && data[0].logo) {
-                this.avatarCache[username] = data[0].logo; 
-                localStorage.setItem('uso_avatars', JSON.stringify(this.avatarCache));
-                return data[0].logo;
-            }
-            throw new Error("Нет кастомной аватарки");
-        } catch (e) {
-            let hexColor = userColor.replace('#', '');
-            let fallbackUrl = `https://ui-avatars.com/api/?name=${username}&background=${hexColor}&color=fff&size=64&bold=true`;
-            this.avatarCache[username] = fallbackUrl;
-            localStorage.setItem('uso_avatars', JSON.stringify(this.avatarCache));
-            return fallbackUrl;
-        }
-    },
-
-    // ==================================================
-    // СОВЕРШЕННЫЙ ФИЛЬТР ЗАПРЕТНЫХ СЛОВ (v3)
-    // ==================================================
-    filterForbiddenWords: function(htmlString) {
-        const words = window.AppConfig.forbiddenWords || [];
-        if (words.length === 0) return { text: htmlString, hasForbidden: false };
-
-        let hasForbidden = false; 
-        
-        // 1. ВРЕМЕННО ПРЯЧЕМ СМАЙЛЫ, чтобы случайно не сломать их теги <img>
-        const tags = [];
-        let safeString = htmlString.replace(/<[^>]+>/g, (match) => {
-            tags.push(match);
-            return `__TAG_${tags.length - 1}__`;
-        });
-
-        // 2. УРОВЕНЬ 1: Классический поиск (точные совпадения)
-        words.forEach(word => {
-            const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${safeWord})`, 'gi');
-            if (regex.test(safeString)) {
-                hasForbidden = true;
-                safeString = safeString.replace(regex, `<span class="censured-badge">CENSURED</span>`);
-            }
-        });
-
-        // 3. УРОВЕНЬ 2: Агрессивный детектив (обходы, пробелы, цифры, спам буквами)
-        if (!hasForbidden) {
-            // Вытаскиваем голый текст
-            let textOnly = htmlString.replace(/<[^>]+>/g, '');
-            // Мощная нормализация (убирает пробелы, переводит цифры в буквы, схлопывает "пппппидор")
-            let normalized = this.normalizeText(textOnly);
-
-            for (let word of words) {
-                let cleanRoot = this.normalizeText(word);
-                if (cleanRoot.length > 2 && normalized.includes(cleanRoot)) {
-                    hasForbidden = true;
-                    // Если поймали обход - прячем ВСЁ сообщение
-                    safeString = `<div class="censured-message">СООБЩЕНИЕ СКРЫТО ФИЛЬТРОМ</div>`;
-                    tags.length = 0; // Удаляем смайлы из памяти
-                    break;
-                }
-            }
-        }
-
-        // 4. ВОЗВРАЩАЕМ СМАЙЛЫ НА МЕСТО
-        let finalResult = safeString.replace(/__TAG_(\d+)__/g, (match, p1) => {
-            return tags[p1] || match;
-        });
-
-        return { text: finalResult, hasForbidden };
-    },
-
-    // Вспомогательная функция, которая ломает любые уловки зрителей
-    normalizeText: function(text) {
-        const map = {
-            'a':'а', 'e':'е', 'o':'о', 'p':'р', 'c':'с', 'x':'х', 'y':'у', 
-            'k':'к', 'm':'м', 't':'т', 'b':'в', '0':'о', '1':'и', '3':'з', 
-            '4':'ч', '6':'б', '8':'в', '@':'а'
-        };
-        let lower = text.toLowerCase();
-        let normalized = '';
-        for (let char of lower) {
-            normalized += map[char] || char; 
-        }
-        
-        // Оставляем ТОЛЬКО буквы (удаляем точки, тире, пробелы)
-        normalized = normalized.replace(/[^а-яёa-z]/g, '');
-        
-        // Схлопываем повторяющиеся подряд буквы (ннннеееееггггррр -> негр)
-        let deduplicated = '';
-        for (let i = 0; i < normalized.length; i++) {
-            if (normalized[i] !== normalized[i-1]) {
-                deduplicated += normalized[i];
-            }
-        }
-        return deduplicated;
-    },
-
-    parseEmotes: function(message, emotes) {
-        if (!emotes) return this.escapeHTML(message);
-        let stringArr = message.split('');
-        for (let id in emotes) {
-            let emotePositions = emotes[id];
-            for (let i = 0; i < emotePositions.length; i++) {
-                let pos = emotePositions[i].split('-');
-                let start = parseInt(pos[0]); let end = parseInt(pos[1]);
-                stringArr[start] = `<img src="https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/3.0" class="chat-emote">`;
-                for (let j = start + 1; j <= end; j++) stringArr[j] = ''; 
-            }
-        }
-        let finalStr = '';
-        for (let i = 0; i < stringArr.length; i++) {
-            if (stringArr[i].startsWith('<img')) finalStr += stringArr[i];
-            else finalStr += this.escapeHTML(stringArr[i]);
-        }
-        return finalStr;
-    },
-
-    escapeHTML: function(str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    }
 };
 
 window.AppCore.init();
