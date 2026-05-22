@@ -3,6 +3,7 @@ window.AppTTSCore = {
     queue: [],
     isPlaying: false,
     synth: window.speechSynthesis,
+    keepAliveInterval: null,
 
     init: function() {
         if (!window.AppConfig.ttsEnabled) return;
@@ -55,19 +56,37 @@ window.AppTTSCore = {
         if (!selectedVoice) selectedVoice = voices.find(v => v.lang === 'ru-RU' && v.name.includes('Google')) || voices.find(v => v.lang.includes('ru'));
         if (selectedVoice) utterance.voice = selectedVoice;
 
+        // Вспомогательная функция для очистки интервала поддержания жизни
+        const clearKeepAlive = () => {
+            if (this.keepAliveInterval) {
+                clearInterval(this.keepAliveInterval);
+                this.keepAliveInterval = null;
+            }
+        };
+
         utterance.onstart = () => {
             window.AppEvents.emit('TTS_EQ_START');
             window.AppEvents.emit('PET_EMOTION', { emotion: 'listen' });
+            
+            // ФИКС БАГА Chromium: Каждые 10 секунд делаем паузу/возобновление, чтобы предотвратить залипание длинных текстов
+            this.keepAliveInterval = setInterval(() => {
+                if (this.synth.speaking) {
+                    this.synth.pause();
+                    this.synth.resume();
+                }
+            }, 10000);
         };
         utterance.onboundary = (event) => {
             if (event.name === 'word') window.AppEvents.emit('TTS_EQ_SPIKE');
         };
         utterance.onend = () => {
+            clearKeepAlive();
             window.AppEvents.emit('TTS_EQ_STOP');
             window.AppEvents.emit('PET_EMOTION', { emotion: 'idle' });
             setTimeout(() => this.playNext(), 500); 
         };
         utterance.onerror = () => {
+            clearKeepAlive();
             window.AppEvents.emit('TTS_EQ_STOP');
             window.AppEvents.emit('PET_EMOTION', { emotion: 'idle' });
             this.playNext();
@@ -80,6 +99,10 @@ window.AppTTSCore = {
         this.queue = []; 
         this.synth.cancel(); 
         this.isPlaying = false;
+        if (this.keepAliveInterval) {
+            clearInterval(this.keepAliveInterval);
+            this.keepAliveInterval = null;
+        }
         window.AppEvents.emit('TTS_EQ_STOP');
         window.AppEvents.emit('TTS_VISUAL_HIDE');
         window.AppEvents.emit('PET_EMOTION', { emotion: 'idle' });

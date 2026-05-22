@@ -156,7 +156,9 @@ window.AppWheel = {
         const localAngle = (360 - modRot) % 360;
         const sectorSize = 360 / this.items.length;
         
-        const winnerIndex = Math.floor(localAngle / sectorSize);
+        // ФИКС БАГА: Сдвигаем расчетную сетку на половину сектора, чтобы сопоставить с отрисовкой
+        const adjustedAngle = (localAngle + (sectorSize / 2)) % 360;
+        const winnerIndex = Math.floor(adjustedAngle / sectorSize);
         const winnerText = this.items[winnerIndex];
 
         this.winnerName.innerText = winnerText;

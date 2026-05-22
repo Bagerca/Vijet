@@ -3,9 +3,23 @@ window.AppCore = {
     avatarCache: {},
 
     init: function() {
-        const savedAvatars = localStorage.getItem('uso_avatars');
-        if (savedAvatars) {
-            try { this.avatarCache = JSON.parse(savedAvatars); } catch (e) { this.avatarCache = {}; }
+        // Еженедельная очистка кэша аватаров
+        const now = Date.now();
+        const lastClear = localStorage.getItem('uso_avatars_last_clear');
+        const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+
+        if (!lastClear || (now - parseInt(lastClear)) > ONE_WEEK) {
+            console.log("[CORE] Плановая очистка старого кэша аватаров.");
+            localStorage.removeItem('uso_avatars');
+            localStorage.setItem('uso_avatars_last_clear', now.toString());
+            this.avatarCache = {};
+        } else {
+            const savedAvatars = localStorage.getItem('uso_avatars');
+            if (savedAvatars) {
+                try { this.avatarCache = JSON.parse(savedAvatars); } catch (e) { this.avatarCache = {}; }
+            } else {
+                this.avatarCache = {};
+            }
         }
 
         if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
@@ -18,19 +32,20 @@ window.AppCore = {
     },
 
     setupEvents: function() {
-        // === 1. ОБРАБОТКА ЧАТА ===
         ComfyJS.onChat = async (user, message, flags, self, extra) => {
             const userColor = extra.userColor || '#FF4477'; 
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             
+            // Сначала парсим смайлы, чтобы они стали HTML-тегами <img>
             let parsedMessage = this.parseEmotes(message, extra.messageEmotes);
+            
+            // Затем прогоняем через умный фильтр запреток
             let { text: cleanText, hasForbidden } = this.filterForbiddenWords(parsedMessage);
             
             if (hasForbidden) window.AppEvents.emit('PET_EMOTION', { emotion: 'angry', duration: 4000 });
             
             if (extra.messageEmotes) {
                 window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
-                // ВОССТАНОВЛЕНО: Триггер для вылета смайлов!
                 window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes);
             }
             
@@ -59,7 +74,6 @@ window.AppCore = {
             });
         };
 
-        // === 2. ОБРАБОТКА НАГРАД ===
         ComfyJS.onReward = (user, reward, cost, message, extra) => {
             console.log(`[TWITCH 💎] Награда: "${reward}" от ${user}. Сообщение: "${message}"`);
             window.AppEvents.emit('TICKER_REWARD', { user, reward, message });
@@ -83,7 +97,6 @@ window.AppCore = {
             }
         };
 
-        // === 3. ОБРАБОТКА ПОДПИСОК (АЛЕРТЫ) ===
         const triggerLove = () => window.AppEvents.emit('PET_EMOTION', { emotion: 'love', duration: 5000 });
         
         ComfyJS.onSub = (user, message) => { window.AppEvents.emit('ALERT_ADD', { user, type: 'sub', msg: message }); triggerLove(); };
@@ -91,7 +104,6 @@ window.AppCore = {
         ComfyJS.onSubGift = (gifter, streak, recUser) => { window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `для ${recUser}` }); triggerLove(); };
         ComfyJS.onSubMysteryGift = (gifter, numb) => { window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `подарил ${numb} саб.!` }); triggerLove(); };
 
-        // === 4. КОМАНДЫ ЧАТА ===
         ComfyJS.onCommand = (user, command, message, flags) => {
             const isMod = flags.broadcaster || flags.mod;
             const isAllowedUser = window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(user.toLowerCase());
@@ -99,14 +111,8 @@ window.AppCore = {
             
             const arg = message.trim();
             const argLow = arg.toLowerCase(); 
-
-            // Логирование команд
-            console.log(`[TWITCH 🎮] Команда: !${command} | Пользователь: ${user} | Аргумент: "${arg}"`);
             
             const protectedCommands = ['wheel', 'skip', 'clear', 'vol', 'cam', 'mic', 'emotes', 'tts', 'blur', 'game', 'death', 'fox', 'alert'];
-            if (!hasPermission && protectedCommands.includes(command.toLowerCase())) {
-                console.warn(`[TWITCH ⛔] Отказ в доступе: у ${user} нет прав модератора на команду !${command}`);
-            }
 
             switch (command.toLowerCase()) {
                 case "wheel":
@@ -129,11 +135,11 @@ window.AppCore = {
                     if (hasPermission && message !== "") window.AppEvents.emit('SHOUTOUT_ADD', { user: message });
                     break;
                 case "skip": 
-    if (hasPermission) {
-        if (argLow === "all") window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_all' });
-        else window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_track' });
-    }
-    break;
+                    if (hasPermission) {
+                        if (argLow === "all") window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_all' });
+                        else window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_track' });
+                    }
+                    break;
                 case "clear": if (hasPermission) window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' }); break;
                 case "vol": if (hasPermission && message !== "") window.AppEvents.emit('PLAYER_VOL', { vol: message }); break;
                 case "cam": if (hasPermission) window.AppEvents.emit('MEDIA_CAM', { state: argLow }); break;
@@ -187,7 +193,6 @@ window.AppCore = {
             }
         };
 
-        // Слушатель кастомных ивентов Twitch (серии просмотров)
         const client = ComfyJS.GetClient();
         if (client) {
             client.on("raw_message", (messageCloned, message) => {
@@ -222,20 +227,64 @@ window.AppCore = {
         }
     },
 
+    // ==================================================
+    // УМНЫЙ ФИЛЬТР ЗАПРЕТНЫХ СЛОВ (Двухуровневый)
+    // ==================================================
     filterForbiddenWords: function(htmlString) {
         const words = window.AppConfig.forbiddenWords || [];
+        if (words.length === 0) return { text: htmlString, hasForbidden: false };
+
         let result = htmlString;
         let hasForbidden = false; 
 
-        if (words.length > 0) {
-            words.forEach(word => {
-                const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const regex = new RegExp(`(?![^<]*>)(${safeWord})`, 'gi');
-                if (regex.test(result)) hasForbidden = true; 
-                result = result.replace(regex, `<span class="blurred-word">$1</span>`);
-            });
+        // УРОВЕНЬ 1: Классический поиск (если написали слово нормально)
+        words.forEach(word => {
+            const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(?![^<]*>)(${safeWord})`, 'gi');
+            if (regex.test(result)) {
+                hasForbidden = true;
+                result = result.replace(regex, `<span class="blurred-word" style="font-weight:900;">***</span>`);
+            }
+        });
+
+        // УРОВЕНЬ 2: Агрессивный детектив (поиск обходов, пробелов, leetspeak)
+        if (!hasForbidden) {
+            // Вытаскиваем только текст, игнорируя HTML теги (чтобы не сломать смайлы)
+            let textOnly = htmlString.replace(/<[^>]*>?/gm, '');
+            
+            // Нормализуем текст (заменяем англ буквы на русские, цифры на буквы)
+            let normalized = this.normalizeText(textOnly);
+
+            for (let word of words) {
+                // Корни в конфиге тоже приводим к чистой базе
+                let cleanRoot = this.normalizeText(word);
+                
+                if (cleanRoot.length > 2 && normalized.includes(cleanRoot)) {
+                    hasForbidden = true;
+                    // Если поймали обход фильтра — скрываем ВСЁ сообщение целиком
+                    result = `<span class="blurred-word" style="display:block; width:100%; text-align:center; letter-spacing:2px; font-size:12px; font-weight:800;">[ ЗАПРЕТКА СКРЫТА ]</span>`;
+                    break;
+                }
+            }
         }
+
         return { text: result, hasForbidden };
+    },
+
+    // Вспомогательная функция для перевода хитрого текста в базу
+    normalizeText: function(text) {
+        const map = {
+            'a':'а', 'e':'е', 'o':'о', 'p':'р', 'c':'с', 'x':'х', 'y':'у', 
+            'k':'к', 'm':'м', 't':'т', 'b':'в', '0':'о', '1':'и', '3':'з', 
+            '4':'ч', '6':'б', '8':'в', '@':'а'
+        };
+        let lower = text.toLowerCase();
+        let normalized = '';
+        for (let char of lower) {
+            normalized += map[char] || char; // Меняем обманки
+        }
+        // Удаляем ВСЁ кроме букв (убираем пробелы, точки, дефисы и т.д.)
+        return normalized.replace(/[^а-яёa-z]/g, '');
     },
 
     parseEmotes: function(message, emotes) {
