@@ -32,7 +32,7 @@
 }
 
 /* ==============================================
-   ИДЕАЛЬНЫЕ ЗАВИТУШКИ (ЧЕРЕЗ BASE64 МАСКИ ДЛЯ OBS)
+   ИДЕАЛЬНЫЕ ЗАВИТУШКИ (БЕЗ МАСОК, 100% НАДЕЖНОСТЬ)
    ============================================== */
 .chat-message[data-user="bagercaa"]::before,
 .chat-message[data-user="bagercaa"]::after {
@@ -40,23 +40,17 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    width: 200px; /* Уменьшили под новый размер бабла */
-    height: 20px; /* Сделали чуть тоньше */
+    width: 200px; 
+    height: 20px; 
     
-    /* Цвет самих узоров */
-    background: #93b8d6;
+    /* Используем обычный background-image. Никаких масок. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%2393b8d6'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2393b8d6'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%2393b8d6'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     
-    /* Свечение СТРОГО по контуру рисунка */
+    /* Свечение */
     filter: drop-shadow(0 0 6px rgba(147, 184, 214, 0.8));
-    
-    /* SVG-маска закодированная в Base64 (Идеально для OBS) */
-    -webkit-mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMDAgNDAnPjxwYXRoIGQ9J00xNTAgMiBMMTU4IDIwIEwxNTAgMzggTDE0MiAyMCBaJyBmaWxsPSdibGFjaycvPjxwYXRoIGQ9J00xMzUgMjAgUSA5MCAwLCA0MCAyMCBUIDUgMjAnIGZpbGw9J25vbmUnIHN0cm9rZT0nYmxhY2snIHN0cm9rZS13aWR0aD0nMycvPjxwYXRoIGQ9J00xMjUgMjUgUSA5MCA0MCwgNjAgMjUnIGZpbGw9J25vbmUnIHN0cm9rZT0nYmxhY2snIHN0cm9rZS13aWR0aD0nMicvPjxjaXJjbGUgY3g9JzQwJyBjeT0nMjAnIHI9JzMnIGZpbGw9J2JsYWNrJy8+PGNpcmNsZSBjeD0nMTAnIGN5PTIwJyByPScyJyBmaWxsPSdibGFjaycvPjxwYXRoIGQ9J00xNjUgMjAgUSAyMTAgMCwgMjYwIDIwIFQgMjk1IDIwJyBmaWxsPSdub25lJyBzdHJva2U9J2JsYWNrJyBzdHJva2Utd2lkdGg9JzMnLz48cGF0aCBkPSdNMTc1IDI1IFEgMjEwIDQwLCAyNDAgMjUnIGZpbGw9J25vbmUnIHN0cm9rZT0nYmxhY2snIHN0cm9rZS13aWR0aD0nMicvPjxjaXJjbGUgY3g9JzI2MCcgY3k9JzIwJyByPSczJyBmaWxsPSdibGFjaycvPjxjaXJjbGUgY3g9JzI5MCcgY3k9JzIwJyByPScyJyBmaWxsPSdibGFjaycvPjwvc3ZnPg==");
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    mask-position: center;
     
     pointer-events: none;
     z-index: 5;
