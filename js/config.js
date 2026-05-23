@@ -88,7 +88,7 @@ window.AppConfig = {
     // ==========================================
     // ЦЕЛЬ (ФОЛЛОВЕРЫ)
     // ==========================================
-    goalTarget: 200,             
+    goalTarget: 500,             
     goalTitle: "⭐ Фолловеры:",
     goalColor: "#FF4477",        
     goalUpdateInterval: 30000,
