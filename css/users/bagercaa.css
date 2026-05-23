@@ -9,20 +9,19 @@
     /* Мрачный фон Бездны */
     background: linear-gradient(180deg, #101520 0%, #06080d 100%) !important;
     
-    /* Тонкая рамка */
+    /* Тонкая рамка (убрали снизу и слева для фикса белых полос) */
     border: 1px solid rgba(147, 184, 214, 0.3) !important;
+    border-bottom: none !important;
+    border-left: none !important;
     border-radius: 8px !important;
     
-    /* Внутреннее свечение Души */
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(147, 184, 214, 0.08) !important;
-    
-    /* Убираем дефолтную левую полоску чата */
-    border-left: 1px solid rgba(147, 184, 214, 0.3) !important;
+    /* Внутреннее свечение Души (сместили вниз, чтобы не подсвечивать низ) */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7), inset 0 2px 20px rgba(147, 184, 214, 0.08) !important;
     
     /* Компактные отступы */
     padding: 20px 16px 20px 16px !important;
     position: relative !important;
-    min-width: 240px; /* Было 280px, уменьшили */
+    min-width: 240px; 
     margin-top: 8px;
     margin-bottom: 8px;
 
@@ -61,9 +60,9 @@
     top: -1px;
 }
 
-/* Прижимаем нижний узор к рамке и переворачиваем */
+/* Прижимаем нижний узор к рамке и переворачиваем (чуть сдвинули вниз для скрытия артефактов) */
 .chat-message[data-user="bagercaa"]::after {
-    bottom: -1px;
+    bottom: -2px;
     transform: translateX(-50%) rotate(180deg);
 }
 
@@ -76,50 +75,49 @@
     margin-bottom: 6px;
     border-bottom: 1px solid rgba(147, 184, 214, 0.2);
     padding-bottom: 6px;
-    justify-content: center !important; /* Центрируем шапку */
+    justify-content: center !important; 
     width: 100% !important;
 }
 
 /* Убираем отталкивание времени в правый край */
 .chat-message[data-user="bagercaa"] .chat-header-right {
-    margin-left: 10px !important; /* Небольшой отступ от ника */
+    margin-left: 10px !important; 
 }
 
-/* Имя пользователя (уменьшено) */
+/* Имя пользователя */
 .chat-message[data-user="bagercaa"] .chat-user {
     color: #e6f2ff !important;
     font-family: 'Cinzel', serif !important;
-    font-size: 19px !important; /* Уменьшено с 22px */
+    font-size: 19px !important; 
     letter-spacing: 1.5px;
     text-shadow: 0 0 8px rgba(147, 184, 214, 0.8), 0 2px 4px rgba(0,0,0,1) !important;
     font-weight: 800 !important;
     text-transform: uppercase;
 }
 
-/* Текст сообщения (уменьшен и отцентрирован) */
+/* Текст сообщения */
 .chat-message[data-user="bagercaa"] .chat-text {
     color: #b8d4ed !important;
     font-weight: 500 !important;
-    font-size: 14px !important; /* Уменьшено с 15px */
+    font-size: 14px !important; 
     margin-top: 4px;
     letter-spacing: 0.5px;
     text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
-    
-    text-align: center !important; /* Центрируем текст */
+    text-align: center !important; 
     width: 100% !important;
 }
 
-/* Время (уменьшено) */
+/* Время */
 .chat-message[data-user="bagercaa"] .chat-time {
     color: rgba(147, 184, 214, 0.5) !important;
     font-family: 'Cinzel', serif !important;
     font-weight: 600 !important;
-    font-size: 12px !important; /* Уменьшено с 13px */
+    font-size: 12px !important; 
 }
 
-/* Аватарка (Стиль амулета, уменьшено) */
+/* Аватарка (Стиль амулета) */
 .chat-message[data-user="bagercaa"] .chat-avatar {
-    width: 30px !important; /* Уменьшено с 34px */
+    width: 30px !important; 
     height: 30px !important;
     border-radius: 50% !important;
     border: 2px solid #93b8d6 !important;
