@@ -12,5 +12,16 @@ body.scene-ending { background: linear-gradient(-45deg, #fff0f5, #f8f9fa, #e6e9f
 .ending-title { margin: 0; font-family: 'Montserrat', sans-serif; font-size: 64px; font-weight: 900; line-height: 1.15; color: #1a1a1a; text-align: center; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 .ending-subtitle { font-size: 18px; font-weight: 700; color: rgba(0, 0, 0, 0.5); letter-spacing: 2px; }
 
-body.scene-ending #chat-container, body.scene-ending #webcam-container, body.scene-ending #widget-container, body.scene-ending #deaths-container, body.scene-ending #alert-container, body.scene-ending #goal-container, body.scene-ending #ticker-container { display: none !important; }
+/* СКРЫВАЕМ ВИДЖЕТЫ (В том числе и Game Info) */
+body.scene-ending #chat-container, 
+body.scene-ending #webcam-container, 
+body.scene-ending #widget-container, 
+body.scene-ending #deaths-container, 
+body.scene-ending #alert-container, 
+body.scene-ending #goal-container, 
+body.scene-ending #ticker-container,
+body.scene-ending #game-info-container { 
+    display: none !important; 
+}
+
 body.scene-ending #social-rotator { top: auto; bottom: 80px; left: 50%; right: auto; transform: translateX(-50%) translateZ(0) !important; }

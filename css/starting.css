@@ -14,7 +14,16 @@ body.scene-starting { background: linear-gradient(-45deg, #fff0f5, #f8f9fa, #ffe
 .starting-subtitle { font-size: 18px; font-weight: 700; color: rgba(0, 0, 0, 0.5); letter-spacing: 2px; animation: textBreathe 3s infinite alternate ease-in-out; }
 @keyframes textBreathe { 0% { opacity: 0.6; } 100% { opacity: 1; } }
 
-body.scene-starting #chat-container, body.scene-starting #webcam-container, body.scene-starting #widget-container, body.scene-starting #deaths-container, body.scene-starting #alert-container { display: none !important; }
+/* СКРЫВАЕМ ВИДЖЕТЫ (В том числе и Game Info) */
+body.scene-starting #chat-container, 
+body.scene-starting #webcam-container, 
+body.scene-starting #widget-container, 
+body.scene-starting #deaths-container, 
+body.scene-starting #alert-container,
+body.scene-starting #game-info-container { 
+    display: none !important; 
+}
+
 body.scene-starting #goal-container { top: auto; bottom: 200px; left: 50%; transform: translateX(-50%) translateZ(0) !important; width: 600px; height: 38px; }
 body.scene-starting #social-rotator { top: 40px; left: 40px; right: auto; bottom: auto; transform: translateZ(0) !important; }
 body.scene-starting #ticker-container { bottom: 40px; left: 50%; width: 1200px; transform: translateX(-50%) translateZ(0) !important; }

@@ -1,11 +1,12 @@
 /* ================= ИНФО-ВИДЖЕТ ИГРЫ (СВЕТЛЫЙ СТИЛЬ) ================= */
 #game-info-container {
     position: absolute;
-    /* Теперь позиция задана по экрану, а не по вебке */
     /* 1080 - 205 = 875px (ровно 15px над стандартной вебкой) */
     bottom: 875px; 
-    left: 220px; /* Центр стандартной вебки (40 + 180) */
-    transform: translateX(-50%);
+    
+    /* ЖЕСТКОЕ ВЫРАВНИВАНИЕ ПО ЛЕВОМУ КРАЮ ВЕБКИ (40px) */
+    left: 40px; 
+    transform: translateY(0); /* Убрали центрирование по X */
     
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(245, 245, 250, 0.75) 100%);
     backdrop-filter: blur(18px);
@@ -27,7 +28,8 @@
 
 #game-info-container.hidden {
     opacity: 0;
-    transform: translateX(-50%) translateY(20px);
+    /* Убрали сдвиг по оси X при скрытии, теперь он только опускается вниз */
+    transform: translateY(20px);
     pointer-events: none;
 }
 
@@ -110,7 +112,7 @@
 /* Анимация при смене игры */
 .pop-anim { animation: widgetPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes widgetPop {
-    0% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.05); }
-    100% { transform: translateX(-50%) scale(1); }
+    0% { transform: scale(1); transform-origin: left bottom; }
+    50% { transform: scale(1.05); transform-origin: left bottom; }
+    100% { transform: scale(1); transform-origin: left bottom; }
 }
