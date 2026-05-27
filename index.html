@@ -275,25 +275,22 @@
         }
 
         // ==========================================
-        // СЛУШАТЕЛЬ КОМАНДЫ ГОРЯЧЕГО ОБНОВЛЕНИЯ (ФИКС КЭША GITHUB)
+        // СЛУШАТЕЛЬ КОМАНДЫ ГОРЯЧЕГО ОБНОВЛЕНИЯ
         // ==========================================
         window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => {
             console.log("[ВИЗУАЛ] Получена команда. Принудительный сброс кэша...");
-            // Плавное затухание перед рефрешем
-            document.body.style.transition = "opacity 0.3s ease";
-            document.body.style.opacity = "0";
             
+            // ВСПЫШКА: Создаем зеленый экран на полсекунды, чтобы понять, что команда дошла!
+            const flash = document.createElement('div');
+            flash.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:#00FF7F; z-index:99999; opacity:0.3; transition: opacity 0.4s ease;";
+            document.body.appendChild(flash);
+
             setTimeout(() => {
-                // Берем текущую ссылку со всеми параметрами (твой widgets=...)
+                // Уничтожаем кэш путем добавления времени к ссылке
                 const currentUrl = new URL(window.location.href);
-                
-                // Добавляем к ссылке уникальное время в миллисекундах
-                // Это обманет кэш OBS и GitHub, заставив скачать свежий CSS
                 currentUrl.searchParams.set('nocache', Date.now());
-                
-                // Переходим по "новой" ссылке (это равносильно нажатию "Обновить кэш" в OBS)
                 window.location.href = currentUrl.toString();
-            }, 300);
+            }, 400);
         });
 
     </script>
