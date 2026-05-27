@@ -6,11 +6,12 @@
 /* ==============================================
    1. ФОНЫ СЦЕН (Вращающийся шатер цирка)
    ============================================== */
-body.theme-circus {
-    background: #C21A16 !important; /* Резервный фон */
+body.theme-circus.scene-chatting,
+body.theme-circus.scene-starting,
+body.theme-circus.scene-ending {
+    background: #C21A16 !important;
 }
 
-/* Создаем лучи циркового шатра на заднем фоне */
 body.theme-circus.scene-chatting::before,
 body.theme-circus.scene-starting::before,
 body.theme-circus.scene-ending::before {
@@ -22,7 +23,6 @@ body.theme-circus.scene-ending::before {
     animation: circusTentSpin 120s linear infinite;
 }
 
-/* Для сцены чаттинга добавим синюю виньетку, чтобы не резало глаза */
 body.theme-circus.scene-chatting::after {
     content: '';
     position: fixed;
@@ -37,7 +37,6 @@ body.theme-circus.scene-chatting::after {
     100% { transform: rotate(360deg); }
 }
 
-
 /* ==============================================
    2. СЦЕНЫ НАЧАЛА И КОНЦА (СТАРТ / ЭНДИНГ)
    ============================================== */
@@ -47,7 +46,10 @@ body.theme-circus .ending-glass-card {
     border: 8px solid #004CB8 !important;
     border-radius: 40px !important;
     box-shadow: 20px 20px 0 #E52521 !important;
-    backdrop-filter: none !important;
+    
+    /* ФИКС OBS: вместо none ставим blur(0px) */
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
 
 body.theme-circus .starting-title, 
@@ -69,7 +71,6 @@ body.theme-circus .status-dot-offline {
     box-shadow: 0 0 15px #FEE101 !important;
 }
 
-
 /* ==============================================
    3. РАМКА ВЕБКАМЕРЫ
    ============================================== */
@@ -79,7 +80,6 @@ body.theme-circus #webcam-frame {
 }
 
 body.theme-circus #webcam-frame::before {
-    /* Чередующиеся красные и синие полосы, как карусель */
     background: repeating-linear-gradient(
         45deg,
         #E52521, 
@@ -95,27 +95,32 @@ body.theme-circus #webcam-frame::before {
     100% { background-position: 70px 0; }
 }
 
-
 /* ==============================================
    4. ЧАТ И СООБЩЕНИЯ (МУЛЬТЯШНЫЕ)
    ============================================== */
-/* Контейнер чата на сцене Just Chatting */
 body.theme-circus.scene-chatting #chat-container {
     background: rgba(255, 255, 255, 0.95) !important;
     border: 6px solid #004CB8 !important;
     box-shadow: 15px 15px 0 #FEE101 !important;
     border-radius: 30px !important;
-    backdrop-filter: none !important;
+    
+    /* ФИКС ИСЧЕЗНОВЕНИЯ ЧАТА В OBS */
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+    z-index: 50 !important;
 }
 
-/* Дефолтные сообщения зрителей */
 body.theme-circus .chat-block:not([data-user]) .chat-bubble {
     background: #ffffff !important;
     border: 4px solid #004CB8 !important;
     border-left: 14px solid #E52521 !important;
-    border-radius: 12px 24px 12px 24px !important; /* Ломаная безумная форма */
+    border-radius: 12px 24px 12px 24px !important;
     box-shadow: 6px 6px 0 #FEE101 !important;
-    backdrop-filter: none !important;
+    
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
 
 body.theme-circus .chat-block:not([data-user]) .chat-header {
@@ -125,7 +130,6 @@ body.theme-circus .chat-block:not([data-user]) .chat-header {
 body.theme-circus .chat-block:not([data-user]) .chat-time {
     color: #E52521 !important;
 }
-
 
 /* ==============================================
    5. ПЛЕЕР YOUTUBE
@@ -141,14 +145,14 @@ body.theme-circus #info-bar {
     border: 4px solid #E52521 !important;
     box-shadow: 8px 8px 0 #004CB8 !important;
     border-radius: 20px !important;
-    backdrop-filter: none !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
 
 body.theme-circus #yt-progress-bar { 
     background: #E52521 !important; 
     box-shadow: 0 0 15px #E52521 !important; 
 }
-
 
 /* ==============================================
    6. ПЛАШКА ИГРЫ (Game Info)
@@ -158,7 +162,8 @@ body.theme-circus #game-info-container {
     border: 5px solid #004CB8 !important;
     box-shadow: 12px 12px 0 #FEE101 !important;
     border-radius: 24px !important;
-    backdrop-filter: none !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
 
 body.theme-circus #gi-title { 
@@ -169,7 +174,6 @@ body.theme-circus #gi-title {
 body.theme-circus .gi-poster-wrap {
     border: 3px dashed #E52521 !important;
 }
-
 
 /* ==============================================
    7. КОЛЕСО ФОРТУНЫ
@@ -190,7 +194,6 @@ body.theme-circus #wheel-pointer {
     filter: drop-shadow(0 10px 0 #004CB8) !important;
 }
 
-/* Плашка победителя рулетки */
 body.theme-circus #wheel-winner {
     background: #ffffff !important;
     border: 8px solid #004CB8 !important;
@@ -204,7 +207,6 @@ body.theme-circus #winner-name {
     text-shadow: 4px 4px 0 #FEE101 !important;
 }
 
-
 /* ==============================================
    8. АЛЕРТЫ, ЦЕЛИ, БЕГУЩАЯ СТРОКА
    ============================================== */
@@ -212,6 +214,8 @@ body.theme-circus .alert-card {
     background: #004CB8 !important;
     border: 5px solid #FEE101 !important;
     box-shadow: 10px 10px 0 #E52521 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
 body.theme-circus .alert-title { color: #ffffff !important; }
 body.theme-circus .alert-message { color: #FEE101 !important; }
@@ -220,6 +224,8 @@ body.theme-circus #goal-container {
     border: 4px solid #004CB8 !important;
     box-shadow: 10px 10px 0 #FEE101 !important;
     background: #ffffff !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
 body.theme-circus #goal-bar-bg { background: #FEE101 !important; }
 body.theme-circus #goal-bar-fill { background: #E52521 !important; box-shadow: none !important; }
@@ -229,6 +235,8 @@ body.theme-circus #ticker-container {
     border: 4px solid #E52521 !important;
     background: #FEE101 !important;
     box-shadow: 10px 10px 0 #004CB8 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
 body.theme-circus #ticker-text {
     color: #004CB8 !important;
@@ -239,6 +247,8 @@ body.theme-circus #tts-container {
     border: 4px solid #004CB8 !important;
     border-left: 12px solid #FEE101 !important;
     box-shadow: 8px 8px 0 #E52521 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
 body.theme-circus .tts-bar { background: #E52521 !important; }
 
@@ -246,4 +256,6 @@ body.theme-circus #social-rotator {
     background: #ffffff !important;
     border: 4px solid #E52521 !important;
     box-shadow: 8px 8px 0 #004CB8 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
