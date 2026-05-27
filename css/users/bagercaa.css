@@ -1,58 +1,166 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap');
+/* ==========================================================
+   КАСТОМНЫЙ СТИЛЬ: bagercaa (РЕМАСТЕР: Hollow Knight)
+   ========================================================== */
 
-/* Выбираем бабл только внутри сообщения bagercaa */
-.chat-block[data-user="bagercaa"] .chat-bubble {
-    background: linear-gradient(180deg, #101520 0%, #06080d 100%);
-    border: 1px solid rgba(147, 184, 214, 0.3);
-    border-bottom: none;
-    border-left: none;
-    border-radius: 8px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7), inset 0 2px 20px rgba(147, 184, 214, 0.08);
-    backdrop-filter: none; /* Отключаем дефолтное стекло */
-    
-    padding: 20px 16px;
-    min-width: 240px; 
-    align-items: center;
-    text-align: center;
-    position: relative;
+/* Подключаем Cinzel для имени (стиль Боссов) и Cormorant Garamond для лора (стиль табличек) */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
+
+/* Внешние отступы, чтобы огромная тень (30px) помещалась и не обрезалась */
+.chat-block[data-user="bagercaa"] {
+    margin: 25px 20px 20px 20px; 
 }
 
-/* ЗАВИТУШКИ вешаем прямо на бабл */
+/* ==============================================
+   БАЗОВЫЙ БАБЛ (ФОН И ДЫХАНИЕ ДУШИ)
+   ============================================== */
+.chat-block[data-user="bagercaa"] .chat-bubble {
+    background: radial-gradient(circle at top, #141c2c 0%, #06080d 90%);
+    border: 1px solid rgba(147, 184, 214, 0.3);
+    border-radius: 6px;
+    
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    overflow: visible !important; 
+    
+    /* Отступы внутри. Снизу оставили место только под завитушку */
+    padding: 30px 20px 30px 20px; 
+    min-width: 240px; 
+    position: relative;
+    
+    animation: soulBreathe 4s infinite alternate ease-in-out;
+}
+
+@keyframes soulBreathe {
+    0% { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), inset 0 0 10px rgba(147, 184, 214, 0.05); border-color: rgba(147, 184, 214, 0.2); }
+    100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 1), inset 0 0 25px rgba(147, 184, 214, 0.15); border-color: rgba(147, 184, 214, 0.5); }
+}
+
+/* ==============================================
+   ИЗЯЩНЫЕ ЗАВИТУШКИ (ВЕРХ И НИЗ)
+   ============================================== */
 .chat-block[data-user="bagercaa"] .chat-bubble::before,
 .chat-block[data-user="bagercaa"] .chat-bubble::after {
     content: '';
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    width: 200px; height: 20px; 
+    width: 180px; 
+    height: 24px; 
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%2393b8d6'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2393b8d6'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%2393b8d6'/%3E%3C/svg%3E");
-    background-size: contain; background-repeat: no-repeat; background-position: center;
-    filter: drop-shadow(0 0 6px rgba(147, 184, 214, 0.8));
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 0 8px rgba(147, 184, 214, 0.6));
     pointer-events: none;
+    z-index: 1;
 }
 
-.chat-block[data-user="bagercaa"] .chat-bubble::before { top: -1px; }
-.chat-block[data-user="bagercaa"] .chat-bubble::after { bottom: -2px; transform: translateX(-50%) rotate(180deg); }
+/* Располагаем узоры строго внутри границ бабла */
+.chat-block[data-user="bagercaa"] .chat-bubble::before { top: 6px; }
+.chat-block[data-user="bagercaa"] .chat-bubble::after { bottom: 6px; transform: translateX(-50%) rotate(180deg); }
 
-/* Шрифты и внутренности */
+
+/* ==============================================
+   АВАТАРКА (АМУЛЕТ) И ШАПКА
+   ============================================== */
 .chat-block[data-user="bagercaa"] .chat-header {
-    margin-bottom: 6px; border-bottom: 1px solid rgba(147, 184, 214, 0.2); padding-bottom: 6px; justify-content: center; 
-}
-.chat-block[data-user="bagercaa"] .chat-header-right { margin-left: 10px; }
-
-.chat-block[data-user="bagercaa"] .chat-user {
-    color: #e6f2ff !important; font-family: 'Cinzel', serif; font-size: 19px; 
-    letter-spacing: 1.5px; text-shadow: 0 0 8px rgba(147, 184, 214, 0.8), 0 2px 4px #000; font-weight: 800; text-transform: uppercase;
-}
-
-.chat-block[data-user="bagercaa"] .chat-text {
-    color: #b8d4ed; font-weight: 500; font-size: 14px; margin-top: 4px;
-    letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); text-align: center; width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Убрали сплошную линию, теперь она будет с разрывом вокруг времени */
+    border-bottom: none !important; 
+    padding-bottom: 0px;
+    margin-bottom: 12px;
+    position: static; 
 }
 
-.chat-block[data-user="bagercaa"] .chat-time { color: rgba(147, 184, 214, 0.5); font-family: 'Cinzel', serif; font-weight: 600; }
+/* Аватарка в центре верхней грани */
 .chat-block[data-user="bagercaa"] .chat-avatar {
-    width: 30px; height: 30px; border: 2px solid #93b8d6;
-    box-shadow: 0 0 8px rgba(147, 184, 214, 0.6), inset 0 0 5px rgba(0,0,0,0.8);
-    filter: sepia(0.3) hue-rotate(180deg) saturate(0.6);
+    position: absolute;
+    top: -24px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px; 
+    height: 48px;
+    border-radius: 50%;
+    
+    border: 2px solid rgba(147, 184, 214, 0.9);
+    background: #06080d;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(147, 184, 214, 0.5), inset 0 0 10px #000;
+    filter: grayscale(70%) sepia(30%) hue-rotate(180deg) brightness(1.1) contrast(1.2);
+    z-index: 10;
+    margin: 0;
+}
+
+/* Имя пользователя */
+.chat-block[data-user="bagercaa"] .chat-user {
+    color: #ffffff !important;
+    font-family: 'Cinzel', serif;
+    font-size: 18px; 
+    letter-spacing: 2.5px;
+    text-shadow: 0 0 12px rgba(147, 184, 214, 0.9), 0 2px 4px rgba(0,0,0,1);
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-top: 6px; 
+}
+
+
+/* ==============================================
+   НОВАЯ ЛИНИЯ СО ВРЕМЕНЕМ ПО ЦЕНТРУ
+   ============================================== */
+
+/* Блок со временем теперь работает как разделительная линия */
+.chat-block[data-user="bagercaa"] .chat-header-right {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px; /* Расстояние от времени до линий */
+    margin-top: 10px; /* Отступ от ника вниз */
+    opacity: 0.8;
+}
+
+/* Затухающие полоски слева и справа от времени */
+.chat-block[data-user="bagercaa"] .chat-header-right::before,
+.chat-block[data-user="bagercaa"] .chat-header-right::after {
+    content: '';
+    flex-grow: 1; /* Полоски растягиваются на все свободное место */
+    height: 1px;
+}
+.chat-block[data-user="bagercaa"] .chat-header-right::before {
+    background: linear-gradient(90deg, transparent, rgba(147, 184, 214, 0.3));
+}
+.chat-block[data-user="bagercaa"] .chat-header-right::after {
+    background: linear-gradient(270deg, transparent, rgba(147, 184, 214, 0.3));
+}
+
+.chat-block[data-user="bagercaa"] .chat-time {
+    color: rgba(147, 184, 214, 0.8);
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 11px; 
+    letter-spacing: 2px;
+}
+
+/* ==============================================
+   ТЕКСТ ЛОРА
+   ============================================== */
+
+/* Текст сообщения */
+.chat-block[data-user="bagercaa"] .chat-text {
+    font-family: 'Cormorant Garamond', serif;
+    color: #c5deef;
+    font-weight: 600;
+    
+    /* УВЕЛИЧЕНО ДО 20px для отличной читаемости */
+    font-size: 20px; 
+    
+    line-height: 1.35;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    text-align: center; 
+    
+    /* Отступы: чуть-чуть снизу, чтобы не прилипало к нижней завитушке */
+    padding: 0px 5px 10px 5px;
 }
