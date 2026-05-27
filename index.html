@@ -37,10 +37,22 @@
     <script>
         const cacheBuster = new URLSearchParams(window.location.search).get('nocache') || Date.now();
         
-        // Загружаем стили
-        document.write(`<link rel="stylesheet" href="css/style.css?v=${cacheBuster}">`);
+        // 1. ЗАГРУЖАЕМ ВСЕ СТИЛИ НАПРЯМУЮ (БЕЗ @import)
+        const myStyles = [
+            "css/base.css", "css/blur.css", "css/pet.css", "css/tts.css", "css/emotes.css",
+            "css/chat.css", 
+            "css/users/bagercaa.css", "css/users/kiriika1.css", "css/users/to_be_ang.css", 
+            "css/users/dragonsmaddison.css", "css/users/tetlabot.css", "css/users/ksusha__sher.css",
+            "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
+            "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
+            "css/gameinfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
+            "css/modes.css" // modes.css всегда должен быть последним!
+        ];
+        myStyles.forEach(href => {
+            document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`);
+        });
         
-        // Загружаем все наши скрипты
+        // 2. ЗАГРУЖАЕМ ВСЕ НАШИ СКРИПТЫ
         const myScripts = [
             "js/config.js", "js/games-db.js", "js/event-bus.js",
             "js/particles.js", "js/emotes.js", "js/pet.js", "js/chat.js",
