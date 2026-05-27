@@ -273,6 +273,21 @@
             if (!activeWidgets.includes('blur')) { if (window.AppBlur) window.AppBlur.toggle = function(){}; }
             if (!activeWidgets.includes('wheel')) { if (window.AppWheel) window.AppWheel.toggle = function(){}; }
         }
+
+        // ==========================================
+        // СЛУШАТЕЛЬ КОМАНДЫ ГОРЯЧЕГО ОБНОВЛЕНИЯ
+        // ==========================================
+        window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => {
+            console.log("[ВИЗУАЛ] Получена команда на обновление слоя. Перезагрузка...");
+            // Плавное затухание перед рефрешем, чтобы не резало глаза на стриме
+            document.body.style.transition = "opacity 0.3s ease";
+            document.body.style.opacity = "0";
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
+        });
+
     </script>
 </body>
 </html>

@@ -127,6 +127,19 @@ window.AppCore = {
             const argLow = arg.toLowerCase(); 
 
             switch (command.toLowerCase()) {
+                // === КОМАНДЫ ПЕРЕЗАГРУЗКИ (HOT RELOAD) ===
+                case "refresh":
+                    if (hasPermission) {
+                        if (argLow === "core") {
+                            console.log("🔄 [CORE] Принудительная перезагрузка ЯДРА по команде из чата!");
+                            window.location.reload();
+                        } else {
+                            console.log("🔄 [CORE] Отправлен сигнал на перезагрузку ВИЗУАЛЬНОГО СЛОЯ...");
+                            window.AppEvents.emit('FORCE_RELOAD_VISUAL');
+                        }
+                    }
+                    break;
+
                 // === ТЕСТОВЫЕ КОМАНДЫ ЧАТА ===
                 case "testfirst":
                     if (hasPermission) {
