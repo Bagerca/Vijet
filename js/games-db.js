@@ -89,7 +89,7 @@ window.GamesDatabase = {
         title: "S.T.A.L.K.E.R.: Тень Чернобыля", 
         cover: "img/covers/stalker.png", 
         rating: "9.0 / 10", 
-        year: 2007, 
+        year: 2077, 
         genre: "Шутер / Выживание", 
         developer: "GSC Game World", 
         platform: "PC" 
