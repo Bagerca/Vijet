@@ -1,0 +1,249 @@
+/* ==========================================================
+   ГЛОБАЛЬНАЯ ТЕМА: УДИВИТЕЛЬНЫЙ ЦИФРОВОЙ ЦИРК (!протокол цирк)
+   Палитра: Красный (#E52521), Синий (#004CB8), Желтый (#FEE101)
+   ========================================================== */
+
+/* ==============================================
+   1. ФОНЫ СЦЕН (Вращающийся шатер цирка)
+   ============================================== */
+body.theme-circus {
+    background: #C21A16 !important; /* Резервный фон */
+}
+
+/* Создаем лучи циркового шатра на заднем фоне */
+body.theme-circus.scene-chatting::before,
+body.theme-circus.scene-starting::before,
+body.theme-circus.scene-ending::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: repeating-conic-gradient(from 0deg, #E52521 0deg 15deg, #C21A16 15deg 30deg);
+    z-index: -999;
+    animation: circusTentSpin 120s linear infinite;
+}
+
+/* Для сцены чаттинга добавим синюю виньетку, чтобы не резало глаза */
+body.theme-circus.scene-chatting::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, transparent 30%, rgba(0, 76, 184, 0.8) 100%);
+    z-index: -998;
+    pointer-events: none;
+}
+
+@keyframes circusTentSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* ==============================================
+   2. СЦЕНЫ НАЧАЛА И КОНЦА (СТАРТ / ЭНДИНГ)
+   ============================================== */
+body.theme-circus .starting-glass-card, 
+body.theme-circus .ending-glass-card {
+    background: #ffffff !important;
+    border: 8px solid #004CB8 !important;
+    border-radius: 40px !important;
+    box-shadow: 20px 20px 0 #E52521 !important;
+    backdrop-filter: none !important;
+}
+
+body.theme-circus .starting-title, 
+body.theme-circus .ending-title {
+    color: #E52521 !important;
+    text-shadow: 5px 5px 0 #FEE101 !important;
+    letter-spacing: 4px;
+}
+
+body.theme-circus .starting-subtitle, 
+body.theme-circus .ending-subtitle {
+    color: #004CB8 !important;
+    font-weight: 900 !important;
+}
+
+body.theme-circus .status-dot, 
+body.theme-circus .status-dot-offline {
+    background-color: #FEE101 !important;
+    box-shadow: 0 0 15px #FEE101 !important;
+}
+
+
+/* ==============================================
+   3. РАМКА ВЕБКАМЕРЫ
+   ============================================== */
+body.theme-circus #webcam-frame {
+    border-radius: 20px !important;
+    box-shadow: 12px 12px 0 rgba(0, 76, 184, 0.9) !important;
+}
+
+body.theme-circus #webcam-frame::before {
+    /* Чередующиеся красные и синие полосы, как карусель */
+    background: repeating-linear-gradient(
+        45deg,
+        #E52521, 
+        #E52521 25px,
+        #004CB8 25px, 
+        #004CB8 50px
+    ) !important;
+    animation: circusSpin 2s linear infinite !important;
+}
+
+@keyframes circusSpin {
+    0% { background-position: 0 0; }
+    100% { background-position: 70px 0; }
+}
+
+
+/* ==============================================
+   4. ЧАТ И СООБЩЕНИЯ (МУЛЬТЯШНЫЕ)
+   ============================================== */
+/* Контейнер чата на сцене Just Chatting */
+body.theme-circus.scene-chatting #chat-container {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 6px solid #004CB8 !important;
+    box-shadow: 15px 15px 0 #FEE101 !important;
+    border-radius: 30px !important;
+    backdrop-filter: none !important;
+}
+
+/* Дефолтные сообщения зрителей */
+body.theme-circus .chat-block:not([data-user]) .chat-bubble {
+    background: #ffffff !important;
+    border: 4px solid #004CB8 !important;
+    border-left: 14px solid #E52521 !important;
+    border-radius: 12px 24px 12px 24px !important; /* Ломаная безумная форма */
+    box-shadow: 6px 6px 0 #FEE101 !important;
+    backdrop-filter: none !important;
+}
+
+body.theme-circus .chat-block:not([data-user]) .chat-header {
+    border-bottom: 3px dotted #004CB8 !important;
+}
+
+body.theme-circus .chat-block:not([data-user]) .chat-time {
+    color: #E52521 !important;
+}
+
+
+/* ==============================================
+   5. ПЛЕЕР YOUTUBE
+   ============================================== */
+body.theme-circus #player-wrapper {
+    border: 6px solid #FEE101 !important;
+    box-shadow: 10px 10px 0 #004CB8 !important;
+    border-radius: 20px !important;
+}
+
+body.theme-circus #info-bar {
+    background: #ffffff !important;
+    border: 4px solid #E52521 !important;
+    box-shadow: 8px 8px 0 #004CB8 !important;
+    border-radius: 20px !important;
+    backdrop-filter: none !important;
+}
+
+body.theme-circus #yt-progress-bar { 
+    background: #E52521 !important; 
+    box-shadow: 0 0 15px #E52521 !important; 
+}
+
+
+/* ==============================================
+   6. ПЛАШКА ИГРЫ (Game Info)
+   ============================================== */
+body.theme-circus #game-info-container {
+    background: #ffffff !important;
+    border: 5px solid #004CB8 !important;
+    box-shadow: 12px 12px 0 #FEE101 !important;
+    border-radius: 24px !important;
+    backdrop-filter: none !important;
+}
+
+body.theme-circus #gi-title { 
+    color: #E52521 !important; 
+    text-transform: uppercase;
+}
+
+body.theme-circus .gi-poster-wrap {
+    border: 3px dashed #E52521 !important;
+}
+
+
+/* ==============================================
+   7. КОЛЕСО ФОРТУНЫ
+   ============================================== */
+body.theme-circus .wheel-wrapper {
+    border: 15px dashed #FEE101 !important;
+    background: #004CB8 !important;
+    box-shadow: 0 0 0 8px #E52521, 0 30px 60px rgba(0,0,0,0.8) !important;
+}
+
+body.theme-circus #wheel-center {
+    background: #FEE101 !important;
+    border: 6px solid #E52521 !important;
+}
+
+body.theme-circus #wheel-pointer {
+    background: #E52521 !important;
+    filter: drop-shadow(0 10px 0 #004CB8) !important;
+}
+
+/* Плашка победителя рулетки */
+body.theme-circus #wheel-winner {
+    background: #ffffff !important;
+    border: 8px solid #004CB8 !important;
+    box-shadow: 15px 15px 0 #E52521 !important;
+    border-radius: 40px !important;
+}
+
+body.theme-circus #winner-name {
+    background: none !important;
+    -webkit-text-fill-color: #E52521 !important;
+    text-shadow: 4px 4px 0 #FEE101 !important;
+}
+
+
+/* ==============================================
+   8. АЛЕРТЫ, ЦЕЛИ, БЕГУЩАЯ СТРОКА
+   ============================================== */
+body.theme-circus .alert-card {
+    background: #004CB8 !important;
+    border: 5px solid #FEE101 !important;
+    box-shadow: 10px 10px 0 #E52521 !important;
+}
+body.theme-circus .alert-title { color: #ffffff !important; }
+body.theme-circus .alert-message { color: #FEE101 !important; }
+
+body.theme-circus #goal-container {
+    border: 4px solid #004CB8 !important;
+    box-shadow: 10px 10px 0 #FEE101 !important;
+    background: #ffffff !important;
+}
+body.theme-circus #goal-bar-bg { background: #FEE101 !important; }
+body.theme-circus #goal-bar-fill { background: #E52521 !important; box-shadow: none !important; }
+body.theme-circus #goal-title, body.theme-circus #goal-count { color: #004CB8 !important; }
+
+body.theme-circus #ticker-container {
+    border: 4px solid #E52521 !important;
+    background: #FEE101 !important;
+    box-shadow: 10px 10px 0 #004CB8 !important;
+}
+body.theme-circus #ticker-text {
+    color: #004CB8 !important;
+}
+
+body.theme-circus #tts-container {
+    background: #ffffff !important;
+    border: 4px solid #004CB8 !important;
+    border-left: 12px solid #FEE101 !important;
+    box-shadow: 8px 8px 0 #E52521 !important;
+}
+body.theme-circus .tts-bar { background: #E52521 !important; }
+
+body.theme-circus #social-rotator {
+    background: #ffffff !important;
+    border: 4px solid #E52521 !important;
+    box-shadow: 8px 8px 0 #004CB8 !important;
+}

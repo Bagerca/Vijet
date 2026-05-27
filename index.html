@@ -22,8 +22,11 @@
         <div id="deaths-container" class="hidden"><div class="deaths-title">DEATHS</div><div id="deaths-count">0</div></div>
         <div id="emotes-container"></div><div id="chat-container"><div id="chat-messages"></div></div>
         
+        <!-- ВИДЖЕТ ИГРЫ ВЫНЕСЕН СЮДА (НЕЗАВИСИМ ОТ ВЕБКИ) -->
+        <div id="game-info-container" class="hidden"><div class="gi-poster-wrap"><img id="gi-cover" src="" alt="Cover" class="hidden"><div id="gi-no-game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><circle cx="12" cy="12" r="3"></circle></svg><div class="gi-no-text">NO GAME<br><span>AWAITING SIGNAL</span></div></div></div><div class="gi-details"><div id="gi-title">Неизвестно</div><div class="gi-row" id="row-rating"><span class="gi-label">Рейтинг:</span><span class="gi-val gi-rating" id="gi-rating">0.0 / 10</span></div><div class="gi-row" id="row-year"><span class="gi-label">Год:</span><span class="gi-val" id="gi-year">202X</span></div><div class="gi-row" id="row-genre"><span class="gi-label">Жанр:</span><span class="gi-val" id="gi-genre">Ожидание</span></div><div class="gi-row" id="row-dev"><span class="gi-label">Разраб:</span><span class="gi-val" id="gi-dev">Студия</span></div><div class="gi-row" id="row-plat"><span class="gi-label">Платформа:</span><span class="gi-badge" id="gi-plat">N/A</span></div></div></div>
+
+        <!-- РАМКА ВЕБКИ И ПИТОМЕЦ -->
         <div id="webcam-container">
-            <div id="game-info-container" class="hidden"><div class="gi-poster-wrap"><img id="gi-cover" src="" alt="Cover" class="hidden"><div id="gi-no-game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><circle cx="12" cy="12" r="3"></circle></svg><div class="gi-no-text">NO GAME<br><span>AWAITING SIGNAL</span></div></div></div><div class="gi-details"><div id="gi-title">Неизвестно</div><div class="gi-row" id="row-rating"><span class="gi-label">Рейтинг:</span><span class="gi-val gi-rating" id="gi-rating">0.0 / 10</span></div><div class="gi-row" id="row-year"><span class="gi-label">Год:</span><span class="gi-val" id="gi-year">202X</span></div><div class="gi-row" id="row-genre"><span class="gi-label">Жанр:</span><span class="gi-val" id="gi-genre">Ожидание</span></div><div class="gi-row" id="row-dev"><span class="gi-label">Разраб:</span><span class="gi-val" id="gi-dev">Студия</span></div><div class="gi-row" id="row-plat"><span class="gi-label">Платформа:</span><span class="gi-badge" id="gi-plat">N/A</span></div></div></div>
             <div id="pet-container" class="state-idle"><div class="tail-pos joint"><div class="tail-anim"><div class="fox-part tail-main"><div class="fox-part tail-tip"></div></div></div></div><div class="body-pos joint"><div class="body-anim"><div class="head-shadow"></div><div class="fox-part leg leg-l"></div><div class="fox-part leg leg-r"></div><div class="fox-part torso"><div class="fox-part chest"></div></div></div></div><div class="head-pos joint"><div class="head-anim"><div class="fox-part ear ear-l joint"><div class="ear-in"></div></div><div class="fox-part ear ear-r joint"><div class="ear-in"></div></div><div class="fox-part face"><div class="fox-part cheek cheek-l"></div><div class="fox-part cheek cheek-r"></div><div class="jaw-pos joint"><div class="tongue joint"></div></div><div class="snout-pos"><div class="nose"></div></div><div class="eyebrow eyebrow-l joint"></div><div class="eyebrow eyebrow-r joint"></div><div class="eye eye-l joint"></div><div class="eye eye-r joint"></div></div></div></div><div class="body-pos arms-layer joint"><div class="body-anim"><div class="arm-pos arm-l joint"><div class="arm-part"><div class="arm-paw"></div></div></div><div class="arm-pos arm-r joint"><div class="arm-part"><div class="arm-paw"></div></div><div class="item-cookie"></div></div></div></div></div>
             <div id="webcam-frame"></div>
         </div>
@@ -33,7 +36,6 @@
         <div id="ticker-container"><div id="ticker-text"></div></div>
     </div>
 
-    <!-- УМНЫЙ ЗАГРУЗЧИК ФАЙЛОВ ПЕРЕНЕСЕН СЮДА (ПОД HTML) -->
     <script>
         const cacheBuster = new URLSearchParams(window.location.search).get('nocache') || Date.now();
         
@@ -46,6 +48,7 @@
             "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
             "css/gameinfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
+            "css/theme-circus.css", // <--- НОВЫЙ ПРОТОКОЛ ЦИРКА
             "css/modes.css" // modes.css всегда должен быть последним!
         ];
         myStyles.forEach(href => {
@@ -93,7 +96,7 @@
                 }
             }
 
-            if (!activeWidgets.includes('cam') && !activeWidgets.includes('pet') && !activeWidgets.includes('gameinfo')) {
+            if (!activeWidgets.includes('cam') && !activeWidgets.includes('pet')) {
                 document.getElementById('webcam-container').style.setProperty('display', 'none', 'important');
             }
 
@@ -120,6 +123,25 @@
                 window.location.href = currentUrl.toString();
             }, 400);
         });
+
+        // --- УПРАВЛЕНИЕ ГЛОБАЛЬНЫМИ ТЕМАМИ ---
+        const applyTheme = (themeName) => {
+            document.body.classList.remove('theme-circus'); // Если потом добавишь другие темы, допиши их сюда
+            
+            if (themeName && themeName !== 'default') {
+                document.body.classList.add(`theme-${themeName}`);
+            }
+            localStorage.setItem('uso_current_theme', themeName || 'default');
+        };
+
+        window.AppEvents.listen('THEME_CHANGE', (data) => {
+            applyTheme(data.theme);
+        });
+
+        const savedTheme = localStorage.getItem('uso_current_theme');
+        if (savedTheme) {
+            applyTheme(savedTheme);
+        }
     </script>
 </body>
 </html>

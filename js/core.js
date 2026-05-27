@@ -127,6 +127,21 @@ window.AppCore = {
             const argLow = arg.toLowerCase(); 
 
             switch (command.toLowerCase()) {
+                // === ГЛОБАЛЬНЫЕ ТЕМЫ (ПРОТОКОЛЫ) ===
+                case "протокол":
+                case "protocol":
+                    if (hasPermission) {
+                        if (argLow === "цирк" || argLow === "circus") {
+                            window.AppEvents.emit('THEME_CHANGE', { theme: 'circus' });
+                            window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 5000 });
+                        } 
+                        else if (argLow === "отмена" || argLow === "off" || argLow === "default") {
+                            window.AppEvents.emit('THEME_CHANGE', { theme: 'default' });
+                            window.AppEvents.emit('PET_EMOTION', { emotion: 'idle', duration: 2000 });
+                        }
+                    }
+                    break;
+
                 // === КОМАНДЫ ПЕРЕЗАГРУЗКИ (HOT RELOAD) ===
                 case "refresh":
                     if (hasPermission) {

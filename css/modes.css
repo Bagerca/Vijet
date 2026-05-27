@@ -54,11 +54,11 @@ body.scene-chatting #deaths-count { font-size: 64px; }
 
 /* ================= ИДЕАЛЬНАЯ РАССТАНОВКА (ЛЕВАЯ ЧАСТЬ И НИЗ) ================= */
 
-/* 1. Плашка Игры (Внутри вебки, левый верхний угол, отступ 25px) */
+/* 1. Плашка Игры (Сцена Just Chatting, левый верхний угол экрана) */
 body.scene-chatting #game-info-container {
     bottom: auto;      
-    top: 25px;         
-    left: 25px; 
+    top: 65px;         
+    left: 65px; 
     right: auto;
     transform: translateX(0); 
     box-shadow: 0 20px 40px rgba(0,0,0,0.3);
@@ -66,6 +66,15 @@ body.scene-chatting #game-info-container {
 body.scene-chatting #game-info-container.hidden {
     transform: translateX(-20px); 
     opacity: 0;
+}
+/* Адаптивная анимация, чтобы блок не прыгал в центр при смене игры */
+body.scene-chatting #game-info-container.pop-anim {
+    animation: widgetPopChatting 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes widgetPopChatting {
+    0% { transform: translateX(0) scale(1); }
+    50% { transform: translateX(0) scale(1.05); transform-origin: left top; }
+    100% { transform: translateX(0) scale(1); }
 }
 
 /* 2. Музыкальный плеер (Внутри вебки, левый нижний угол) */
