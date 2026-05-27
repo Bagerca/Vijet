@@ -1,126 +1,58 @@
-/* ==========================================================
-   КАСТОМНЫЙ СТИЛЬ: bagercaa (Тема: Hollow Knight)
-   ========================================================== */
-
-/* Подключаем шрифт в стиле Hollow Knight */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap');
 
-.chat-message[data-user="bagercaa"] {
-    /* Мрачный фон Бездны */
-    background: linear-gradient(180deg, #101520 0%, #06080d 100%) !important;
+/* Выбираем бабл только внутри сообщения bagercaa */
+.chat-block[data-user="bagercaa"] .chat-bubble {
+    background: linear-gradient(180deg, #101520 0%, #06080d 100%);
+    border: 1px solid rgba(147, 184, 214, 0.3);
+    border-bottom: none;
+    border-left: none;
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7), inset 0 2px 20px rgba(147, 184, 214, 0.08);
+    backdrop-filter: none; /* Отключаем дефолтное стекло */
     
-    /* Тонкая рамка (убрали снизу и слева для фикса белых полос) */
-    border: 1px solid rgba(147, 184, 214, 0.3) !important;
-    border-bottom: none !important;
-    border-left: none !important;
-    border-radius: 8px !important;
-    
-    /* Внутреннее свечение Души (сместили вниз, чтобы не подсвечивать низ) */
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7), inset 0 2px 20px rgba(147, 184, 214, 0.08) !important;
-    
-    /* Компактные отступы */
-    padding: 20px 16px 20px 16px !important;
-    position: relative !important;
+    padding: 20px 16px;
     min-width: 240px; 
-    margin-top: 8px;
-    margin-bottom: 8px;
-
-    /* Центрируем весь блок */
-    align-items: center !important;
-    text-align: center !important;
+    align-items: center;
+    text-align: center;
+    position: relative;
 }
 
-/* ==============================================
-   ИДЕАЛЬНЫЕ ЗАВИТУШКИ (БЕЗ МАСОК, 100% НАДЕЖНОСТЬ)
-   ============================================== */
-.chat-message[data-user="bagercaa"]::before,
-.chat-message[data-user="bagercaa"]::after {
+/* ЗАВИТУШКИ вешаем прямо на бабл */
+.chat-block[data-user="bagercaa"] .chat-bubble::before,
+.chat-block[data-user="bagercaa"] .chat-bubble::after {
     content: '';
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    width: 200px; 
-    height: 20px; 
-    
-    /* Используем обычный background-image. Никаких масок. */
+    width: 200px; height: 20px; 
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%2393b8d6'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2393b8d6'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%2393b8d6'/%3E%3C/svg%3E");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    
-    /* Свечение */
+    background-size: contain; background-repeat: no-repeat; background-position: center;
     filter: drop-shadow(0 0 6px rgba(147, 184, 214, 0.8));
-    
     pointer-events: none;
-    z-index: 5;
 }
 
-/* Прижимаем верхний узор к рамке */
-.chat-message[data-user="bagercaa"]::before {
-    top: -1px;
+.chat-block[data-user="bagercaa"] .chat-bubble::before { top: -1px; }
+.chat-block[data-user="bagercaa"] .chat-bubble::after { bottom: -2px; transform: translateX(-50%) rotate(180deg); }
+
+/* Шрифты и внутренности */
+.chat-block[data-user="bagercaa"] .chat-header {
+    margin-bottom: 6px; border-bottom: 1px solid rgba(147, 184, 214, 0.2); padding-bottom: 6px; justify-content: center; 
+}
+.chat-block[data-user="bagercaa"] .chat-header-right { margin-left: 10px; }
+
+.chat-block[data-user="bagercaa"] .chat-user {
+    color: #e6f2ff !important; font-family: 'Cinzel', serif; font-size: 19px; 
+    letter-spacing: 1.5px; text-shadow: 0 0 8px rgba(147, 184, 214, 0.8), 0 2px 4px #000; font-weight: 800; text-transform: uppercase;
 }
 
-/* Прижимаем нижний узор к рамке и переворачиваем (чуть сдвинули вниз для скрытия артефактов) */
-.chat-message[data-user="bagercaa"]::after {
-    bottom: -2px;
-    transform: translateX(-50%) rotate(180deg);
+.chat-block[data-user="bagercaa"] .chat-text {
+    color: #b8d4ed; font-weight: 500; font-size: 14px; margin-top: 4px;
+    letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); text-align: center; width: 100%;
 }
 
-/* ==============================================
-   ШРИФТЫ И ВНУТРЕННОСТИ
-   ============================================== */
-
-/* Разделительная линия под шапкой и центрирование элементов */
-.chat-message[data-user="bagercaa"] .chat-header {
-    margin-bottom: 6px;
-    border-bottom: 1px solid rgba(147, 184, 214, 0.2);
-    padding-bottom: 6px;
-    justify-content: center !important; 
-    width: 100% !important;
-}
-
-/* Убираем отталкивание времени в правый край */
-.chat-message[data-user="bagercaa"] .chat-header-right {
-    margin-left: 10px !important; 
-}
-
-/* Имя пользователя */
-.chat-message[data-user="bagercaa"] .chat-user {
-    color: #e6f2ff !important;
-    font-family: 'Cinzel', serif !important;
-    font-size: 19px !important; 
-    letter-spacing: 1.5px;
-    text-shadow: 0 0 8px rgba(147, 184, 214, 0.8), 0 2px 4px rgba(0,0,0,1) !important;
-    font-weight: 800 !important;
-    text-transform: uppercase;
-}
-
-/* Текст сообщения */
-.chat-message[data-user="bagercaa"] .chat-text {
-    color: #b8d4ed !important;
-    font-weight: 500 !important;
-    font-size: 14px !important; 
-    margin-top: 4px;
-    letter-spacing: 0.5px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
-    text-align: center !important; 
-    width: 100% !important;
-}
-
-/* Время */
-.chat-message[data-user="bagercaa"] .chat-time {
-    color: rgba(147, 184, 214, 0.5) !important;
-    font-family: 'Cinzel', serif !important;
-    font-weight: 600 !important;
-    font-size: 12px !important; 
-}
-
-/* Аватарка (Стиль амулета) */
-.chat-message[data-user="bagercaa"] .chat-avatar {
-    width: 30px !important; 
-    height: 30px !important;
-    border-radius: 50% !important;
-    border: 2px solid #93b8d6 !important;
-    box-shadow: 0 0 8px rgba(147, 184, 214, 0.6), inset 0 0 5px rgba(0,0,0,0.8) !important;
-    filter: sepia(0.3) hue-rotate(180deg) saturate(0.6) !important;
+.chat-block[data-user="bagercaa"] .chat-time { color: rgba(147, 184, 214, 0.5); font-family: 'Cinzel', serif; font-weight: 600; }
+.chat-block[data-user="bagercaa"] .chat-avatar {
+    width: 30px; height: 30px; border: 2px solid #93b8d6;
+    box-shadow: 0 0 8px rgba(147, 184, 214, 0.6), inset 0 0 5px rgba(0,0,0,0.8);
+    filter: sepia(0.3) hue-rotate(180deg) saturate(0.6);
 }
