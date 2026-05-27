@@ -87,7 +87,7 @@ window.GamesDatabase = {
     },
     "stalker": {
         title: "S.T.A.L.K.E.R.: Тень Чернобыля", 
-        cover: "img/covers/stalker.jpg", 
+        cover: "img/covers/stalker.png", 
         rating: "9.0 / 10", 
         year: 2007, 
         genre: "Шутер / Выживание", 
