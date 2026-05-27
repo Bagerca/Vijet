@@ -5,9 +5,9 @@
 /* Изящный шрифт с засечками для ангельского стиля */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&display=swap');
 
-/* Внешние отступы: Слева даем 50px, чтобы поместилась вынесенная наружу аватарка */
+/* Внешние отступы: Даем место сверху для нимба (35px) и слева для вынесенной аватарки (45px) */
 .chat-block[data-user="to_be_ang"] {
-    margin: 25px 20px 25px 50px; 
+    margin: 35px 20px 25px 45px; 
 }
 
 /* ==============================================
@@ -23,7 +23,7 @@
     /* АСИММЕТРИЯ: Левый верхний угол острый и тянется к аватарке, остальные - мягкие */
     border-radius: 4px 30px 30px 30px !important;
     
-    padding: 18px 25px 20px 25px !important;
+    padding: 15px 25px 20px 20px !important;
     position: relative;
     min-width: 220px;
     
@@ -65,16 +65,33 @@
 }
 
 /* ==============================================
+   ШАПКА (ИМЯ, ВРЕМЯ И ИСПРАВЛЕННЫЕ ОТСТУПЫ)
+   ============================================== */
+.chat-block[data-user="to_be_ang"] .chat-header {
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3) !important;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    
+    /* ВАЖНО: Отодвигаем весь текст внутри шапки вправо, чтобы он не залезал под аватарку */
+    padding-left: 20px !important; 
+}
+
+/* ==============================================
    ПАРЯЩАЯ АВАТАРКА И НАКЛОННЫЙ НИМБ
    ============================================== */
 
 /* Полностью выносим аватарку наружу */
 .chat-block[data-user="to_be_ang"] .chat-avatar {
     position: absolute;
-    top: -16px;  /* Висит выше верхней границы */
-    left: -36px; /* Висит за левой границей бабла */
-    width: 44px !important;
-    height: 44px !important;
+    top: -24px;  /* Висит выше верхней границы */
+    left: -32px; /* Висит за левой границей бабла */
+    width: 46px !important;
+    height: 46px !important;
     border-radius: 50% !important;
     
     border: 2px solid #FFD700 !important;
@@ -85,12 +102,12 @@
     margin: 0 !important;
 }
 
-/* ЗОЛОТОЙ НИМБ (Позиционируется относительно бабла, но висит над вынесенной аватаркой) */
-.chat-block[data-user="to_be_ang"] .chat-bubble::before {
+/* ЗОЛОТОЙ НИМБ (Теперь привязан к шапке, как и аватарка, чтобы координаты идеально совпадали) */
+.chat-block[data-user="to_be_ang"] .chat-header::before {
     content: '';
     position: absolute;
-    top: -26px;  /* Выше аватарки */
-    left: -14px; /* Идеальный центр над смещенной аватаркой (-36px + 22px радиус = -14px) */
+    top: -36px;  /* Выше аватарки */
+    left: -9px;  /* Идеальный центр над аватаркой (Left -32 + половина ширины 23 = -9px) */
     transform: translateX(-50%) rotateX(60deg) rotateZ(-10deg); /* Наклон в 3D и легкий крен набок */
     
     width: 32px;
@@ -106,18 +123,8 @@
 }
 
 /* ==============================================
-   ШАПКА (ИМЯ И ВРЕМЯ)
+   ШРИФТЫ И ТЕКСТ
    ============================================== */
-.chat-block[data-user="to_be_ang"] .chat-header {
-    border-bottom: 1px solid rgba(255, 215, 0, 0.3) !important;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
-    position: relative;
-    z-index: 3;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline; /* Имя и время стоят на одной линии */
-}
 
 /* ИМЯ ПОЛЬЗОВАТЕЛЯ */
 .chat-block[data-user="to_be_ang"] .chat-user {
@@ -148,9 +155,7 @@
     font-weight: 600;
 }
 
-/* ==============================================
-   ТЕКСТ СООБЩЕНИЯ
-   ============================================== */
+/* ТЕКСТ СООБЩЕНИЯ */
 .chat-block[data-user="to_be_ang"] .chat-text {
     font-family: 'Cormorant Garamond', serif !important;
     

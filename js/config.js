@@ -77,7 +77,7 @@ window.AppConfig = {
     // ОЗВУЧКА СООБЩЕНИЙ (TTS)
     // ==========================================
     ttsEnabled: true,         
-    ttsVolume: 60,            
+    ttsVolume: 100,            
     ttsMaxLength: 150,        
 
     ttsCustomVoices: {

@@ -1,0 +1,196 @@
+/* ==========================================================
+   КАСТОМНЫЙ СТИЛЬ: darkl1us (РЕМАСТЕР: Advanced Tactical HUD)
+   ========================================================== */
+
+/* Подключаем брутальные шрифты: Трафаретный (Black Ops One) и Технический (Rajdhani) */
+@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@500;600;700&display=swap');
+
+/* Внешние отступы: убраны багованные 100% ширины, теперь бабл тянется естественно */
+.chat-block[data-user="darkl1us"] {
+    margin: 15px 20px 20px 10px; 
+    z-index: 40; 
+}
+
+/* ==============================================
+   БАЗОВЫЙ БАБЛ (ТАКТИЧЕСКАЯ БРОНЯ)
+   ============================================== */
+.chat-block[data-user="darkl1us"] .chat-bubble {
+    /* Темный оружейный металл / кевлар */
+    background-color: #0f120f !important;
+    
+    /* Сетка визора (Scanlines + Grid) */
+    background-image: 
+        linear-gradient(rgba(15, 18, 15, 0.9), rgba(10, 12, 10, 0.95)),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(68, 255, 68, 0.03) 2px, rgba(68, 255, 68, 0.03) 4px),
+        linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.01) 1px, transparent 1px) !important;
+    background-size: 100% 100%, 100% 100%, 20px 20px, 20px 20px !important;
+    
+    /* Брутальная прямоугольная форма */
+    border-radius: 0 !important;
+    border: 1px solid #283622 !important; /* Цвет темного мха */
+    border-left: 4px solid #ff5500 !important; /* Сигнальный оранжевый */
+    
+    /* Жесткая тень как от физического объекта */
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.75), inset 0 0 20px rgba(0, 0, 0, 0.8) !important;
+    
+    padding: 16px 20px !important;
+    position: relative;
+    min-width: 280px;
+    
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    
+    /* Эффект загрузки интерфейса */
+    animation: hudBootUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+}
+
+/* ПРЕДУПРЕЖДАЮЩАЯ ЛЕНТА (В правом верхнем углу, не мешает тексту) */
+.chat-block[data-user="darkl1us"] .chat-bubble::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 60px; height: 5px;
+    background: repeating-linear-gradient(
+        -45deg, 
+        #ff5500 0px, 
+        #ff5500 5px, 
+        #0f120f 5px, 
+        #0f120f 10px
+    );
+    z-index: 10;
+    border-bottom: 1px solid #283622;
+    border-left: 1px solid #283622;
+}
+
+/* ==============================================
+   ШАПКА (ТЕЛЕМЕТРИЯ)
+   ============================================== */
+.chat-block[data-user="darkl1us"] .chat-header {
+    border-bottom: 1px solid rgba(68, 255, 68, 0.15) !important; 
+    padding-bottom: 10px !important;
+    margin-bottom: 12px !important;
+    align-items: center;
+    position: relative;
+    z-index: 3;
+}
+
+/* АВАТАРКА (ПНВ + ТАКТИЧЕСКОЕ ПЕРЕКРЕСТИЕ) */
+.chat-block[data-user="darkl1us"] .chat-avatar {
+    width: 40px !important; 
+    height: 40px !important;
+    border-radius: 0 !important; 
+    
+    /* Идеальный фильтр Night Vision (Сохраняет контраст) */
+    filter: grayscale(100%) brightness(0.8) contrast(1.5) sepia(100%) hue-rotate(65deg) saturate(300%) !important;
+    
+    border: 1px solid rgba(68, 255, 68, 0.6) !important;
+    padding: 2px !important;
+    background: #000 !important;
+    
+    margin-right: 14px !important;
+    flex-shrink: 0 !important;
+    box-shadow: inset 0 0 10px #000 !important;
+}
+
+/* ИМЯ ПОЛЬЗОВАТЕЛЯ */
+.chat-block[data-user="darkl1us"] .chat-user {
+    font-family: 'Black Ops One', sans-serif !important;
+    color: #e0e8db !important; /* Светлый армейский пластик */
+    font-size: 17px !important;
+    font-weight: 400 !important;
+    
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8) !important;
+    margin-right: 12px !important;
+}
+
+/* ПРАВЫЙ БЛОК (ВЫРАВНИВАНИЕ) */
+.chat-block[data-user="darkl1us"] .chat-header-right {
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+/* БЕЙДЖ "VANGUARD" */
+.chat-block[data-user="darkl1us"] .chat-header-right::before {
+    content: 'VANGUARD';
+    font-family: 'Rajdhani', sans-serif;
+    background: #ff5500; 
+    color: #0f120f;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 5px;
+    border-radius: 2px; 
+    letter-spacing: 1.5px;
+    line-height: 1.2;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+}
+
+/* ВРЕМЯ (HUD СТИЛЬ) */
+.chat-block[data-user="darkl1us"] .chat-time {
+    font-family: 'Rajdhani', sans-serif !important;
+    color: rgba(68, 255, 68, 0.7) !important; /* Терминальный зеленый */
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    display: flex;
+    align-items: center;
+}
+
+/* МИГАЮЩАЯ НАДПИСЬ "REC" */
+.chat-block[data-user="darkl1us"] .chat-time::before {
+    content: 'REC';
+    color: #ff2a2a;
+    font-size: 10px;
+    letter-spacing: 1px;
+    margin-right: 6px;
+    text-shadow: 0 0 5px rgba(255, 42, 42, 0.5);
+    animation: recBlink 1s step-end infinite;
+}
+
+/* ==============================================
+   ТЕКСТ СООБЩЕНИЯ (Консольный вывод)
+   ============================================== */
+.chat-block[data-user="darkl1us"] .chat-text {
+    font-family: 'Rajdhani', sans-serif !important;
+    color: #b0bba6 !important; /* Приглушенный зеленый/серый текст */
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+    position: relative;
+    z-index: 3;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8) !important;
+    letter-spacing: 0.5px;
+    padding-left: 14px !important; /* Место под стрелку */
+}
+
+/* Декоративная стрелка ввода (Указывает на текст) */
+.chat-block[data-user="darkl1us"] .chat-text::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #ff5500;
+    font-weight: 700;
+    animation: arrowPulse 2s infinite alternate;
+}
+
+/* ==============================================
+   АНИМАЦИИ
+   ============================================== */
+@keyframes recBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+@keyframes arrowPulse {
+    0% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+@keyframes hudBootUp {
+    0% { transform: translateY(10px) scale(0.98); opacity: 0; filter: contrast(1.5) brightness(1.2); }
+    100% { transform: translateY(0) scale(1); opacity: 1; filter: contrast(1) brightness(1); }
+}

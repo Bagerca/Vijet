@@ -217,6 +217,18 @@ window.AppCore = {
                         });
                     }
                     break;
+                case "testarmy":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "darkl1us", 
+                            color: "#dd5500", 
+                            avatarUrl: "https://ui-avatars.com/api/?name=DL&background=1a1c19&color=dd5500",
+                            time: "00:00", 
+                            htmlText: arg || "Цель обнаружена. Запрашиваю поддержку с воздуха.", 
+                            replyData: null
+                        });
+                    }
+                    break;
                 // ===================================
 
                 case "wheel":

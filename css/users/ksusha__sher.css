@@ -1,167 +1,168 @@
 /* ==========================================================
-   КАСТОМНЫЙ СТИЛЬ: ksusha__sher (Тема: Subnautica PDA 2.0)
+   КАСТОМНЫЙ СТИЛЬ: ksusha__sher (РЕМАСТЕР: Владелец Канала / Neon Premium)
    ========================================================== */
 
-/* Технологичный sci-fi шрифт */
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap');
 
-.chat-message[data-user="ksusha__sher"] {
-    /* Многослойный фон: Подсветка угла + Сетка радара + Стеклянная база */
-    background: 
-        radial-gradient(circle at top left, rgba(0, 255, 234, 0.15) 0%, transparent 50%),
-        linear-gradient(rgba(0, 255, 234, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 255, 234, 0.04) 1px, transparent 1px),
-        linear-gradient(135deg, rgba(4, 18, 30, 0.85) 0%, rgba(9, 30, 50, 0.95) 100%) !important;
-    background-size: 100% 100%, 8px 8px, 8px 8px, 100% 100% !important;
+/* Внешние отступы: даем место для тени со всех сторон */
+.chat-block[data-user="ksusha__sher"] {
+    margin: 20px 25px 25px 15px; 
+    z-index: 50; 
+    width: 100%; 
+    max-width: calc(100% - 40px); 
+}
+
+/* ==============================================
+   БАЗОВЫЙ БАБЛ (ТЕМНОЕ СТЕКЛО + ГРАДИЕНТНАЯ РАМКА)
+   ============================================== */
+.chat-block[data-user="ksusha__sher"] .chat-bubble {
+    box-sizing: border-box !important;
+    width: 100% !important;
     
-    /* Эффект стекла (будет слегка размывать то, что находится под чатом в OBS) */
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    background-image: 
+        linear-gradient(135deg, rgba(20, 15, 25, 0.95), rgba(10, 5, 15, 0.98)),
+        linear-gradient(60deg, #FF4477, #00FF7F, #FF4477, #FF0050) !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    background-size: 100% 100%, 300% 300% !important;
     
-    /* Идеально скошенные углы */
-    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px)) !important;
+    border: 2px solid transparent !important;
+    border-radius: 16px 16px 16px 4px !important; 
     
-    border: none !important;
-    border-radius: 0 !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    
+    box-shadow: 
+        0 0 25px rgba(255, 68, 119, 0.15),
+        0 0 25px rgba(0, 255, 127, 0.15),
+        0 15px 30px rgba(0, 0, 0, 0.6) !important;
     
     padding: 16px 20px !important;
-    margin-top: 15px;
-    margin-bottom: 15px;
     position: relative;
+    overflow: hidden !important; 
     
-    animation: pdaFloat 4s ease-in-out infinite, pdaBoot 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+    animation: ownerNeonBorder 4s linear infinite !important;
+}
+
+/* ВНУТРЕННЕЕ СВЕЧЕНИЕ (Мягкие неоновые углы под стеклом) */
+.chat-block[data-user="ksusha__sher"] .chat-bubble::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: inherit;
+    
+    background: 
+        radial-gradient(circle at 0% 0%, rgba(255, 68, 119, 0.25) 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(0, 255, 127, 0.15) 0%, transparent 60%);
+    
+    pointer-events: none;
+    z-index: 1; 
 }
 
 /* ==============================================
-   НЕОНОВЫЕ ЛИНИИ КОРПУСА КПК
+   ШАПКА (ИДЕАЛЬНОЕ ВЫРАВНИВАНИЕ)
    ============================================== */
-
-/* Левая основная линия (идеально стыкуется с нижним скошенным углом) */
-.chat-message[data-user="ksusha__sher"]::before {
-    content: '';
-    position: absolute;
-    left: 0; 
-    top: 0; 
-    bottom: 15px; /* Заканчивается ровно там, где начинается скос */
-    width: 3px;
-    background: #00ffea;
-    box-shadow: 0 0 15px rgba(0, 255, 234, 0.8);
-    z-index: 5;
-}
-
-/* Верхняя линия (стыкуется с правым скошенным углом и плавно затухает) */
-.chat-message[data-user="ksusha__sher"]::after {
-    content: '';
-    position: absolute;
-    top: 0; 
-    left: 0; 
-    right: 15px; /* Заканчивается ровно перед скосом */
-    height: 2px;
-    background: linear-gradient(90deg, #00ffea 0%, transparent 100%);
-    box-shadow: 0 0 10px rgba(0, 255, 234, 0.5);
-    z-index: 5;
-}
-
-/* ==============================================
-   ШАПКА И АВАТАРКА
-   ============================================== */
-
-.chat-message[data-user="ksusha__sher"] .chat-header {
-    border-bottom: 1px solid rgba(0, 255, 234, 0.2) !important;
-    padding-bottom: 8px;
-    margin-bottom: 10px;
+.chat-block[data-user="ksusha__sher"] .chat-header {
+    display: flex !important;
+    align-items: center !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important; 
+    padding-bottom: 10px !important;
+    margin-bottom: 10px !important;
     position: relative;
+    z-index: 3; 
 }
 
-/* Бегущий луч сканера базы данных */
-.chat-message[data-user="ksusha__sher"] .chat-header::after {
-    content: '';
-    position: absolute;
-    bottom: -1px; left: 0;
-    width: 25%;
-    height: 1px;
-    background: #ffffff;
-    box-shadow: 0 0 8px #00ffea, 0 0 15px #00ffea;
-    animation: scanlineMove 3s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
-}
-
-/* Аватарка (Стиль: Модуль загрузки) */
-.chat-message[data-user="ksusha__sher"] .chat-avatar {
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 2px !important;
+/* АВАТАРКА */
+.chat-block[data-user="ksusha__sher"] .chat-avatar {
+    width: 38px !important; 
+    height: 38px !important;
+    border-radius: 10px !important;
     
-    /* Двойная технологичная рамка */
-    border: 1px solid rgba(0, 255, 234, 0.6) !important;
+    border: 2px solid #fff !important;
     padding: 2px !important;
-    background: rgba(0, 255, 234, 0.1) !important;
+    background: linear-gradient(135deg, #FF4477, #00FF7F) !important;
     
-    box-shadow: 0 0 15px rgba(0, 255, 234, 0.2) !important;
+    box-shadow: 0 0 10px rgba(255, 68, 119, 0.5) !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
     
-    /* Легкий голографический оттенок */
-    filter: sepia(0.3) hue-rotate(180deg) saturate(2) brightness(1.1) !important;
+    animation: ownerAvatarPulse 2s infinite alternate ease-in-out;
 }
 
-/* Имя пользователя */
-.chat-message[data-user="ksusha__sher"] .chat-user {
-    font-family: 'Rajdhani', sans-serif !important;
-    color: #00ffea !important;
-    font-size: 21px !important;
-    font-weight: 700 !important;
-    text-shadow: 0 0 10px rgba(0, 255, 234, 0.5) !important;
-    text-transform: uppercase;
+/* ИМЯ ПОЛЬЗОВАТЕЛЯ */
+.chat-block[data-user="ksusha__sher"] .chat-user {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 19px !important;
+    font-weight: 800 !important;
+    
+    background: linear-gradient(90deg, #FF4477 0%, #00FF7F 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    text-shadow: 0 2px 8px rgba(255, 68, 119, 0.2) !important;
+    letter-spacing: 0.5px;
+    
+    margin-right: 10px !important;
+    line-height: 1.2 !important;
+}
+
+/* ПРАВЫЙ БЛОК (ТОЛЬКО БЕЙДЖ, БЕЗ ВРЕМЕНИ) */
+.chat-block[data-user="ksusha__sher"] .chat-header-right {
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+}
+
+/* БЕЙДЖ "OWNER" */
+.chat-block[data-user="ksusha__sher"] .chat-header-right::before {
+    content: 'OWNER';
+    font-family: 'Outfit', sans-serif;
+    background: #FF4477;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 3px 6px;
+    border-radius: 6px;
     letter-spacing: 1.5px;
+    box-shadow: 0 2px 8px rgba(255, 68, 119, 0.5);
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Значок Alterra перед ником */
-.chat-message[data-user="ksusha__sher"] .chat-user::before {
-    content: '▲';
-    font-size: 13px;
-    color: #00ffea;
-    margin-right: 8px;
-    vertical-align: 2px;
-}
-
-/* Время */
-.chat-message[data-user="ksusha__sher"] .chat-time {
-    font-family: 'Rajdhani', sans-serif !important;
-    color: rgba(0, 255, 234, 0.5) !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
+/* ПОЛНОСТЬЮ ВЫРЕЗАЕМ ВРЕМЯ ИМЕННО ИЗ ЭТОГО БАБЛА */
+.chat-block[data-user="ksusha__sher"] .chat-time {
+    display: none !important;
 }
 
 /* ==============================================
    ТЕКСТ СООБЩЕНИЯ
    ============================================== */
-.chat-message[data-user="ksusha__sher"] .chat-text {
-    font-family: 'Rajdhani', sans-serif !important;
-    
-    /* Не чисто белый, а с оттенком интерфейса */
-    color: #a9e0dd !important; 
-    
-    font-size: 17px !important;
+.chat-block[data-user="ksusha__sher"] .chat-text {
+    font-family: 'Outfit', sans-serif !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
     font-weight: 500 !important;
     line-height: 1.4 !important;
-    
-    /* Легкое свечение экрана */
-    text-shadow: 0 0 4px rgba(0, 255, 234, 0.3) !important;
+    position: relative;
+    z-index: 3;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+    letter-spacing: 0.3px;
+    word-break: break-word !important; 
 }
 
 /* ==============================================
    АНИМАЦИИ
    ============================================== */
-@keyframes pdaBoot {
-    0% { transform: perspective(500px) rotateX(15deg) translateY(20px); opacity: 0; filter: blur(5px); }
-    100% { transform: perspective(500px) rotateX(0) translateY(0); opacity: 1; filter: blur(0); }
+@keyframes ownerNeonBorder {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
-@keyframes pdaFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-}
-
-@keyframes scanlineMove {
-    0% { left: 0; width: 10%; opacity: 0.8; }
-    50% { width: 40%; opacity: 1; }
-    100% { left: 75%; width: 10%; opacity: 0.8; }
+@keyframes ownerAvatarPulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 68, 119, 0.4); }
+    100% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 68, 119, 0.8), 0 0 10px rgba(0, 255, 127, 0.4); }
 }
