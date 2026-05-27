@@ -132,7 +132,9 @@ window.AppCore = {
                     if (hasPermission) {
                         if (argLow === "core") {
                             console.log("🔄 [CORE] Принудительная перезагрузка ЯДРА по команде из чата!");
-                            window.location.reload();
+                            const coreUrl = new URL(window.location.href);
+                            coreUrl.searchParams.set('nocache', Date.now());
+                            window.location.href = coreUrl.toString();
                         } else {
                             console.log("🔄 [CORE] Отправлен сигнал на перезагрузку ВИЗУАЛЬНОГО СЛОЯ...");
                             window.AppEvents.emit('FORCE_RELOAD_VISUAL');
@@ -210,7 +212,7 @@ window.AppCore = {
                     break;
                 case "tts":
                     if (hasPermission && message !== "") {
-                        if (argLow === "stop" || argLow === "skip") window.AppEvents.emit('TTS_CMD', { cmd: 'stop' }); 
+                        if (argLow === "stop" || argLow === "skip") window.AppEvents.emit('TTS_CMD', { stop: true }); 
                         else window.AppEvents.emit('TTS_ADD', { user, text: message });
                     }
                     break;
