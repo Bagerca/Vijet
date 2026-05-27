@@ -84,5 +84,14 @@ window.GamesDatabase = {
         title: "Atomic Heart", cover: "img/covers/atomic_heart.jpg",
         rating: "8.5 / 10", year: 2023, genre: "Шутер / Экшен",
         developer: "Mundfish", platform: "PC"
+    },
+    "stalker": {
+        title: "S.T.A.L.K.E.R.: Тень Чернобыля", 
+        cover: "img/covers/stalker.jpg", 
+        rating: "9.0 / 10", 
+        year: 2007, 
+        genre: "Шутер / Выживание", 
+        developer: "GSC Game World", 
+        platform: "PC" 
     }
 };
