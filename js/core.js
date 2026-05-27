@@ -167,11 +167,53 @@ window.AppCore = {
                         });
                     }
                     break;
+                    
+                // === ТЕСТЫ КАСТОМНЫХ ПРОФИЛЕЙ (USERS CSS) ===
                 case "testhk":
                     if (hasPermission) {
                         window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
                             user: "bagercaa", color: "#8bb9d2", avatarUrl: "https://ui-avatars.com/api/?name=bg&background=10141e&color=8bb9d2",
                             time: "00:00", htmlText: arg || "Высшее существо, эти слова для тебя одного...", replyData: null
+                        });
+                    }
+                    break;
+                case "testmc":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "kiriika1", color: "#5ea936", avatarUrl: "https://ui-avatars.com/api/?name=MC&background=744d32&color=fff",
+                            time: "00:00", htmlText: arg || "Пшшш... крипер сзади!", replyData: null
+                        });
+                    }
+                    break;
+                case "testangel":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "to_be_ang", color: "#FFD700", avatarUrl: "https://ui-avatars.com/api/?name=ANG&background=fff&color=FFD700",
+                            time: "00:00", htmlText: arg || "Свет укажет нам путь...", replyData: null
+                        });
+                    }
+                    break;
+                case "testbendy":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "dragonsmaddison", color: "#13100c", avatarUrl: "https://ui-avatars.com/api/?name=DM&background=dfca96&color=13100c",
+                            time: "00:00", htmlText: arg || "Чернила текут рекой в этой старой студии...", replyData: null
+                        });
+                    }
+                    break;
+                case "testhacker":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "tetlabot", color: "#00ff41", avatarUrl: "https://ui-avatars.com/api/?name=SYS&background=000&color=00ff41",
+                            time: "00:00", htmlText: arg || "System breach detected. Firewall disabled.", replyData: null
+                        });
+                    }
+                    break;
+                case "testpda":
+                    if (hasPermission) {
+                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+                            user: "ksusha__sher", color: "#00ffea", avatarUrl: "https://ui-avatars.com/api/?name=PDA&background=091e32&color=00ffea",
+                            time: "00:00", htmlText: arg || "Внимание: Обнаружены формы жизни класса Левиафан.", replyData: null
                         });
                     }
                     break;
