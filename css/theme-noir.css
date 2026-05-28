@@ -1,0 +1,420 @@
+/* ==========================================================
+   ГЛОБАЛЬНАЯ ТЕМА: SPIDER-NOIR (!протокол нуар)
+   Стиль: 1930s, Нуар, Комикс, Детектив, Газетная вырезка
+   ========================================================== */
+
+/* Подключаем шрифты: Газетный заголовок (Bebas Neue) и Печатная машинка (Special Elite) */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&display=swap');
+
+/* Глобальные переменные темы для удобства */
+body.theme-noir {
+    --n-bg: #121214;        /* Чернила (темно-серый) */
+    --n-paper: #f4f1ea;     /* Старая бумага */
+    --n-red: #9e0000;       /* Кроваво-красный акцент */
+    --n-border: 3px solid #121214; /* Жесткая комиксная обводка */
+    --n-shadow: 6px 6px 0px #121214; /* Жесткая offset-тень */
+}
+
+/* ==============================================
+   1. АТМОСФЕРА И ФОН (Ночной город, Дождь, Растр)
+   ============================================== */
+body.theme-noir.scene-chatting,
+body.theme-noir.scene-starting,
+body.theme-noir.scene-ending {
+    background: var(--n-bg) !important;
+}
+
+body.theme-noir.scene-chatting::before,
+body.theme-noir.scene-starting::before,
+body.theme-noir.scene-ending::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 2px, transparent 2px);
+    background-size: 16px 16px;
+    z-index: -999;
+}
+
+body.theme-noir.scene-chatting::after,
+body.theme-noir.scene-starting::after,
+body.theme-noir.scene-ending::after {
+    content: '';
+    position: fixed;
+    top: -100%; left: -100%; width: 300%; height: 300%;
+    background-image: 
+        repeating-linear-gradient(15deg, transparent, transparent 20px, rgba(255,255,255,0.05) 20px, rgba(255,255,255,0.05) 21px),
+        repeating-linear-gradient(10deg, transparent, transparent 35px, rgba(255,255,255,0.03) 35px, rgba(255,255,255,0.03) 37px);
+    z-index: -998;
+    pointer-events: none;
+    animation: noirRain 0.6s linear infinite;
+}
+
+@keyframes noirRain {
+    0% { transform: translateY(0) translateX(0); }
+    100% { transform: translateY(100vh) translateX(-20vw); }
+}
+
+/* ==============================================
+   2. СЦЕНЫ НАЧАЛА И КОНЦА (Газета "Daily Bugle")
+   ============================================== */
+body.theme-noir .starting-glass-card, 
+body.theme-noir .ending-glass-card {
+    background: var(--n-paper) !important;
+    border: var(--n-border) !important;
+    border-radius: 0 !important; 
+    box-shadow: 20px 20px 0 var(--n-bg) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+body.theme-noir .starting-title, 
+body.theme-noir .ending-title {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 100px !important;
+    color: var(--n-bg) !important;
+    letter-spacing: 2px !important;
+    text-shadow: 4px 4px 0 var(--n-paper), 8px 8px 0 var(--n-red) !important;
+    line-height: 0.9 !important;
+}
+
+body.theme-noir .starting-subtitle, 
+body.theme-noir .ending-subtitle {
+    font-family: 'Special Elite', monospace !important;
+    color: var(--n-bg) !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    border-top: 2px dashed var(--n-bg);
+    padding-top: 15px;
+}
+
+body.theme-noir .status-dot, 
+body.theme-noir .status-dot-offline {
+    background-color: var(--n-red) !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.2) !important;
+    animation: none !important; 
+}
+
+/* ==============================================
+   3. РАМКА ВЕБКАМЕРЫ (Панель комикса / Досье)
+   ============================================== */
+body.theme-noir #webcam-frame {
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 15px 15px 0 var(--n-bg), inset 0 0 0 6px var(--n-paper) !important;
+}
+
+body.theme-noir #webcam-frame::before { display: none !important; }
+
+body.theme-noir #webcam-frame::after {
+    content: 'EVIDENCE 01';
+    position: absolute;
+    bottom: -15px; right: -15px;
+    background: var(--n-bg);
+    color: var(--n-paper);
+    font-family: 'Special Elite', monospace;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 2px solid var(--n-paper);
+    z-index: 10;
+}
+
+/* ==============================================
+   4. ЧАТ И СООБЩЕНИЯ (Пузыри комиксов)
+   ============================================== */
+body.theme-noir.scene-chatting #chat-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-mask-image: none !important;
+}
+
+body.theme-noir .chat-block:not([data-user="bagercaa"]):not([data-user="kiriika1"]):not([data-user="to_be_ang"]):not([data-user="dragonsmaddison"]):not([data-user="tetlabot"]):not([data-user="ksusha__sher"]):not([data-user="darkl1us"]) .chat-bubble {
+    background: var(--n-paper) !important;
+    border: var(--n-border) !important;
+    border-radius: 12px 12px 12px 0 !important;
+    box-shadow: var(--n-shadow) !important;
+    color: var(--n-bg) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+body.theme-noir .chat-block:not([data-user="bagercaa"]):not([data-user="kiriika1"]):not([data-user="to_be_ang"]):not([data-user="dragonsmaddison"]):not([data-user="tetlabot"]):not([data-user="ksusha__sher"]):not([data-user="darkl1us"]) .chat-text {
+    font-family: 'Special Elite', monospace !important;
+    font-weight: bold !important;
+    color: var(--n-bg) !important;
+}
+
+body.theme-noir .chat-block:not([data-user="bagercaa"]):not([data-user="kiriika1"]):not([data-user="to_be_ang"]):not([data-user="dragonsmaddison"]):not([data-user="tetlabot"]):not([data-user="ksusha__sher"]):not([data-user="darkl1us"]) .chat-user {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 20px !important;
+    letter-spacing: 1px;
+    text-shadow: none !important;
+}
+
+body.theme-noir .chat-block:not([data-user="bagercaa"]):not([data-user="kiriika1"]):not([data-user="to_be_ang"]):not([data-user="dragonsmaddison"]):not([data-user="tetlabot"]):not([data-user="ksusha__sher"]):not([data-user="darkl1us"]) .chat-header {
+    border-bottom: 2px dashed rgba(0,0,0,0.2) !important;
+}
+
+body.theme-noir .chat-badge {
+    background: var(--n-red) !important;
+    color: var(--n-paper) !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-family: 'Special Elite', monospace !important;
+    box-shadow: 2px 2px 0 var(--n-bg) !important;
+}
+
+/* ==============================================
+   5. ПЛАШКА МЕДИА И YOUTUBE (Секретные материалы)
+   ============================================== */
+body.theme-noir #media-info-container {
+    background: var(--n-paper) !important;
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 12px 12px 0 var(--n-bg) !important;
+    backdrop-filter: none !important;
+}
+
+body.theme-noir #mi-title { 
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 32px !important;
+    color: var(--n-bg) !important; 
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.1) !important;
+}
+
+body.theme-noir .mi-header-badge { color: var(--n-red) !important; font-family: 'Special Elite', monospace !important; }
+body.theme-noir .mi-tag { background: var(--n-bg) !important; color: var(--n-paper) !important; border-radius: 0 !important; font-family: 'Special Elite', monospace !important; }
+body.theme-noir .mi-detail-label { color: var(--n-red) !important; font-family: 'Special Elite', monospace !important; }
+body.theme-noir .mi-detail-value { color: var(--n-bg) !important; font-family: 'Special Elite', monospace !important;}
+
+body.theme-noir .mi-poster-breakout {
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    filter: grayscale(100%) contrast(1.5) sepia(20%) !important;
+}
+body.theme-noir .mi-poster-breakout::after {
+    content: '';
+    position: absolute;
+    top: -10px; left: 50%;
+    transform: translateX(-50%) rotate(-5deg);
+    width: 60px; height: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    z-index: 10;
+    pointer-events: none;
+}
+
+body.theme-noir #player-wrapper {
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 10px 10px 0 var(--n-bg) !important;
+    filter: grayscale(100%) contrast(1.2);
+}
+body.theme-noir #info-bar {
+    background: var(--n-paper) !important;
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0 var(--n-bg) !important;
+}
+body.theme-noir #requester-name { font-family: 'Special Elite', monospace !important; color: var(--n-bg) !important;}
+body.theme-noir #yt-progress-bar { background: var(--n-red) !important; box-shadow: none !important;}
+
+
+/* ==============================================
+   6. ИСПРАВЛЕННЫЕ ВИДЖЕТЫ: ЦЕЛЬ, СТРОКА, АЛЕРТЫ
+   ============================================== */
+body.theme-noir #goal-container {
+    background: var(--n-paper) !important;
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 8px 8px 0 var(--n-bg) !important;
+}
+body.theme-noir #goal-bar-bg { border-radius: 0 !important; background: transparent !important;}
+
+body.theme-noir #goal-bar-fill {
+    border-radius: 0 !important;
+    background: repeating-linear-gradient(45deg, var(--n-red) 0px, var(--n-red) 10px, #7a0000 10px, #7a0000 20px) !important;
+    box-shadow: none !important;
+}
+
+/* ИСПРАВЛЕНИЕ ТЕКСТА ШКАЛЫ ФОЛЛОВЕРОВ */
+body.theme-noir #goal-text { 
+    font-family: 'Bebas Neue', sans-serif !important; 
+    font-size: 26px !important; 
+    letter-spacing: 2px !important; 
+    color: var(--n-paper) !important; 
+    /* Убрали mix-blend-mode. Делаем мощную черную обводку, чтобы читалось на любом фоне */
+    mix-blend-mode: normal !important;
+    text-shadow: 
+        2px 2px 0 var(--n-bg), 
+       -2px -2px 0 var(--n-bg), 
+        2px -2px 0 var(--n-bg), 
+       -2px 2px 0 var(--n-bg),
+        4px 4px 0 rgba(0,0,0,0.5) !important;
+}
+body.theme-noir #goal-title, body.theme-noir #goal-count { 
+    color: var(--n-paper) !important; 
+}
+
+
+body.theme-noir .alert-card {
+    background: var(--n-paper) !important;
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 10px 10px 0 var(--n-bg) !important;
+    transform: rotate(-2deg); 
+}
+body.theme-noir .alert-title { font-family: 'Bebas Neue', sans-serif !important; font-size: 24px !important; color: var(--n-bg) !important; letter-spacing: 1px;}
+body.theme-noir .alert-message { font-family: 'Special Elite', monospace !important; color: var(--n-red) !important; font-size: 16px !important;}
+body.theme-noir .alert-icon-wrap { border-radius: 0 !important; border: 2px solid var(--n-bg) !important; background: transparent !important; }
+
+body.theme-noir #ticker-container {
+    background: var(--n-bg) !important;
+    border: 3px solid var(--n-paper) !important;
+    border-radius: 0 !important;
+    box-shadow: 8px 8px 0 var(--n-red) !important;
+}
+body.theme-noir #ticker-text { font-family: 'Special Elite', monospace !important; color: var(--n-paper) !important; font-size: 18px !important;}
+
+
+/* ==============================================
+   7. НОВЫЕ СТИЛИ ДЛЯ ЗАБЫТЫХ ВИДЖЕТОВ (СМЕРТИ, СОЦСЕТИ, SHOUTOUT)
+   ============================================== */
+
+/* СЧЕТЧИК СМЕРТЕЙ */
+body.theme-noir .deaths-title {
+    font-family: 'Special Elite', monospace !important;
+    color: var(--n-paper) !important;
+    background: var(--n-bg) !important;
+    border: 2px solid var(--n-paper) !important;
+    padding: 2px 8px !important;
+    letter-spacing: 2px !important;
+    text-shadow: none !important;
+    box-shadow: 4px 4px 0 var(--n-red) !important;
+}
+body.theme-noir #deaths-count {
+    font-family: 'Bebas Neue', sans-serif !important;
+    color: var(--n-red) !important;
+    text-shadow: 6px 6px 0 var(--n-bg) !important;
+    filter: none !important; /* Убираем свечение */
+}
+
+/* СОЦСЕТИ */
+body.theme-noir #social-rotator {
+    background: var(--n-paper) !important;
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 8px 8px 0 var(--n-bg) !important;
+    backdrop-filter: none !important;
+}
+body.theme-noir .social-icon { color: var(--n-bg) !important; } /* Черные иконки вместо цветных */
+body.theme-noir .social-title {
+    font-family: 'Special Elite', monospace !important;
+    color: var(--n-red) !important;
+    font-weight: bold !important;
+}
+body.theme-noir .social-handle {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 24px !important;
+    color: var(--n-bg) !important;
+    letter-spacing: 1px !important;
+}
+
+/* SHOUTOUT КАРТОЧКА РЕКЛАМЫ (!so) */
+body.theme-noir .so-card {
+    background: var(--n-paper) !important;
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 20px 20px 0 var(--n-bg) !important;
+    backdrop-filter: none !important;
+}
+body.theme-noir .so-shine { display: none !important; } /* Убираем блик стекла */
+body.theme-noir .so-avatar-wrapper {
+    background: var(--n-bg) !important;
+    border-radius: 0 !important;
+    box-shadow: 8px 8px 0 var(--n-red) !important;
+    padding: 4px !important;
+}
+body.theme-noir .so-avatar {
+    border-radius: 0 !important;
+    filter: grayscale(100%) contrast(1.2) sepia(10%) !important; /* ЧБ фотка */
+}
+body.theme-noir .so-avatar-ring { display: none !important; } /* Убираем неон */
+
+body.theme-noir .so-badge {
+    font-family: 'Special Elite', monospace !important;
+    color: var(--n-bg) !important;
+}
+body.theme-noir .so-dot {
+    background: var(--n-red) !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 10px !important; height: 10px !important;
+    animation: none !important;
+}
+body.theme-noir .so-name {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 56px !important;
+    letter-spacing: 2px !important;
+    background-image: none !important; /* Перебиваем градиент из JS */
+    -webkit-text-fill-color: var(--n-bg) !important;
+    text-shadow: 4px 4px 0 var(--n-red) !important;
+    filter: none !important;
+}
+body.theme-noir .so-meta-item {
+    font-family: 'Special Elite', monospace !important;
+    background: transparent !important;
+    border: 2px solid var(--n-bg) !important;
+    border-radius: 0 !important;
+    color: var(--n-bg) !important;
+}
+body.theme-noir .so-url {
+    font-family: 'Special Elite', monospace !important;
+    color: var(--n-bg) !important;
+}
+body.theme-noir .so-url span {
+    color: var(--n-paper) !important;
+    background: var(--n-red) !important;
+    padding: 0 6px !important;
+}
+
+
+/* ==============================================
+   8. ПРИВАТНЫЙ РЕЖИМ (!blur) - "CENSORED"
+   ============================================== */
+body.theme-noir #screen-blur-overlay.blur-active {
+    background: repeating-linear-gradient(0deg, #121214 0px, #121214 4px, #1a1a1c 4px, #1a1a1c 8px) !important;
+}
+body.theme-noir .blur-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+body.theme-noir .blur-icon-wrapper { display: none !important; }
+body.theme-noir .blur-text-wrapper {
+    border: 8px solid var(--n-red);
+    padding: 20px 40px;
+    transform: rotate(-15deg);
+    opacity: 0.8;
+}
+body.theme-noir .blur-title {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 80px !important;
+    color: var(--n-red) !important;
+    text-shadow: none !important;
+    letter-spacing: 15px !important;
+}
+body.theme-noir .blur-subtitle { display: none !important; }
+
+/* ==============================================
+   9. ПИТОМЕЦ (Нуарная Лиса)
+   ============================================== */
+body.theme-noir #pet-container {
+    filter: grayscale(100%) contrast(150%) brightness(80%) drop-shadow(5px 5px 0px rgba(0,0,0,0.8)) !important;
+}
+body.theme-noir .part-heart,
+body.theme-noir .part-zzz {
+    color: var(--n-red) !important;
+    filter: drop-shadow(2px 2px 0 #121214) !important;
+}

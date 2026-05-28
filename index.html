@@ -31,18 +31,12 @@
         
         <div id="chat-container"><div id="chat-messages"></div></div>
         
-        <!-- =========================================================
-             УНИВЕРСАЛЬНАЯ МУЛЬТИМЕДИЙНАЯ КАРТОЧКА (ИГРЫ / YT / КИНО)
-             ========================================================= -->
         <div id="media-info-container" class="hidden">
             <div class="mi-poster-breakout">
                 <img id="mi-cover" src="" alt="Cover" class="hidden">
-                
-                <!-- Иконка Play (только для YouTube) -->
                 <div id="mi-yt-play" style="display: none;">
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </div>
-
                 <div id="mi-no-media">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     <div class="mi-no-text">NO SIGNAL</div>
@@ -50,22 +44,14 @@
             </div>
             <div class="mi-content">
                 <div class="mi-header-badge" id="mi-type-badge">СЕЙЧАС НА СТРИМЕ</div>
-                
                 <div class="mi-title-wrapper" id="mi-title-wrapper">
                     <div class="mi-title" id="mi-title">Неизвестно</div>
                 </div>
-                
-                <div class="mi-tags" id="mi-tags-container">
-                    <!-- Теги генерируются через JS -->
-                </div>
-                
-                <div class="mi-details-grid" id="mi-details-grid">
-                    <!-- Инфо поля генерируются через JS -->
-                </div>
+                <div class="mi-tags" id="mi-tags-container"></div>
+                <div class="mi-details-grid" id="mi-details-grid"></div>
             </div>
         </div>
 
-        <!-- РАМКА ВЕБКИ И ПИТОМЕЦ -->
         <div id="webcam-container">
             <div id="pet-container" class="state-idle"><div class="tail-pos joint"><div class="tail-anim"><div class="fox-part tail-main"><div class="fox-part tail-tip"></div></div></div></div><div class="body-pos joint"><div class="body-anim"><div class="head-shadow"></div><div class="fox-part leg leg-l"></div><div class="fox-part leg leg-r"></div><div class="fox-part torso"><div class="fox-part chest"></div></div></div></div><div class="head-pos joint"><div class="head-anim"><div class="fox-part ear ear-l joint"><div class="ear-in"></div></div><div class="fox-part ear ear-r joint"><div class="ear-in"></div></div><div class="fox-part face"><div class="fox-part cheek cheek-l"></div><div class="fox-part cheek cheek-r"></div><div class="jaw-pos joint"><div class="tongue joint"></div></div><div class="snout-pos"><div class="nose"></div></div><div class="eyebrow eyebrow-l joint"></div><div class="eyebrow eyebrow-r joint"></div><div class="eye eye-l joint"></div><div class="eye eye-r joint"></div></div></div></div><div class="body-pos arms-layer joint"><div class="body-anim"><div class="arm-pos arm-l joint"><div class="arm-part"><div class="arm-paw"></div></div></div><div class="arm-pos arm-r joint"><div class="arm-part"><div class="arm-paw"></div></div><div class="item-cookie"></div></div></div></div></div>
             <div id="webcam-frame"></div>
@@ -81,7 +67,6 @@
     <script>
         const cacheBuster = new URLSearchParams(window.location.search).get('nocache') || Date.now();
         
-        // 1. ЗАГРУЖАЕМ ВСЕ СТИЛИ НАПРЯМУЮ (БЕЗ @import)
         const myStyles = [
             "css/base.css", "css/blur.css", "css/pet.css", "css/tts.css", "css/emotes.css",
             "css/chat.css", 
@@ -91,13 +76,13 @@
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
             "css/mediainfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
             "css/theme-circus.css",
-            "css/modes.css" // modes.css всегда должен быть последним!
+            "css/theme-noir.css", // <---- НУАР ПОДКЛЮЧЕН
+            "css/modes.css" 
         ];
         myStyles.forEach(href => {
             document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`);
         });
         
-        // 2. ЗАГРУЖАЕМ ВСЕ НАШИ СКРИПТЫ
         const myScripts = [
             "js/config.js", "js/games-db.js", "js/event-bus.js",
             "js/particles.js", "js/emotes.js", "js/pet.js", "js/chat.js",
@@ -169,6 +154,7 @@
         // --- УПРАВЛЕНИЕ ГЛОБАЛЬНЫМИ ТЕМАМИ ---
         const applyTheme = (themeName) => {
             document.body.classList.remove('theme-circus'); 
+            document.body.classList.remove('theme-noir'); // <---- ОЧИЩАЕМ НУАР
             
             if (themeName && themeName !== 'default') {
                 document.body.classList.add(`theme-${themeName}`);

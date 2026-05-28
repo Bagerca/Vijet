@@ -142,3 +142,189 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
 }
+
+/* =========================================================================
+   МОДИФИКАТОРЫ ТЕРМИНАЛА (REPLY, HIGHLIGHT, MENTION, CENSURE)
+   ========================================================================= */
+
+/* ----------------------------------------------
+   1. ОТВЕТ (REPLY) - "Трассировка логов"
+   ---------------------------------------------- */
+.chat-block[data-user="tetlabot"] .chat-reply {
+    background: transparent !important;
+    border: 1px dashed rgba(0, 255, 65, 0.3) !important;
+    border-radius: 0 !important;
+    padding: 6px 10px !important;
+    margin-bottom: 8px !important;
+}
+
+/* Убиваем дефолтную боковую палку и иконку стрелки */
+.chat-block[data-user="tetlabot"] .chat-reply::before,
+.chat-block[data-user="tetlabot"] .reply-icon { 
+    display: none !important; 
+}
+
+.chat-block[data-user="tetlabot"] .chat-reply-user {
+    color: #008f11 !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 11px !important;
+    letter-spacing: 1px !important;
+    text-transform: lowercase;
+}
+
+/* Имитация древовидной структуры консоли */
+.chat-block[data-user="tetlabot"] .chat-reply-user::before {
+    content: '|-- fetch_log: ';
+    color: rgba(0, 255, 65, 0.5);
+}
+
+.chat-block[data-user="tetlabot"] .chat-reply-text {
+    color: rgba(179, 255, 179, 0.4) !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-style: normal !important;
+    font-size: 13px !important;
+}
+.chat-block[data-user="tetlabot"] .chat-reply-text::before { content: '// '; }
+
+/* ----------------------------------------------
+   2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "Янтарный терминал / SUDO"
+   ---------------------------------------------- */
+/* Меняем зеленую матрицу на тревожный янтарный цвет */
+.chat-block.is-highlighted[data-user="tetlabot"] .chat-bubble {
+    border-color: #ffb000 !important;
+    box-shadow: 6px 6px 0 rgba(255, 176, 0, 0.15), inset 0 0 20px rgba(255, 176, 0, 0.05) !important;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 176, 0, 0.05) 2px, rgba(255, 176, 0, 0.05) 4px) !important;
+}
+
+.chat-block.is-highlighted[data-user="tetlabot"] .chat-user,
+.chat-block.is-highlighted[data-user="tetlabot"] .chat-text::after,
+.chat-block.is-highlighted[data-user="tetlabot"] .chat-text::before {
+    color: #ffb000 !important;
+    text-shadow: 0 0 5px rgba(255, 176, 0, 0.5) !important;
+}
+
+/* Перекрашиваем аватарку в янтарь */
+.chat-block.is-highlighted[data-user="tetlabot"] .chat-avatar {
+    border-color: #ffb000 !important;
+    filter: grayscale(100%) sepia(100%) hue-rotate(5deg) saturate(500%) contrast(1.5) brightness(0.9) !important;
+    box-shadow: 0 0 8px rgba(255, 176, 0, 0.3) !important;
+}
+
+/* Терминальный бейдж */
+.chat-block.is-highlighted[data-user="tetlabot"] .chat-badge-highlight {
+    background: #ffb000 !important;
+    color: #050a05 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 11px !important;
+    padding: 2px 8px !important;
+}
+.chat-block.is-highlighted[data-user="tetlabot"] .badge-star { display: none !important; }
+.chat-block.is-highlighted[data-user="tetlabot"] .chat-badge-highlight::before { content: 'SUDO_EXEC'; font-weight: bold; }
+
+/* ----------------------------------------------
+   3. ПИНГ СТРИМЕРА (MENTION) - "Захват цели"
+   ---------------------------------------------- */
+.chat-block.is-mention[data-user="tetlabot"] .chat-bubble {
+    border-right: 4px solid #ff0041 !important; /* Системный красный */
+}
+
+/* Скрываем дефолтный колокольчик */
+.chat-block.is-mention[data-user="tetlabot"] .chat-ping-bell { display: none !important; }
+
+.chat-block.is-mention[data-user="tetlabot"] .chat-ping {
+    background: #ff0041 !important;
+    color: #050a05 !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    border-radius: 0 !important;
+    border: none !important;
+    padding: 0 4px !important;
+    font-weight: bold !important;
+    text-shadow: none !important;
+}
+.chat-block.is-mention[data-user="tetlabot"] .chat-ping::before { content: '[TARGET: '; opacity: 0.7; }
+.chat-block.is-mention[data-user="tetlabot"] .chat-ping::after { content: ']'; opacity: 0.7; }
+
+/* ----------------------------------------------
+   4. ЦЕНЗУРА (МАТ) - "Брандмауэр / Поврежденные данные"
+   ---------------------------------------------- */
+.chat-block[data-user="tetlabot"] .censured-badge {
+    background: #050a05 !important;
+    color: #ff0041 !important;
+    border: 1px solid #ff0041 !important;
+    border-radius: 0 !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    box-shadow: 0 0 5px rgba(255, 0, 65, 0.5) !important;
+}
+.chat-block[data-user="tetlabot"] .censured-badge::before { content: 'ERR_'; }
+
+.chat-block[data-user="tetlabot"] .censured-message {
+    background: repeating-linear-gradient(-45deg, rgba(255, 0, 65, 0.1) 0, rgba(255, 0, 65, 0.1) 10px, transparent 10px, transparent 20px) !important;
+    background-color: #050a05 !important;
+    border: 1px solid #ff0041 !important;
+    color: #ff0041 !important;
+    border-radius: 0 !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    text-shadow: 0 0 5px rgba(255, 0, 65, 0.5) !important;
+    letter-spacing: 2px !important;
+}
+.chat-block[data-user="tetlabot"] .censured-message::before { content: '[DATA_CORRUPTED] '; }
+
+/* =========================================================================
+   5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Вокализатор Системы"
+   ========================================================================= */
+
+#tts-container[data-user="tetlabot"] {
+    background-color: #050a05 !important;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.08) 2px, rgba(0, 255, 65, 0.08) 4px) !important;
+    border: 1px solid #00ff41 !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0 rgba(0, 255, 65, 0.15) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Убиваем эмодзи микрофона и делаем ASCII тег */
+#tts-container[data-user="tetlabot"] .tts-icon {
+    font-size: 0 !important; /* Прячем эмодзи */
+    text-shadow: none !important;
+    filter: none !important;
+}
+#tts-container[data-user="tetlabot"] .tts-icon::before {
+    content: '[VOCAL_MOD]';
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: #00ff41;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+    font-weight: bold;
+}
+
+/* Название ивента */
+#tts-container[data-user="tetlabot"] .tts-title {
+    font-family: 'Share Tech Mono', monospace !important;
+    color: #008f11 !important;
+    font-size: 10px !important;
+    letter-spacing: 0px !important;
+}
+#tts-container[data-user="tetlabot"] .tts-title::after { content: ' .exe'; }
+
+/* Имя пользователя */
+#tts-container[data-user="tetlabot"] .tts-user {
+    font-family: 'Share Tech Mono', monospace !important;
+    color: #b3ffb3 !important;
+    text-transform: lowercase;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.4) !important;
+}
+
+/* Жесткий цифровой эквалайзер */
+#tts-container[data-user="tetlabot"] .tts-bar {
+    background: #00ff41 !important;
+    border-radius: 0 !important;
+    width: 6px !important;
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.4) !important;
+}
+#tts-container[data-user="tetlabot"] .tts-bar.active-spike {
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.9) !important;
+    background: #fff !important; /* Яркие всплески белые */
+}

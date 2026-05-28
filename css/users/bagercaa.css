@@ -2,12 +2,25 @@
    КАСТОМНЫЙ СТИЛЬ: bagercaa (РЕМАСТЕР: Hollow Knight)
    ========================================================== */
 
-/* Подключаем Cinzel для имени (стиль Боссов) и Cormorant Garamond для лора (стиль табличек) */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap');
 
 /* Внешние отступы (обнулены боковые) */
 .chat-block[data-user="bagercaa"] {
-    margin: 25px 0 15px 0; 
+    margin: 20px 0 15px 0; 
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==============================================
+   БЛОК МЕТА-ДАННЫХ (Реплаи и Бейджи над баблом)
+   ============================================== */
+/* Чтобы мета-блок не конфликтовал с выпирающей аватаркой, даем ему нижний отступ */
+.chat-block[data-user="bagercaa"] .chat-meta {
+    margin-bottom: 25px; /* Отодвигает бабл и аватарку вниз */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрируем всё над баблом */
+    z-index: 20;
 }
 
 /* ==============================================
@@ -22,9 +35,8 @@
     -webkit-backdrop-filter: none;
     overflow: visible !important; 
     
-    /* Отступы внутри. Снизу оставили место только под завитушку */
     padding: 30px 20px 30px 20px; 
-    min-width: 240px; 
+    min-width: 260px; 
     position: relative;
     
     animation: soulBreathe 4s infinite alternate ease-in-out;
@@ -55,10 +67,8 @@
     z-index: 1;
 }
 
-/* Располагаем узоры строго внутри границ бабла */
 .chat-block[data-user="bagercaa"] .chat-bubble::before { top: 6px; }
 .chat-block[data-user="bagercaa"] .chat-bubble::after { bottom: 6px; transform: translateX(-50%) rotate(180deg); }
-
 
 /* ==============================================
    АВАТАРКА (АМУЛЕТ) И ШАПКА
@@ -67,14 +77,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Убрали сплошную линию, теперь она будет с разрывом вокруг времени */
     border-bottom: none !important; 
     padding-bottom: 0px;
     margin-bottom: 12px;
     position: static; 
 }
 
-/* Аватарка в центре верхней грани */
 .chat-block[data-user="bagercaa"] .chat-avatar {
     position: absolute;
     top: -24px; 
@@ -90,9 +98,9 @@
     filter: grayscale(70%) sepia(30%) hue-rotate(180deg) brightness(1.1) contrast(1.2);
     z-index: 10;
     margin: 0;
+    transition: all 0.5s ease;
 }
 
-/* Имя пользователя */
 .chat-block[data-user="bagercaa"] .chat-user {
     color: #ffffff !important;
     font-family: 'Cinzel', serif;
@@ -104,29 +112,26 @@
     margin-top: 6px; 
 }
 
-
 /* ==============================================
-   НОВАЯ ЛИНИЯ СО ВРЕМЕНЕМ ПО ЦЕНТРУ
+   ЛИНИЯ СО ВРЕМЕНЕМ ПО ЦЕНТРУ
    ============================================== */
-
-/* Блок со временем теперь работает как разделительная линия */
 .chat-block[data-user="bagercaa"] .chat-header-right {
     position: relative;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px; /* Расстояние от времени до линий */
-    margin-top: 10px; /* Отступ от ника вниз */
+    gap: 12px; 
+    margin-top: 10px; 
     opacity: 0.8;
 }
 
-/* Затухающие полоски слева и справа от времени */
 .chat-block[data-user="bagercaa"] .chat-header-right::before,
 .chat-block[data-user="bagercaa"] .chat-header-right::after {
     content: '';
-    flex-grow: 1; /* Полоски растягиваются на все свободное место */
+    flex-grow: 1; 
     height: 1px;
+    transition: background 0.5s ease;
 }
 .chat-block[data-user="bagercaa"] .chat-header-right::before {
     background: linear-gradient(90deg, transparent, rgba(147, 184, 214, 0.3));
@@ -146,21 +151,314 @@
 /* ==============================================
    ТЕКСТ ЛОРА
    ============================================== */
-
-/* Текст сообщения */
 .chat-block[data-user="bagercaa"] .chat-text {
     font-family: 'Cormorant Garamond', serif;
     color: #c5deef;
     font-weight: 600;
-    
-    /* УВЕЛИЧЕНО ДО 20px для отличной читаемости */
     font-size: 20px; 
-    
     line-height: 1.35;
     letter-spacing: 0.5px;
     text-shadow: 0 2px 4px rgba(0,0,0,0.9);
     text-align: center; 
-    
-    /* Отступы: чуть-чуть снизу, чтобы не прилипало к нижней завитушке */
     padding: 0px 5px 10px 5px;
+}
+
+
+/* =========================================================================
+   ИСПРАВЛЕННЫЕ МОДИФИКАТОРЫ TWITCH
+   ========================================================================= */
+
+/* ----------------------------------------------
+   1. ОТВЕТ (REPLY) - "Призрачный шепот"
+   ---------------------------------------------- */
+.chat-block[data-user="bagercaa"] .chat-reply {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    text-align: center; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Скрываем дефолтную розовую полоску */
+.chat-block[data-user="bagercaa"] .chat-reply::before { display: none !important; }
+
+/* Имя того, кому отвечают */
+.chat-block[data-user="bagercaa"] .chat-reply-user {
+    color: #93b8d6 !important;
+    font-family: 'Cinzel', serif !important;
+    font-size: 10px !important;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-shadow: 0 0 5px rgba(147, 184, 214, 0.5) !important;
+}
+
+/* Текст на который отвечают (призрачный курсив) */
+.chat-block[data-user="bagercaa"] .chat-reply-text {
+    color: rgba(197, 222, 239, 0.4) !important;
+    font-family: 'Cormorant Garamond', serif !important;
+    font-style: italic !important;
+    font-size: 14px !important;
+    white-space: normal !important; 
+    max-width: 240px;
+    text-shadow: 0 1px 2px #000 !important;
+}
+
+/* Иконка ответа */
+.chat-block[data-user="bagercaa"] .reply-icon { color: rgba(147, 184, 214, 0.4) !important; width: 10px !important; height: 10px !important;}
+
+/* ----------------------------------------------
+   2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "Чума"
+   ---------------------------------------------- */
+/* Отключаем дефолтную фиолетовую обводку */
+.chat-block.is-highlighted[data-user="bagercaa"] .chat-bubble {
+    border-left: 1px solid rgba(211, 84, 0, 0.5) !important; 
+    animation: plagueBreathe 4s infinite alternate ease-in-out !important;
+}
+
+@keyframes plagueBreathe {
+    0% { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(211, 84, 0, 0.1); border-color: rgba(211, 84, 0, 0.3); }
+    100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 1), inset 0 0 30px rgba(211, 84, 0, 0.3); border-color: rgba(211, 84, 0, 0.6); }
+}
+
+/* Аватарка покрывается Чумой (оранжевая) */
+.chat-block.is-highlighted[data-user="bagercaa"] .chat-avatar {
+    border-color: #e67e22 !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), 0 0 20px rgba(230, 126, 34, 0.6), inset 0 0 10px #000 !important;
+    filter: sepia(100%) hue-rotate(340deg) saturate(200%) brightness(1.2) contrast(1.2) !important;
+}
+
+/* Бейдж: Вместо цветного квадрата - изящная надпись как "Титул Босса" */
+.chat-block.is-highlighted[data-user="bagercaa"] .chat-badge-highlight {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(230, 126, 34, 0.4) !important;
+    border-radius: 0 !important;
+    box-shadow: 0 5px 5px -5px rgba(230, 126, 34, 0.5) !important; /* Легкое свечение снизу */
+    color: #e67e22 !important;
+    font-family: 'Cinzel', serif !important;
+    font-size: 10px !important;
+    letter-spacing: 3px !important;
+    padding: 0 10px 4px 10px !important;
+    margin-bottom: 5px !important;
+}
+
+/* Перекрашиваем иконку звездочки */
+.chat-block.is-highlighted[data-user="bagercaa"] .badge-star {
+    color: #e67e22 !important;
+    filter: drop-shadow(0 0 4px rgba(230, 126, 34, 0.6)) !important;
+}
+
+/* Завитушки тоже заражены чумой */
+.chat-block.is-highlighted[data-user="bagercaa"] .chat-bubble::before,
+.chat-block.is-highlighted[data-user="bagercaa"] .chat-bubble::after {
+    filter: drop-shadow(0 0 8px rgba(211, 84, 0, 0.6)) hue-rotate(160deg) saturate(200%) !important;
+}
+
+/* ----------------------------------------------
+   3. ПИНГ СТРИМЕРА (MENTION) - "Пламя Кошмара"
+   ---------------------------------------------- */
+/* Отключаем дефолтный красный правый бордер */
+.chat-block.is-mention[data-user="bagercaa"] .chat-bubble {
+    border-right: 1px solid rgba(147, 184, 214, 0.3) !important;
+}
+
+/* ПОЛНОСТЬЮ СКРЫВАЕМ УРОДЛИВЫЙ КОЛОКОЛЬЧИК */
+.chat-block.is-mention[data-user="bagercaa"] .chat-ping-bell {
+    display: none !important;
+}
+
+/* Вместо колокольчика, сами линии времени пульсируют красным */
+.chat-block.is-mention[data-user="bagercaa"] .chat-header-right::before { background: linear-gradient(90deg, transparent, rgba(231, 76, 60, 0.8)) !important; }
+.chat-block.is-mention[data-user="bagercaa"] .chat-header-right::after { background: linear-gradient(270deg, transparent, rgba(231, 76, 60, 0.8)) !important; }
+
+/* Плашка с именем стримера (Убираем коробку, делаем огненный текст) */
+.chat-block.is-mention[data-user="bagercaa"] .chat-ping {
+    background: transparent !important; 
+    border: none !important;
+    border-bottom: 1px solid #e74c3c !important; /* Тонкое красное подчеркивание */
+    border-radius: 0 !important; 
+    color: #f1c40f !important; /* Золотой текст */
+    font-family: 'Cinzel', serif !important;
+    font-weight: 800 !important;
+    padding: 0 2px !important;
+    box-shadow: 0 4px 6px -4px rgba(231, 76, 60, 0.8) !important;
+    text-shadow: 0 0 8px rgba(231, 76, 60, 0.6) !important;
+    letter-spacing: 1px !important;
+}
+
+/* ----------------------------------------------
+   4. ЦЕНЗУРА (МАТ) - "Пустота (Void)"
+   ---------------------------------------------- */
+.chat-block[data-user="bagercaa"] .censured-badge {
+    background: #000000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-family: 'Cinzel', serif !important;
+    font-size: 12px !important;
+    box-shadow: 0 0 10px #000, inset 0 0 5px #000 !important;
+}
+
+.chat-block[data-user="bagercaa"] .censured-message {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 1px dashed rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.4) !important;
+    font-family: 'Cinzel', serif !important;
+    letter-spacing: 4px !important;
+    text-shadow: 0 0 5px #000 !important;
+}
+
+/* =========================================================================
+   5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Шепот Пустоты" (ИСПРАВЛЕННЫЙ)
+   ========================================================================= */
+
+/* Главный контейнер виджета */
+#tts-container[data-user="bagercaa"] {
+    background: radial-gradient(circle at right, #141c2c 0%, #06080d 100%) !important;
+    border: 1px solid rgba(147, 184, 214, 0.3) !important;
+    border-radius: 12px !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    
+    width: 380px !important;
+    padding: 24px 20px !important; 
+    
+    /* Текст мы вырываем из потока (absolute), а flexbox расталкивает Сферу и Эквалайзер по краям */
+    justify-content: space-between !important;
+    
+    /* ВАЖНО: Никакого position: relative, иначе он улетит с экрана! */
+}
+
+/* Комбинируем анимацию появления и дыхания души */
+#tts-container[data-user="bagercaa"].tts-in {
+    animation: ttsSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, soulBreatheTTS 4s 0.5s infinite alternate ease-in-out !important;
+}
+
+#tts-container[data-user="bagercaa"].tts-out {
+    animation: ttsSlideOut 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) forwards !important;
+}
+
+@keyframes soulBreatheTTS {
+    0% { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), inset 0 0 10px rgba(147, 184, 214, 0.05); }
+    100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 1), inset 0 0 30px rgba(147, 184, 214, 0.2); }
+}
+
+/* ==============================================
+   Текст (Идеально по центру плашки)
+   ============================================== */
+#tts-container[data-user="bagercaa"] .tts-info {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+}
+
+#tts-container[data-user="bagercaa"] .tts-title { font-size: 0 !important; }
+#tts-container[data-user="bagercaa"] .tts-title::after {
+    content: 'Шепот пустоты'; 
+    font-size: 10px;
+    font-family: 'Cinzel', serif;
+    color: rgba(147, 184, 214, 0.6);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    display: block;
+    line-height: 1;
+}
+
+#tts-container[data-user="bagercaa"] .tts-user {
+    font-family: 'Cinzel', serif !important;
+    color: #ffffff !important;
+    text-shadow: 0 0 10px rgba(147, 184, 214, 0.8) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    line-height: 1 !important;
+}
+
+/* ==============================================
+   Готические завитушки
+   ============================================== */
+#tts-container[data-user="bagercaa"]::before,
+#tts-container[data-user="bagercaa"]::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px; 
+    height: 12px; 
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%2393b8d6'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2393b8d6'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%2393b8d6'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 0 5px rgba(147, 184, 214, 0.6));
+    pointer-events: none;
+}
+#tts-container[data-user="bagercaa"]::before { top: 6px; }
+#tts-container[data-user="bagercaa"]::after { bottom: 6px; transform: translateX(-50%) rotate(180deg); }
+
+/* ==============================================
+   Сфера Души (Слева)
+   ============================================== */
+#tts-container[data-user="bagercaa"] .tts-icon {
+    color: transparent !important;
+    text-shadow: none !important;
+    width: 32px !important; 
+    height: 32px !important;
+    flex-shrink: 0 !important;
+    
+    background: radial-gradient(circle, #ffffff 10%, #93b8d6 50%, transparent 80%);
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(147, 184, 214, 0.8), inset 0 0 10px #fff;
+    
+    animation: soulOrbFloat 2s infinite alternate ease-in-out;
+    z-index: 2;
+}
+#tts-container[data-user="bagercaa"] .tts-icon::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px; height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #fff;
+}
+@keyframes soulOrbFloat {
+    0% { transform: translateY(2px) scale(0.9); }
+    100% { transform: translateY(-2px) scale(1.1); }
+}
+
+/* ==============================================
+   Эквалайзер (Справа)
+   ============================================== */
+#tts-container[data-user="bagercaa"] .tts-wave {
+    align-items: center !important; 
+    gap: 6px !important;
+    height: 30px !important; 
+    margin-left: 0 !important; 
+    z-index: 2;
+}
+
+#tts-container[data-user="bagercaa"] .tts-bar {
+    width: 5px !important;
+    background: rgba(147, 184, 214, 0.4) !important;
+    border-radius: 4px !important; 
+    box-shadow: 0 0 5px rgba(147, 184, 214, 0.2) !important;
+    
+    transition: transform 0.1s ease-out, background 0.1s ease-out, height 0.1s ease-out !important;
+    height: 30% !important; 
+}
+
+#tts-container[data-user="bagercaa"] .tts-bar.active-spike {
+    background: #ffffff !important;
+    box-shadow: 0 0 15px #93b8d6, 0 0 5px #fff !important;
+    height: 90% !important; 
+    transform: scaleX(1.3); 
 }

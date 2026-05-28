@@ -48,15 +48,33 @@ window.AppTTS = {
     showVisual: function(user) {
         if (!this.container) return;
         this.userText.innerText = user;
+        
+        // Устанавливаем юзера
+        this.container.setAttribute('data-user', user.toLowerCase());
+        
+        // Сбрасываем классы ухода
         this.container.classList.remove('hidden', 'tts-out');
+        
+        // ФИКС АНИМАЦИИ: Принудительно заставляем браузер пересчитать DOM
+        void this.container.offsetWidth; 
+        
         this.container.classList.add('tts-in');
     },
 
     hideVisual: function() {
         if (!this.container) return;
+        
         this.container.classList.remove('tts-in');
+        
+        // ФИКС АНИМАЦИИ: Снова форсируем перерисовку
+        void this.container.offsetWidth; 
+        
         this.container.classList.add('tts-out');
-        setTimeout(() => this.container.classList.add('hidden'), 500);
+        
+        setTimeout(() => {
+            this.container.classList.add('hidden');
+            this.container.removeAttribute('data-user');
+        }, 500);
     }
 };
 
