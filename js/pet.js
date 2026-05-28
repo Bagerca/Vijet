@@ -1,25 +1,23 @@
 window.AppPet = {
     container: document.getElementById('pet-container'),
     
-    // Новая система состояний
-    baseState: 'idle',      // Фоновое состояние (idle, sleep, jam, listen)
+    // Новая система: СТЕК БАЗОВЫХ СОСТОЯНИЙ. Питомец всегда возвращается к верхнему стейту в массиве.
+    baseStack: ['idle'], 
+    
     activeState: null,      // Временная эмоция (love, angry, scared и тд)
-    currentPriority: 0,     // Вес текущей эмоции
+    currentPriority: 0,     // Вес текущей временной эмоции
     
     particleInterval: null,
     emotionTimeout: null,
     sleepTimer: null,
 
-    // Базовые фоновые состояния (не имеют таймаута)
-    baseStates: ['idle', 'sleep', 'jam', 'listen'],
-
     // Веса временных эмоций (чем выше цифра, тем сложнее перебить)
     priorities: {
-        'angry': 5, 'scared': 5, 'nom': 5, // Мат, смерть, еда - перебить нельзя
-        'love': 4,                         // Подписки, донаты, VIP
-        'greet': 3, 'bye': 3,              // Ручные команды модеров
-        'alert': 2,                        // Реакция пробуждения / блюр
-        'hype': 1                          // Смайлы в чате (самый низкий приоритет)
+        'angry': 10, 'scared': 9, 'nom': 8, // Мат, смерть, еда - перебить нельзя
+        'love': 5,                          // Подписки, донаты, VIP
+        'greet': 4, 'bye': 4,               // Ручные команды модеров
+        'alert': 3,                         // Реакция пробуждения / блюр
+        'hype': 1                           // Смайлы в чате
     },
 
     init: function() {
@@ -28,26 +26,35 @@ window.AppPet = {
             return;
         }
 
+        // Подписка на временные эмоции
         window.AppEvents.listen('PET_EMOTION', d => this.setEmotion(d.emotion, d.duration));
+        
+        // Подписка на базовые состояния (запись в стек)
+        window.AppEvents.listen('PET_BASE_STATE', d => {
+            if (d.active) {
+                // Если состояние активировано, кладем его наверх стека
+                if (!this.baseStack.includes(d.state)) this.baseStack.push(d.state);
+            } else {
+                // Если отключено - удаляем из стека
+                this.baseStack = this.baseStack.filter(s => s !== d.state);
+            }
+            
+            // Если сейчас нет временной эмоции, сразу рисуем верхнее состояние стека
+            if (!this.activeState) {
+                this.applyVisualState(this.baseStack[this.baseStack.length - 1]);
+            }
+        });
 
         this.resetSleepTimer();
+        // Запуск слушателя на любые клики (для ручного пробуждения)
+        window.addEventListener('click', () => this.wakeUp());
     },
 
     setEmotion: function(state, durationMs = 0) {
         if (!this.container) return;
+        this.resetSleepTimer();
 
-        // 1. Если это БАЗОВОЕ состояние (вкл/выкл музыка, TTS, сон)
-        if (this.baseStates.includes(state)) {
-            this.baseState = state;
-            
-            // Визуально меняем состояние, ТОЛЬКО если сейчас не проигрывается важная временная эмоция
-            if (!this.activeState) {
-                this.applyVisualState(this.baseState);
-            }
-            return;
-        }
-
-        // 2. Если это ВРЕМЕННАЯ эмоция
+        // Если это ВРЕМЕННАЯ эмоция
         const incomingPriority = this.priorities[state] || 1;
 
         // Если текущая проигрываемая эмоция ВАЖНЕЕ (или такая же), игнорируем новую
@@ -62,13 +69,13 @@ window.AppPet = {
 
         this.applyVisualState(state);
 
-        // Устанавливаем таймер возврата к базе
+        // Устанавливаем таймер возврата к стеку
         if (durationMs > 0) {
             this.emotionTimeout = setTimeout(() => {
                 this.activeState = null;
                 this.currentPriority = 0;
-                // Возвращаемся к фоновому состоянию (например, продолжаем танцевать, если музыка не кончилась)
-                this.applyVisualState(this.baseState);
+                // Возвращаемся к фоновому состоянию (читаем вершину стека)
+                this.applyVisualState(this.baseStack[this.baseStack.length - 1]);
             }, durationMs);
         }
     },
@@ -98,21 +105,27 @@ window.AppPet = {
         }
     },
 
+    wakeUp: function() {
+        if (this.baseStack.includes('sleep')) {
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'sleep', active: false });
+            this.setEmotion('alert', 2000); 
+        }
+        this.resetSleepTimer();
+    },
+
     resetSleepTimer: function() {
         clearTimeout(this.sleepTimer);
         
-        // Если спали - резко просыпаемся
-        if (this.baseState === 'sleep') {
-            this.setEmotion('alert', 2000); 
-            this.baseState = 'idle'; // Сбрасываем базу
+        if (this.baseStack.includes('sleep')) {
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'sleep', active: false });
         }
 
         const timeoutSec = window.AppConfig.petSleepTimeout || 120;
         
         this.sleepTimer = setTimeout(() => {
-            // Лиса засыпает ТОЛЬКО если она ничего не делает (не слушает музыку, не озвучивает TTS)
-            if (this.baseState === 'idle' && !this.activeState) {
-                this.setEmotion('sleep'); // Отправит как базовое состояние
+            // Лиса засыпает ТОЛЬКО если на вершине стека 'idle' и нет временных эмоций
+            if (this.baseStack[this.baseStack.length - 1] === 'idle' && !this.activeState) {
+                window.AppEvents.emit('PET_BASE_STATE', { state: 'sleep', active: true });
             }
         }, timeoutSec * 1000);
     },

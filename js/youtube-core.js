@@ -3,6 +3,7 @@ window.AppPlayerCore = {
     yt: null,
     isReady: false,
     currentVol: window.AppConfig.defaultVolume,
+    isDucking: false, // Флаг сайдчейна (приглушения)
     progressInterval: null,
     currentItem: null,
     currentVisualId: null,
@@ -12,7 +13,22 @@ window.AppPlayerCore = {
         window.AppEvents.listen('YT_CORE_HIDE', () => this.hide());
         window.AppEvents.listen('PLAYER_VOL', d => this.setVolume(d.vol));
         
-        // Интеграция пропусков (с учетом плейлистов)
+        // === АУДИО САЙДЧЕЙН (Audio Ducking) ===
+        window.AppEvents.listen('AUDIO_DUCK_START', () => {
+            this.isDucking = true;
+            if (this.isReady && this.yt) {
+                // Приглушаем до 15% от ТЕКУЩЕЙ громкости, минимум 1%
+                this.yt.setVolume(Math.max(1, this.currentVol * 0.15));
+            }
+        });
+        window.AppEvents.listen('AUDIO_DUCK_STOP', () => {
+            this.isDucking = false;
+            if (this.isReady && this.yt) {
+                // Возвращаем исходную громкость
+                this.yt.setVolume(this.currentVol);
+            }
+        });
+
         window.AppEvents.listen('QUEUE_CMD', d => {
             if (d.cmd === 'skip_all') {
                 window.AppEvents.emit('YT_ENDED'); 
@@ -82,7 +98,7 @@ window.AppPlayerCore = {
     play: function(data) {
         if (!this.isReady) return;
         this.currentItem = data;
-        this.currentVisualId = null; // Сбрасываем старую обложку
+        this.currentVisualId = null; 
         
         if (data.type === 'playlist') this.yt.loadPlaylist({ list: data.id });
         else this.yt.loadVideoById(data.id);
@@ -103,7 +119,11 @@ window.AppPlayerCore = {
         if (this.isReady) {
             this.currentVol = Math.max(0, Math.min(100, parseInt(vol) || window.AppConfig.defaultVolume));
             this.yt.unMute();
-            this.yt.setVolume(this.currentVol);
+            
+            // Если сейчас идет сайдчейн (говорят алерты), сохраняем новую громкость, но не применяем её к плееру
+            if (!this.isDucking) {
+                this.yt.setVolume(this.currentVol);
+            }
             window.AppEvents.emit('YT_VISUAL_VOL', { vol: this.currentVol });
         }
     },
@@ -112,7 +132,6 @@ window.AppPlayerCore = {
         if (event.data === 1) { // PLAYING
             let actualVidId = this.yt.getVideoData().video_id;
             
-            // Если ID изменился (внутри плейлиста заиграл новый трек)
             if (actualVidId !== this.currentVisualId && this.currentItem) {
                 this.currentVisualId = actualVidId;
                 window.AppEvents.emit('YT_VISUAL_PLAY', { 
@@ -123,14 +142,18 @@ window.AppPlayerCore = {
             }
             
             this.startProgress();
-            window.AppEvents.emit('PET_EMOTION', { emotion: 'jam' });
+            // Отправляем базовое состояние танца в СТЕК питомца
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: true });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'playing' });
+            
         } else if (event.data === 2) { // PAUSED
             this.stopProgress();
-            window.AppEvents.emit('PET_EMOTION', { emotion: 'idle' });
+            // Удаляем танец из стека
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: false });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'paused' });
-        }
-        if (event.data === 0) { // ENDED
+            
+        } else if (event.data === 0) { // ENDED
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: false });
             if (this.currentItem && this.currentItem.type === 'playlist') {
                 let pl = this.yt.getPlaylist();
                 let idx = this.yt.getPlaylistIndex();
@@ -147,7 +170,6 @@ window.AppPlayerCore = {
             if (this.yt && this.yt.getCurrentTime && this.yt.getDuration) {
                 const cur = this.yt.getCurrentTime();
                 const tot = this.yt.getDuration();
-                // НОВОЕ: Передаем не только процент, но и ТОЧНОЕ ВРЕМЯ (cur) для синхронизации картинки!
                 if (tot > 0) window.AppEvents.emit('YT_VISUAL_PROGRESS', { percent: (cur / tot) * 100, currentTime: cur });
             }
         }, 500);

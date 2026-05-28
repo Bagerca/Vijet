@@ -4,6 +4,7 @@ window.AppTTSCore = {
     isPlaying: false,
     synth: window.speechSynthesis,
     keepAliveInterval: null,
+    activeUtterance: null, // Защита от Garbage Collector (Bug fix)
 
     init: function() {
         if (!window.AppConfig.ttsEnabled) return;
@@ -37,7 +38,6 @@ window.AppTTSCore = {
         this.isPlaying = true;
         const currentData = this.queue.shift();
         
-        // Команда интерфейсу: Покажи плашку!
         window.AppEvents.emit('TTS_VISUAL_SHOW', { user: currentData.user });
 
         const utterance = new SpeechSynthesisUtterance(currentData.text);
@@ -56,7 +56,6 @@ window.AppTTSCore = {
         if (!selectedVoice) selectedVoice = voices.find(v => v.lang === 'ru-RU' && v.name.includes('Google')) || voices.find(v => v.lang.includes('ru'));
         if (selectedVoice) utterance.voice = selectedVoice;
 
-        // Вспомогательная функция для очистки интервала поддержания жизни
         const clearKeepAlive = () => {
             if (this.keepAliveInterval) {
                 clearInterval(this.keepAliveInterval);
@@ -66,9 +65,9 @@ window.AppTTSCore = {
 
         utterance.onstart = () => {
             window.AppEvents.emit('TTS_EQ_START');
-            window.AppEvents.emit('PET_EMOTION', { emotion: 'listen' });
+            window.AppEvents.emit('AUDIO_DUCK_START'); // Приглушаем YouTube
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'listen', active: true }); // Питомец начинает слушать (в стек)
             
-            // ФИКС БАГА Chromium: Каждые 10 секунд делаем паузу/возобновление, чтобы предотвратить залипание длинных текстов
             this.keepAliveInterval = setInterval(() => {
                 if (this.synth.speaking) {
                     this.synth.pause();
@@ -79,19 +78,21 @@ window.AppTTSCore = {
         utterance.onboundary = (event) => {
             if (event.name === 'word') window.AppEvents.emit('TTS_EQ_SPIKE');
         };
-        utterance.onend = () => {
+        
+        const finishTTS = () => {
             clearKeepAlive();
             window.AppEvents.emit('TTS_EQ_STOP');
-            window.AppEvents.emit('PET_EMOTION', { emotion: 'idle' });
-            setTimeout(() => this.playNext(), 500); 
-        };
-        utterance.onerror = () => {
-            clearKeepAlive();
-            window.AppEvents.emit('TTS_EQ_STOP');
-            window.AppEvents.emit('PET_EMOTION', { emotion: 'idle' });
-            this.playNext();
+            window.AppEvents.emit('AUDIO_DUCK_STOP'); // Возвращаем громкость музыки
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'listen', active: false }); // Убираем 'listen' из стека
+            this.activeUtterance = null;
+            setTimeout(() => this.playNext(), 500);
         };
 
+        utterance.onend = finishTTS;
+        utterance.onerror = finishTTS;
+
+        // Сохраняем ссылку, чтобы GC не убил объект (Bug Fix)
+        this.activeUtterance = utterance;
         this.synth.speak(utterance);
     },
 
@@ -105,7 +106,8 @@ window.AppTTSCore = {
         }
         window.AppEvents.emit('TTS_EQ_STOP');
         window.AppEvents.emit('TTS_VISUAL_HIDE');
-        window.AppEvents.emit('PET_EMOTION', { emotion: 'idle' });
+        window.AppEvents.emit('AUDIO_DUCK_STOP');
+        window.AppEvents.emit('PET_BASE_STATE', { state: 'listen', active: false });
     }
 };
 

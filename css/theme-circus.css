@@ -152,9 +152,9 @@ body.theme-circus #yt-progress-bar {
 }
 
 /* ==============================================
-   6. ПЛАШКА ИГРЫ (Game Info)
+   6. ПЛАШКА МЕДИА (Media Info)
    ============================================== */
-body.theme-circus #game-info-container {
+body.theme-circus #media-info-container {
     background: #ffffff !important;
     border: 5px solid #004CB8 !important;
     box-shadow: 12px 12px 0 #FEE101 !important;
@@ -163,12 +163,12 @@ body.theme-circus #game-info-container {
     -webkit-backdrop-filter: blur(0px) !important;
 }
 
-body.theme-circus #gi-title { 
+body.theme-circus #mi-title { 
     color: #E52521 !important; 
     text-transform: uppercase;
 }
 
-body.theme-circus .gi-poster-wrap {
+body.theme-circus .mi-poster-breakout {
     border: 3px dashed #E52521 !important;
 }
 

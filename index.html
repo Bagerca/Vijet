@@ -32,28 +32,34 @@
         <div id="chat-container"><div id="chat-messages"></div></div>
         
         <!-- =========================================================
-             НОВАЯ МУЛЬТИМЕДИЙНАЯ ИНФО-КАРТОЧКА (ИГРЫ / КИНО)
+             УНИВЕРСАЛЬНАЯ МУЛЬТИМЕДИЙНАЯ КАРТОЧКА (ИГРЫ / YT / КИНО)
              ========================================================= -->
-        <div id="game-info-container" class="hidden">
+        <div id="media-info-container" class="hidden">
             <div class="mi-poster-breakout">
-                <img id="gi-cover" src="" alt="Cover" class="hidden">
-                <div id="gi-no-game">
+                <img id="mi-cover" src="" alt="Cover" class="hidden">
+                
+                <!-- Иконка Play (только для YouTube) -->
+                <div id="mi-yt-play" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+
+                <div id="mi-no-media">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <div class="gi-no-text">NO SIGNAL</div>
+                    <div class="mi-no-text">NO SIGNAL</div>
                 </div>
             </div>
             <div class="mi-content">
-                <div class="mi-header-badge" id="gi-type-badge">СЕЙЧАС НА СТРИМЕ</div>
+                <div class="mi-header-badge" id="mi-type-badge">СЕЙЧАС НА СТРИМЕ</div>
                 
-                <div class="mi-title-wrapper" id="gi-title-wrapper">
-                    <div class="mi-title" id="gi-title">Неизвестно</div>
+                <div class="mi-title-wrapper" id="mi-title-wrapper">
+                    <div class="mi-title" id="mi-title">Неизвестно</div>
                 </div>
                 
-                <div class="mi-tags" id="gi-tags-container">
+                <div class="mi-tags" id="mi-tags-container">
                     <!-- Теги генерируются через JS -->
                 </div>
                 
-                <div class="mi-details-grid" id="gi-details-grid">
+                <div class="mi-details-grid" id="mi-details-grid">
                     <!-- Инфо поля генерируются через JS -->
                 </div>
             </div>
@@ -83,7 +89,7 @@
             "css/users/dragonsmaddison.css", "css/users/tetlabot.css", "css/users/ksusha__sher.css", "css/users/darkl1us.css", 
             "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
-            "css/gameinfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
+            "css/mediainfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
             "css/theme-circus.css",
             "css/modes.css" // modes.css всегда должен быть последним!
         ];
@@ -97,7 +103,7 @@
             "js/particles.js", "js/emotes.js", "js/pet.js", "js/chat.js",
             "js/youtube.js", "js/mic.js", "js/socials.js", "js/alerts.js",
             "js/shoutout.js", "js/goal.js", "js/ticker.js", "js/deaths.js",
-            "js/gameinfo.js", "js/wheel.js", "js/tts.js", "js/countdown.js", "js/blur.js"
+            "js/mediainfo.js", "js/wheel.js", "js/tts.js", "js/countdown.js", "js/blur.js"
         ];
         myScripts.forEach(src => {
             document.write(`<script src="${src}?v=${cacheBuster}"><\/script>`);
@@ -123,7 +129,7 @@
             document.body.style.setProperty('background', 'transparent', 'important');
             document.documentElement.style.setProperty('background', 'transparent', 'important');
             const activeWidgets = activeWidgetsParam.split(',').map(w => w.trim());
-            const widgetMap = { 'chat': 'chat-container', 'music': 'widget-container', 'socials': 'social-rotator', 'alerts': 'alert-container', 'shoutout': 'shoutout-container', 'goal': 'goal-container', 'ticker': 'ticker-container', 'deaths': 'deaths-container', 'particles': 'particles-canvas', 'emotes': 'emotes-container', 'tts': 'tts-container', 'blur': 'screen-blur-overlay', 'wheel': 'wheel-overlay', 'cam': 'webcam-frame', 'gameinfo': 'game-info-container', 'pet': 'pet-container' };
+            const widgetMap = { 'chat': 'chat-container', 'music': 'widget-container', 'socials': 'social-rotator', 'alerts': 'alert-container', 'shoutout': 'shoutout-container', 'goal': 'goal-container', 'ticker': 'ticker-container', 'deaths': 'deaths-container', 'particles': 'particles-canvas', 'emotes': 'emotes-container', 'tts': 'tts-container', 'blur': 'screen-blur-overlay', 'wheel': 'wheel-overlay', 'cam': 'webcam-frame', 'media': 'media-info-container', 'pet': 'pet-container' };
 
             for (const [key, id] of Object.entries(widgetMap)) {
                 if (!activeWidgets.includes(key)) {

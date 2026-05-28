@@ -1,6 +1,7 @@
 /* ================= CORE (ЯДРО СИСТЕМЫ) ================= */
 window.AppCore = {
     greetedUsers: new Set(), 
+    commandCooldowns: {}, // Хранилище кулдаунов (Анти-спам)
 
     init: function() {
         if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
@@ -18,63 +19,59 @@ window.AppCore = {
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             const lowerUser = user.toLowerCase();
             
-            // Проверки флагов сообщения
             const isFirstTime = extra.userState && (extra.userState['first-msg'] === true || extra.userState['first-msg'] === '1');
             const isTwitchHighlight = flags.highlighted;
             const isCustomReward = !!extra.customRewardId;
             const isHighlighted = isTwitchHighlight || isCustomReward;
 
-            // ДЕЛЕГИРОВАНИЕ: Модуль ChatFilter парсит эмодзи и проверяет мат
             let parsedMessage = window.ChatFilter.parseEmotes(message, extra.messageEmotes);
             let { text: cleanText, hasForbidden } = window.ChatFilter.processText(parsedMessage, window.AppConfig.forbiddenWords);
             
-            // Проверка на пинг (Упоминание стримера)
-            const streamerName = window.AppConfig.channelName;
-            const mentionRegex = new RegExp(`@${streamerName}\\b`, 'ig');
+            const mentionRegex = new RegExp(`@${window.AppConfig.channelName}\\b`, 'ig');
             const isMention = mentionRegex.test(cleanText);
 
+            // === ФИЛЬТР ШТОРМА СОБЫТИЙ ПИТОМЦА ===
+            let petEmotion = null;
+            let petPrio = 0;
+            const setPet = (emo, prio) => { if (prio > petPrio) { petEmotion = emo; petPrio = prio; } };
+
             if (hasForbidden) {
-                window.AppEvents.emit('PET_EMOTION', { emotion: 'angry', duration: 4000 });
-            } 
-            else {
+                setPet('angry', 10); // Высший приоритет
+            } else {
                 const isAllowedUser = window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(lowerUser);
-                const isStreamer = flags.broadcaster;
-                
-                if ((isAllowedUser || isStreamer) && !this.greetedUsers.has(lowerUser)) {
+                if ((isAllowedUser || flags.broadcaster) && !this.greetedUsers.has(lowerUser)) {
                     this.greetedUsers.add(lowerUser);
-                    window.AppEvents.emit('PET_EMOTION', { emotion: 'love', duration: 4000 });
+                    setPet('love', 5);
                 } 
-                else if (extra.messageEmotes) {
-                    window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
-                    window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes);
-                }
-
-                if (isMention) {
-                    window.AppEvents.emit('PET_EMOTION', { emotion: 'alert', duration: 3000 });
-                    cleanText = cleanText.replace(mentionRegex, `<span class="chat-ping">$&</span>`);
-                }
-
-                // Авто-озвучка дефолтного выделения Twitch
-                if (isTwitchHighlight) {
-                    window.AppEvents.emit('TICKER_REWARD', { user, reward: "Выделенное сообщение", message: cleanText });
-                    window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
-                    
-                    let textForTTS = cleanText.replace(/<[^>]+>/g, ''); // чистим от HTML
-                    window.AppEvents.emit('TTS_ADD', { user: user, text: textForTTS });
+                if (isMention) setPet('alert', 4);
+                
+                // Обработка смайлов
+                if (extra.messageEmotes) {
+                    setPet('hype', 1); // Эмоция лисы
+                    window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes); // <-- ВЕРНУЛИ ВЫЛЕТ СМАЙЛОВ НА ЭКРАН!
                 }
             }
             
-            // ДЕЛЕГИРОВАНИЕ: Модуль AvatarManager сам достает из кэша или качает с API
+            if (petEmotion) window.AppEvents.emit('PET_EMOTION', { emotion: petEmotion, duration: 4000 });
+
+            if (isMention && !hasForbidden) {
+                cleanText = cleanText.replace(mentionRegex, `<span class="chat-ping">$&</span>`);
+            }
+
+            if (isTwitchHighlight && !hasForbidden) {
+                window.AppEvents.emit('TICKER_REWARD', { user, reward: "Выделенное сообщение", message: cleanText });
+                let textForTTS = cleanText.replace(/<[^>]+>/g, '');
+                window.AppEvents.emit('TTS_ADD', { user: user, text: textForTTS });
+            }
+            
             const avatarUrl = await window.AvatarManager.get(user, userColor);
 
-            // Обработка ответов (реплаев)
             let replyData = null;
             if (extra.userState && extra.userState['reply-parent-display-name']) {
                 const replyUser = extra.userState['reply-parent-display-name'];
                 let replyTextRaw = (extra.userState['reply-parent-msg-body'] || '').replace(/\\s/g, ' '); 
                 replyTextRaw = replyTextRaw.replace(/^@[a-zA-Z0-9_]+\s*,?\s*/i, '');
                 
-                // ДЕЛЕГИРОВАНИЕ: Защита и фильтрация текста ответа
                 let escapedReply = window.ChatFilter.escapeHTML(replyTextRaw);
                 let cleanReply = window.ChatFilter.processText(escapedReply, window.AppConfig.forbiddenWords).text;
                 replyData = { user: replyUser, htmlText: cleanReply };
@@ -83,7 +80,6 @@ window.AppCore = {
                 cleanText = cleanText.replace(replyMentionRegex, '');
             }
 
-            // Отправка готовых данных в визуализатор (index.html)
             window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
                 user, color: userColor, avatarUrl, time, htmlText: cleanText, replyData, isFirstTime, isHighlighted, isMention
             });
@@ -125,9 +121,17 @@ window.AppCore = {
             
             const arg = message.trim();
             const argLow = arg.toLowerCase(); 
+            const cmdKey = command.toLowerCase();
 
-            switch (command.toLowerCase()) {
-                // === ГЛОБАЛЬНЫЕ ТЕМЫ (ПРОТОКОЛЫ) ===
+            // === АНТИ-СПАМ ФИЛЬТР (DEBOUNCE) ===
+            const heavyCommands = ['media', 'game', 'игра', 'so', 'shoutout'];
+            if (heavyCommands.includes(cmdKey)) {
+                const now = Date.now();
+                if (this.commandCooldowns[cmdKey] && now - this.commandCooldowns[cmdKey] < 2000) return;
+                this.commandCooldowns[cmdKey] = now;
+            }
+
+            switch (cmdKey) {
                 case "протокол":
                 case "protocol":
                     if (hasPermission) {
@@ -142,109 +146,23 @@ window.AppCore = {
                     }
                     break;
 
-                // === КОМАНДЫ ПЕРЕЗАГРУЗКИ (HOT RELOAD) ===
                 case "refresh":
                     if (hasPermission) {
                         if (argLow === "core") {
-                            console.log("🔄 [CORE] Принудительная перезагрузка ЯДРА по команде из чата!");
                             const coreUrl = new URL(window.location.href);
                             coreUrl.searchParams.set('nocache', Date.now());
                             window.location.href = coreUrl.toString();
-                        } else {
-                            console.log("🔄 [CORE] Отправлен сигнал на перезагрузку ВИЗУАЛЬНОГО СЛОЯ...");
-                            window.AppEvents.emit('FORCE_RELOAD_VISUAL');
-                        }
+                        } else window.AppEvents.emit('FORCE_RELOAD_VISUAL');
                     }
                     break;
 
-                // === ТЕСТОВЫЕ КОМАНДЫ ЧАТА ===
-                case "testfirst":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "Новичок", color: "#00FF7F", avatarUrl: "https://ui-avatars.com/api/?name=Н&background=00FF7F&color=fff",
-                            time: "00:00", htmlText: arg || "Привет, я тут впервые!", replyData: null, isFirstTime: true
-                        });
-                    }
-                    break;
-                case "testhighlight":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "Богач", color: "#a29bfe", avatarUrl: "https://ui-avatars.com/api/?name=Б&background=a29bfe&color=fff",
-                            time: "00:00", htmlText: arg || "Сообщение за баллы!", replyData: null, isHighlighted: true
-                        });
-                    }
-                    break;
-                case "testmention":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "Фанат", color: "#FFD700", avatarUrl: "https://ui-avatars.com/api/?name=Ф&background=FFD700&color=fff",
-                            time: "00:00", htmlText: `Эй, <span class="chat-ping">@${window.AppConfig.channelName}</span> прочитай это!`, replyData: null, isMention: true
-                        });
-                    }
-                    break;
-                    
-                // === ТЕСТЫ КАСТОМНЫХ ПРОФИЛЕЙ (USERS CSS) ===
-                case "testhk":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "bagercaa", color: "#8bb9d2", avatarUrl: "https://ui-avatars.com/api/?name=bg&background=10141e&color=8bb9d2",
-                            time: "00:00", htmlText: arg || "Высшее существо, эти слова для тебя одного...", replyData: null
-                        });
-                    }
-                    break;
-                case "testmc":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "kiriika1", color: "#5ea936", avatarUrl: "https://ui-avatars.com/api/?name=MC&background=744d32&color=fff",
-                            time: "00:00", htmlText: arg || "Пшшш... крипер сзади!", replyData: null
-                        });
-                    }
-                    break;
-                case "testangel":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "to_be_ang", color: "#FFD700", avatarUrl: "https://ui-avatars.com/api/?name=ANG&background=fff&color=FFD700",
-                            time: "00:00", htmlText: arg || "Свет укажет нам путь...", replyData: null
-                        });
-                    }
-                    break;
-                case "testbendy":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "dragonsmaddison", color: "#13100c", avatarUrl: "https://ui-avatars.com/api/?name=DM&background=dfca96&color=13100c",
-                            time: "00:00", htmlText: arg || "Чернила текут рекой в этой старой студии...", replyData: null
-                        });
-                    }
-                    break;
-                case "testhacker":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "tetlabot", color: "#00ff41", avatarUrl: "https://ui-avatars.com/api/?name=SYS&background=000&color=00ff41",
-                            time: "00:00", htmlText: arg || "System breach detected. Firewall disabled.", replyData: null
-                        });
-                    }
-                    break;
-                case "testpda":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "ksusha__sher", color: "#00ffea", avatarUrl: "https://ui-avatars.com/api/?name=PDA&background=091e32&color=00ffea",
-                            time: "00:00", htmlText: arg || "Внимание: Обнаружены формы жизни класса Левиафан.", replyData: null
-                        });
-                    }
-                    break;
-                case "testarmy":
-                    if (hasPermission) {
-                        window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                            user: "darkl1us", 
-                            color: "#dd5500", 
-                            avatarUrl: "https://ui-avatars.com/api/?name=DL&background=1a1c19&color=dd5500",
-                            time: "00:00", 
-                            htmlText: arg || "Цель обнаружена. Запрашиваю поддержку с воздуха.", 
-                            replyData: null
-                        });
-                    }
-                    break;
-                // ===================================
+                case "testhk": if (hasPermission) window.AppEvents.emit('CHAT_RENDER_MESSAGE', { user: "bagercaa", color: "#8bb9d2", avatarUrl: "https://ui-avatars.com/api/?name=bg&background=10141e&color=8bb9d2", time: "00:00", htmlText: arg || "Высшее существо, эти слова для тебя одного...", replyData: null }); break;
+                case "testmc": if (hasPermission) window.AppEvents.emit('CHAT_RENDER_MESSAGE', { user: "kiriika1", color: "#5ea936", avatarUrl: "https://ui-avatars.com/api/?name=MC&background=744d32&color=fff", time: "00:00", htmlText: arg || "Пшшш... крипер сзади!", replyData: null }); break;
+                case "testangel": if (hasPermission) window.AppEvents.emit('CHAT_RENDER_MESSAGE', { user: "to_be_ang", color: "#FFD700", avatarUrl: "https://ui-avatars.com/api/?name=ANG&background=fff&color=FFD700", time: "00:00", htmlText: arg || "Свет укажет нам путь...", replyData: null }); break;
+                case "testbendy": if (hasPermission) window.AppEvents.emit('CHAT_RENDER_MESSAGE', { user: "dragonsmaddison", color: "#13100c", avatarUrl: "https://ui-avatars.com/api/?name=DM&background=dfca96&color=13100c", time: "00:00", htmlText: arg || "Чернила текут рекой в этой старой студии...", replyData: null }); break;
+                case "testhacker": if (hasPermission) window.AppEvents.emit('CHAT_RENDER_MESSAGE', { user: "tetlabot", color: "#00ff41", avatarUrl: "https://ui-avatars.com/api/?name=SYS&background=000&color=00ff41", time: "00:00", htmlText: arg || "System breach detected. Firewall disabled.", replyData: null }); break;
+                case "testpda": if (hasPermission) window.AppEvents.emit('CHAT_RENDER_MESSAGE', { user: "ksusha__sher", color: "#00ffea", avatarUrl: "https://ui-avatars.com/api/?name=PDA&background=091e32&color=00ffea", time: "00:00", htmlText: arg || "Внимание: Обнаружены формы жизни класса Левиафан.", replyData: null }); break;
+                case "testarmy": if (hasPermission) window.AppEvents.emit('CHAT_RENDER_MESSAGE', { user: "darkl1us", color: "#dd5500", avatarUrl: "https://ui-avatars.com/api/?name=DL&background=1a1c19&color=dd5500", time: "00:00", htmlText: arg || "Цель обнаружена. Запрашиваю поддержку с воздуха.", replyData: null }); break;
 
                 case "wheel":
                 case "рулетка":
@@ -289,15 +207,37 @@ window.AppCore = {
                 case "блюр":
                     if (hasPermission) window.AppEvents.emit('BLUR_TOGGLE', { state: argLow });
                     break;
+                
+                case "media":
+                case "медиа":
+                    if (hasPermission) {
+                        if (argLow === "off" || argLow === "clear" || argLow === "hide") {
+                            window.AppEvents.emit('MEDIA_SET', { type: 'off' });
+                        } else if (argLow.startsWith("yt ") || argLow.startsWith("youtube ")) {
+                            const query = arg.substring(arg.indexOf(' ') + 1).trim();
+                            const match = query.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+                            const ytId = (match && match[2].length === 11) ? match[2] : (query.length === 11 ? query : null);
+                            if (ytId) window.AppEvents.emit('MEDIA_SET', { type: 'yt', query: ytId });
+                        } else if (argLow.startsWith("game ") || argLow.startsWith("игра ")) {
+                            const query = argLow.replace("game ", "").replace("игра ", "").trim();
+                            window.AppEvents.emit('MEDIA_SET', { type: 'game', query: query });
+                        }
+                    }
+                    break;
+                
                 case "game":
                 case "игра":
-                    if (hasPermission) window.AppEvents.emit('GAME_SET', { game: argLow });
+                    if (hasPermission) {
+                        if (argLow === "off" || argLow === "clear" || argLow === "hide") window.AppEvents.emit('MEDIA_SET', { type: 'off' });
+                        else window.AppEvents.emit('MEDIA_SET', { type: 'game', query: argLow });
+                    }
                     break;
+                    
                 case "death":
                 case "deaths":
                 case "смерть":
                     if (hasPermission) {
-                        if (argLow !== "off" && argLow !== "hide" && argLow !== "-" && argLow !== "sub" && argLow !== "reset" && argLow !== "clear" && !argLow.startsWith("set")) {
+                        if (!["off", "hide", "-", "sub", "reset", "clear"].includes(argLow) && !argLow.startsWith("set")) {
                             window.AppEvents.emit('PET_EMOTION', { emotion: 'scared', duration: 3000 });
                         }
                         window.AppEvents.emit('DEATHS_CMD', { cmd: argLow });

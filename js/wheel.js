@@ -156,7 +156,6 @@ window.AppWheel = {
         const localAngle = (360 - modRot) % 360;
         const sectorSize = 360 / this.items.length;
         
-        // ФИКС БАГА: Сдвигаем расчетную сетку на половину сектора, чтобы сопоставить с отрисовкой
         const adjustedAngle = (localAngle + (sectorSize / 2)) % 360;
         const winnerIndex = Math.floor(adjustedAngle / sectorSize);
         const winnerText = this.items[winnerIndex];
@@ -164,7 +163,8 @@ window.AppWheel = {
         this.winnerName.innerText = winnerText;
         this.winnerEl.classList.remove('hidden');
 
-        if (window.AppGameInfo) setTimeout(() => window.AppGameInfo.set(winnerText), 1000); 
+        // Отправляем сигнал карточке показать игру-победителя
+        setTimeout(() => window.AppEvents.emit('MEDIA_SET', { type: 'game', query: winnerText }), 1000); 
     }
 };
 
