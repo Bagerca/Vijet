@@ -14,16 +14,50 @@
 
     <div id="scene-wrapper">
         <div id="screen-blur-overlay"><div class="blur-pattern"></div><div class="blur-card"><div class="blur-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div><div class="blur-text-wrapper"><div class="blur-title">ПРИВАТНЫЙ РЕЖИМ</div><div class="blur-subtitle">Экран временно скрыт</div></div></div></div>
-        <div id="wheel-overlay" class="hidden"><div class="wheel-wrapper"><div id="wheel-pointer"></div><canvas id="wheel-canvas"></canvas><div id="wheel-center"></div></div><div id="wheel-winner" class="hidden"><div class="winner-title">ВЫПАЛА ИГРА</div><div id="winner-name">SUBNAUTICA</div></div></div>
-        <div id="starting-container" style="display: none;"><div class="starting-glass-card"><div class="starting-status"><div class="status-dot"></div>ОЖИДАНИЕ ТРАНСЛЯЦИИ</div><h1 class="starting-title">Ало,<br>Здравствуйте,<br>Добрый вечер</h1><div class="starting-subtitle">Заваривайте чаёк, скоро начинаем ☕ <span id="starting-timer"></span></div></div></div>
-        <div id="ending-container" style="display: none;"><div class="ending-glass-card"><div class="ending-status"><div class="status-dot-offline"></div>ТРАНСЛЯЦИЯ ЗАВЕРШЕНА</div><h1 class="ending-title">А всё,<br>а надо было раньше</h1><div class="ending-subtitle">Спасибо всем, кто был сегодня на стриме 💜</div></div></div>
-        <div id="goal-container"><div id="goal-bar-bg"><div id="goal-bar-fill"></div></div><div id="goal-text"><span id="goal-title">⭐ Цель:</span><span id="goal-count">0 / 0</span></div></div>
-        <div id="alert-container" class="hidden"></div><div id="shoutout-container" class="hidden"></div><div id="social-rotator" class="fade-out"></div>
-        <div id="deaths-container" class="hidden"><div class="deaths-title">DEATHS</div><div id="deaths-count">0</div></div>
-        <div id="emotes-container"></div><div id="chat-container"><div id="chat-messages"></div></div>
         
-        <!-- ВИДЖЕТ ИГРЫ ВЫНЕСЕН СЮДА (НЕЗАВИСИМ ОТ ВЕБКИ) -->
-        <div id="game-info-container" class="hidden"><div class="gi-poster-wrap"><img id="gi-cover" src="" alt="Cover" class="hidden"><div id="gi-no-game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><circle cx="12" cy="12" r="3"></circle></svg><div class="gi-no-text">NO GAME<br><span>AWAITING SIGNAL</span></div></div></div><div class="gi-details"><div id="gi-title">Неизвестно</div><div class="gi-row" id="row-rating"><span class="gi-label">Рейтинг:</span><span class="gi-val gi-rating" id="gi-rating">0.0 / 10</span></div><div class="gi-row" id="row-year"><span class="gi-label">Год:</span><span class="gi-val" id="gi-year">202X</span></div><div class="gi-row" id="row-genre"><span class="gi-label">Жанр:</span><span class="gi-val" id="gi-genre">Ожидание</span></div><div class="gi-row" id="row-dev"><span class="gi-label">Разраб:</span><span class="gi-val" id="gi-dev">Студия</span></div><div class="gi-row" id="row-plat"><span class="gi-label">Платформа:</span><span class="gi-badge" id="gi-plat">N/A</span></div></div></div>
+        <div id="wheel-overlay" class="hidden"><div class="wheel-wrapper"><div id="wheel-pointer"></div><canvas id="wheel-canvas"></canvas><div id="wheel-center"></div></div><div id="wheel-winner" class="hidden"><div class="winner-title">ВЫПАЛА ИГРА</div><div id="winner-name">SUBNAUTICA</div></div></div>
+        
+        <div id="starting-container" style="display: none;"><div class="starting-glass-card"><div class="starting-status"><div class="status-dot"></div>ОЖИДАНИЕ ТРАНСЛЯЦИИ</div><h1 class="starting-title">Ало,<br>Здравствуйте,<br>Добрый вечер</h1><div class="starting-subtitle">Заваривайте чаёк, скоро начинаем ☕ <span id="starting-timer"></span></div></div></div>
+        
+        <div id="ending-container" style="display: none;"><div class="ending-glass-card"><div class="ending-status"><div class="status-dot-offline"></div>ТРАНСЛЯЦИЯ ЗАВЕРШЕНА</div><h1 class="ending-title">А всё,<br>а надо было раньше</h1><div class="ending-subtitle">Спасибо всем, кто был сегодня на стриме 💜</div></div></div>
+        
+        <div id="goal-container"><div id="goal-bar-bg"><div id="goal-bar-fill"></div></div><div id="goal-text"><span id="goal-title">⭐ Цель:</span><span id="goal-count">0 / 0</span></div></div>
+        
+        <div id="alert-container" class="hidden"></div>
+        <div id="shoutout-container" class="hidden"></div>
+        <div id="social-rotator" class="fade-out"></div>
+        <div id="deaths-container" class="hidden"><div class="deaths-title">DEATHS</div><div id="deaths-count">0</div></div>
+        <div id="emotes-container"></div>
+        
+        <div id="chat-container"><div id="chat-messages"></div></div>
+        
+        <!-- =========================================================
+             НОВАЯ МУЛЬТИМЕДИЙНАЯ ИНФО-КАРТОЧКА (ИГРЫ / КИНО)
+             ========================================================= -->
+        <div id="game-info-container" class="hidden">
+            <div class="mi-poster-breakout">
+                <img id="gi-cover" src="" alt="Cover" class="hidden">
+                <div id="gi-no-game">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <div class="gi-no-text">NO SIGNAL</div>
+                </div>
+            </div>
+            <div class="mi-content">
+                <div class="mi-header-badge" id="gi-type-badge">СЕЙЧАС НА СТРИМЕ</div>
+                
+                <div class="mi-title-wrapper" id="gi-title-wrapper">
+                    <div class="mi-title" id="gi-title">Неизвестно</div>
+                </div>
+                
+                <div class="mi-tags" id="gi-tags-container">
+                    <!-- Теги генерируются через JS -->
+                </div>
+                
+                <div class="mi-details-grid" id="gi-details-grid">
+                    <!-- Инфо поля генерируются через JS -->
+                </div>
+            </div>
+        </div>
 
         <!-- РАМКА ВЕБКИ И ПИТОМЕЦ -->
         <div id="webcam-container">
@@ -32,7 +66,9 @@
         </div>
 
         <div id="tts-container" class="hidden"><div class="tts-icon">🎙️</div><div class="tts-info"><span class="tts-title">Озвучивает</span><span id="tts-user" class="tts-user">Никнейм</span></div><div class="tts-wave"><div class="tts-bar"></div><div class="tts-bar"></div><div class="tts-bar"></div></div></div>
+        
         <div id="widget-container" class="hidden"><div id="player-wrapper"><div id="yt-player"></div><div id="yt-progress-container"><div id="yt-progress-bar"></div></div></div><div id="info-bar"><div class="info-left"><div class="info-user-wrap"><img id="requester-avatar" src="" alt="Avatar"><div class="avatar-ring"></div></div><div class="info-main"><div class="info-label">СЕЙЧАС ИГРАЕТ ЗАКАЗ</div><div id="requester-name">Никнейм</div></div></div><div class="info-stats"><div class="stat-badge" title="Громкость"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg><span><span id="volume-level">30</span>%</span></div><div class="stat-badge stat-queue-badge" title="В очереди"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg><span id="queue-count">0</span></div></div></div></div>
+        
         <div id="ticker-container"><div id="ticker-text"></div></div>
     </div>
 
@@ -48,7 +84,7 @@
             "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
             "css/gameinfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
-            "css/theme-circus.css", // <--- НОВЫЙ ПРОТОКОЛ ЦИРКА
+            "css/theme-circus.css",
             "css/modes.css" // modes.css всегда должен быть последним!
         ];
         myStyles.forEach(href => {
@@ -126,7 +162,7 @@
 
         // --- УПРАВЛЕНИЕ ГЛОБАЛЬНЫМИ ТЕМАМИ ---
         const applyTheme = (themeName) => {
-            document.body.classList.remove('theme-circus'); // Если потом добавишь другие темы, допиши их сюда
+            document.body.classList.remove('theme-circus'); 
             
             if (themeName && themeName !== 'default') {
                 document.body.classList.add(`theme-${themeName}`);
