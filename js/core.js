@@ -14,7 +14,7 @@ window.AppCore = {
     },
 
     // Вспомогательная функция для генерации фейковых данных реплая
-    generateFakeReply: function(text) {
+    generateFakeReply: function() {
         return {
             user: "СлучайныйЗритель",
             htmlText: "Это какой-то текст, на который отвечает кастомный юзер."
@@ -26,36 +26,39 @@ window.AppCore = {
         let isHighlight = false;
         let isReply = false;
         let isPing = false;
-        let isTts = false; // <-- НОВЫЙ ФЛАГ
+        let isTts = false;
         let finalMessage = arg;
 
         // Парсим флаги
         if (finalMessage.includes("-hl")) { isHighlight = true; finalMessage = finalMessage.replace("-hl", "").trim(); }
         if (finalMessage.includes("-rep")) { isReply = true; finalMessage = finalMessage.replace("-rep", "").trim(); }
         if (finalMessage.includes("-ping")) { isPing = true; finalMessage = finalMessage.replace("-ping", "").trim(); }
-        if (finalMessage.includes("-tts")) { isTts = true; finalMessage = finalMessage.replace("-tts", "").trim(); } // <-- ЛОВИМ ФЛАГ
+        if (finalMessage.includes("-tts")) { isTts = true; finalMessage = finalMessage.replace("-tts", "").trim(); }
 
         // Если текст пустой после вырезания флагов, ставим дефолтный
         if (finalMessage === "") finalMessage = defaultText;
 
-        // === ЕСЛИ ЕСТЬ ФЛАГ -tts, ОТПРАВЛЯЕМ В ОЗВУЧКУ ===
+        // === ИСПРАВЛЕНИЕ: ПРОПУСКАЕМ ТЕСТОВЫЙ ТЕКСТ ЧЕРЕЗ ФИЛЬТР МАТА ===
+        let { text: cleanText, hasForbidden } = window.ChatFilter.processText(finalMessage, window.AppConfig.forbiddenWords);
+
+        // Если есть флаг -tts, отправляем в озвучку (уже очищенный от мата текст!)
         if (isTts) {
-            // Убираем HTML, если он есть, чтобы бот не читал теги
-            let cleanTtsText = finalMessage.replace(/<[^>]+>/g, '');
+            let cleanTtsText = cleanText.replace(/<[^>]+>/g, ''); // Убираем HTML-теги для TTS
             window.AppEvents.emit('TTS_ADD', { user: userAlias, text: cleanTtsText });
         }
 
-        // Если есть флаг пинга, добавляем пинг в текст чата
+        // Если есть флаг пинга, добавляем пинг к очищенному тексту
         if (isPing) {
-            finalMessage = `<span class="chat-ping">@${window.AppConfig.channelName}</span> ${finalMessage}`;
+            cleanText = `<span class="chat-ping">@${window.AppConfig.channelName}</span> ${cleanText}`;
         }
 
+        // Отправляем на рендер
         window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
             user: userAlias,
             color: color,
             avatarUrl: avatarUrl,
             time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            htmlText: finalMessage,
+            htmlText: cleanText, // <-- Теперь тут очищенный текст!
             replyData: isReply ? this.generateFakeReply() : null,
             isFirstTime: false,
             isHighlighted: isHighlight,

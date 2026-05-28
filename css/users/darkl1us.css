@@ -194,3 +194,208 @@
     0% { transform: translateY(10px) scale(0.98); opacity: 0; filter: contrast(1.5) brightness(1.2); }
     100% { transform: translateY(0) scale(1); opacity: 1; filter: contrast(1) brightness(1); }
 }
+
+/* =========================================================================
+   ТАКТИЧЕСКИЕ МОДИФИКАТОРЫ (REPLY, HIGHLIGHT, MENTION, CENSURE, TTS)
+   ========================================================================= */
+
+/* ----------------------------------------------
+   1. ОТВЕТ (REPLY) - "Перехват радиосвязи"
+   ---------------------------------------------- */
+.chat-block[data-user="darkl1us"] .chat-reply {
+    background: rgba(68, 255, 68, 0.05) !important;
+    border: 1px solid rgba(68, 255, 68, 0.1) !important;
+    border-left: 2px solid #ff5500 !important; /* Сигнальный оранжевый */
+    border-radius: 0 !important;
+    padding: 4px 8px !important;
+    margin-bottom: 8px !important;
+}
+
+.chat-block[data-user="darkl1us"] .chat-reply::before { display: none !important; }
+.chat-block[data-user="darkl1us"] .reply-icon { display: none !important; }
+
+.chat-block[data-user="darkl1us"] .chat-reply-user {
+    color: #ff5500 !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 12px !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.chat-block[data-user="darkl1us"] .chat-reply-user::before { content: '>> RECV_'; opacity: 0.7; margin-right: 4px; }
+
+.chat-block[data-user="darkl1us"] .chat-reply-text {
+    color: rgba(68, 255, 68, 0.6) !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+/* ----------------------------------------------
+   2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "CRITICAL ALERT"
+   ---------------------------------------------- */
+/* Переводим HUD в красный боевой режим */
+.chat-block.is-highlighted[data-user="darkl1us"] .chat-bubble {
+    border-color: #ff2a2a !important; /* Боевой красный */
+    background-image: 
+        linear-gradient(rgba(30, 5, 5, 0.9), rgba(15, 0, 0, 0.95)),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 42, 42, 0.05) 2px, rgba(255, 42, 42, 0.05) 4px),
+        linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.01) 1px, transparent 1px) !important;
+    box-shadow: 6px 6px 0px rgba(255, 42, 42, 0.15), inset 0 0 30px rgba(255, 42, 42, 0.1) !important;
+}
+
+.chat-block.is-highlighted[data-user="darkl1us"] .chat-bubble::before {
+    background: repeating-linear-gradient(-45deg, #ff2a2a 0px, #ff2a2a 5px, #1a0000 5px, #1a0000 10px);
+    border-color: #ff2a2a;
+}
+
+/* Аватарка переключается на красный тепловизор */
+.chat-block.is-highlighted[data-user="darkl1us"] .chat-avatar {
+    border-color: #ff2a2a !important;
+    filter: grayscale(100%) sepia(100%) hue-rotate(330deg) saturate(400%) contrast(1.5) brightness(0.9) !important;
+    box-shadow: 0 0 10px rgba(255, 42, 42, 0.4), inset 0 0 10px #000 !important;
+}
+
+/* Бейдж тревоги */
+.chat-block.is-highlighted[data-user="darkl1us"] .chat-badge-highlight {
+    background: #ff2a2a !important;
+    color: #0f120f !important;
+    border-radius: 0 !important;
+    border: none !important;
+    font-family: 'Black Ops One', sans-serif !important;
+    letter-spacing: 2px !important;
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+}
+.chat-block.is-highlighted[data-user="darkl1us"] .badge-star { display: none !important; }
+.chat-block.is-highlighted[data-user="darkl1us"] .chat-badge-highlight::before { content: 'CRITICAL ALERT'; }
+
+/* ----------------------------------------------
+   3. ПИНГ СТРИМЕРА (MENTION) - "Захват цели (Target Lock)"
+   ---------------------------------------------- */
+.chat-block.is-mention[data-user="darkl1us"] .chat-bubble {
+    border-right: 4px solid #ff5500 !important;
+}
+
+.chat-block.is-mention[data-user="darkl1us"] .chat-ping-bell { display: none !important; }
+
+/* Прицел снайпера */
+.chat-block.is-mention[data-user="darkl1us"] .chat-ping {
+    background: transparent !important;
+    color: #ff5500 !important;
+    border: 1px dashed #ff5500 !important;
+    border-radius: 0 !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 700 !important;
+    padding: 0 4px !important;
+    box-shadow: inset 0 0 8px rgba(255, 85, 0, 0.3) !important;
+}
+.chat-block.is-mention[data-user="darkl1us"] .chat-ping::before { content: '[+ '; }
+.chat-block.is-mention[data-user="darkl1us"] .chat-ping::after { content: ' +]'; }
+
+/* ----------------------------------------------
+   4. ЦЕНЗУРА (МАТ) - "Вымарано цензурой (Redacted)"
+   ---------------------------------------------- */
+.chat-block[data-user="darkl1us"] .censured-badge {
+    background: #ff5500 !important;
+    color: #0f120f !important;
+    border-radius: 0 !important;
+    font-family: 'Black Ops One', sans-serif !important;
+    font-size: 10px !important;
+    letter-spacing: 1px !important;
+    padding: 1px 4px !important;
+}
+.chat-block[data-user="darkl1us"] .censured-badge::before { content: 'SEC-OPS'; }
+
+/* Черный блок цензуры, как в рассекреченных файлах ЦРУ */
+.chat-block[data-user="darkl1us"] .censured-message {
+    background: #000000 !important;
+    color: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    border-left: 4px solid #ff5500 !important;
+    border-radius: 0 !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    box-shadow: none !important;
+    padding: 6px 10px !important;
+}
+.chat-block[data-user="darkl1us"] .censured-message::before { content: '[ DATA REDACTED ]'; color: #ff5500; font-weight: 800; margin-right: 8px; }
+
+/* =========================================================================
+   5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Военная рация (Comms Link)"
+   ========================================================================= */
+
+#tts-container[data-user="darkl1us"] {
+    background-color: #0f120f !important;
+    background-image: 
+        linear-gradient(rgba(15, 18, 15, 0.9), rgba(10, 12, 10, 0.95)),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(68, 255, 68, 0.03) 2px, rgba(68, 255, 68, 0.03) 4px) !important;
+    border: 1px solid #283622 !important;
+    border-left: 4px solid #ff5500 !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Настоящий анимированный радар! */
+#tts-container[data-user="darkl1us"] .tts-icon {
+    font-size: 0 !important;
+    width: 24px !important; 
+    height: 24px !important;
+    border: 2px solid #44ff44 !important;
+    border-radius: 50% !important;
+    position: relative;
+    background: repeating-conic-gradient(from 0deg, rgba(68,255,68,0.1) 0deg 30deg, transparent 30deg 60deg) !important;
+    animation: radarSweep 2s linear infinite !important;
+    box-shadow: 0 0 10px rgba(68, 255, 68, 0.2), inset 0 0 5px rgba(68, 255, 68, 0.2) !important;
+    filter: none !important;
+    margin-right: 5px;
+}
+
+@keyframes radarSweep { 100% { transform: rotate(360deg); } }
+
+/* Луч радара */
+#tts-container[data-user="darkl1us"] .tts-icon::after {
+    content: ''; 
+    position: absolute; 
+    top: 50%; left: 50%; 
+    width: 50%; height: 2px; 
+    background: #44ff44; 
+    transform-origin: left center;
+    box-shadow: 0 0 5px #44ff44;
+}
+
+/* Название ивента */
+#tts-container[data-user="darkl1us"] .tts-title {
+    font-family: 'Rajdhani', sans-serif !important;
+    color: #ff5500 !important;
+    letter-spacing: 2px !important;
+    font-size: 11px !important;
+}
+#tts-container[data-user="darkl1us"] .tts-title::before { content: 'COMMS LINK // '; }
+
+/* Имя пользователя */
+#tts-container[data-user="darkl1us"] .tts-user {
+    font-family: 'Black Ops One', sans-serif !important;
+    color: #e0e8db !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase;
+    font-size: 16px !important;
+    text-shadow: 0 0 5px rgba(0,0,0,0.8) !important;
+}
+
+/* Осциллограф радиочастот */
+#tts-container[data-user="darkl1us"] .tts-bar {
+    background: rgba(68, 255, 68, 0.3) !important;
+    border-radius: 0 !important;
+    width: 4px !important;
+    box-shadow: none !important;
+}
+#tts-container[data-user="darkl1us"] .tts-bar.active-spike {
+    background: #44ff44 !important;
+    box-shadow: 0 0 8px #44ff44 !important;
+}
