@@ -36,7 +36,15 @@ body.scene-chatting #chat-container {
     padding: 20px; -webkit-mask-image: none; 
     overflow-y: hidden; overflow-x: hidden; 
 }
-body.scene-chatting .chat-message { width: 100% !important; }
+body.scene-chatting .chat-block { 
+    width: auto !important; 
+    align-self: stretch !important; 
+    max-width: none !important; 
+}
+body.scene-chatting .chat-bubble {
+    width: 100% !important; 
+    box-sizing: border-box !important;
+}
 
 /* Алерты */
 body.scene-chatting #alert-container { top: 100px; left: 600px; transform: translateX(-50%) translateZ(0) !important; }
