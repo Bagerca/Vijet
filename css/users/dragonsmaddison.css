@@ -5,9 +5,9 @@
 /* Подключаем винтажные шрифты: Постерный для ника и печатную машинку для текста */
 @import url('https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&display=swap');
 
-/* Внешние отступы, чтобы мультяшная тень (6px) помещалась */
+/* Внешние отступы (обнулены боковые) */
 .chat-block[data-user="dragonsmaddison"] {
-    margin: 15px 20px 20px 10px; 
+    margin: 15px 0 15px 0; 
 }
 
 /* ==============================================

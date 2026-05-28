@@ -4,12 +4,10 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap');
 
-/* Внешние отступы: даем место для тени со всех сторон */
+/* Внешние отступы (обнулены боковые) */
 .chat-block[data-user="ksusha__sher"] {
-    margin: 20px 25px 25px 15px; 
+    margin: 20px 0 20px 0; 
     z-index: 50; 
-    width: 100%; 
-    max-width: calc(100% - 40px); 
 }
 
 /* ==============================================

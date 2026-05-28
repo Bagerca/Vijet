@@ -19,7 +19,8 @@
     gap: 16px; 
     padding: 14px 16px;
     
-    width: 360px;
+    /* Чуть увеличили общую ширину виджета, чтобы компенсировать большую обложку */
+    width: 380px;
     box-sizing: border-box;
     z-index: 10;
     transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -35,8 +36,10 @@
 
 /* ЛЕВЫЙ БЛОК: Постер */
 .gi-poster-wrap {
-    width: 110px; 
-    height: 154px; 
+    /* УВЕЛИЧЕННАЯ ОБЛОЖКА (Пропорции Steam 1:1.4 сохранены) */
+    width: 130px; /* Было 110px */
+    height: 182px; /* Было 154px */
+    
     flex-shrink: 0;
     position: relative;
     border-radius: 10px;
@@ -70,8 +73,9 @@
 }
 
 #gi-no-game svg {
-    width: 38px; 
-    height: 38px;
+    /* Чуть увеличили иконку заглушки для новой обложки */
+    width: 42px; 
+    height: 42px;
     color: #FF4477;
     filter: drop-shadow(0 2px 4px rgba(255, 68, 119, 0.2));
     background: rgba(255, 68, 119, 0.1);
@@ -79,14 +83,15 @@
     border-radius: 50%;
 }
 
-.gi-no-text { font-size: 10px; font-weight: 900; color: rgba(0, 0, 0, 0.5); line-height: 1.2; letter-spacing: 1px; }
-.gi-no-text span { font-size: 7px; color: rgba(0, 0, 0, 0.3); }
+.gi-no-text { font-size: 11px; font-weight: 900; color: rgba(0, 0, 0, 0.5); line-height: 1.2; letter-spacing: 1px; }
+.gi-no-text span { font-size: 8px; color: rgba(0, 0, 0, 0.3); }
 
 /* ПРАВЫЙ БЛОК: Информация */
 .gi-details { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
 
 #gi-title {
-    font-size: 16px;
+    /* Заголовок стал на 1px больше для баланса с картинкой */
+    font-size: 17px;
     font-weight: 900;
     color: #1a1a1a; 
     margin-bottom: 4px;

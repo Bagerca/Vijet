@@ -5,9 +5,9 @@
 /* Подключаем хакерский моноширинный шрифт */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-/* Внешние отступы, чтобы кибер-тень (6px) не обрезалась */
+/* Внешние отступы (обнулены боковые) */
 .chat-block[data-user="tetlabot"] {
-    margin: 15px 20px 20px 10px; 
+    margin: 15px 0 15px 0; 
 }
 
 /* ==============================================

@@ -5,9 +5,9 @@
 /* Подключаем Cinzel для имени (стиль Боссов) и Cormorant Garamond для лора (стиль табличек) */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
 
-/* Внешние отступы, чтобы огромная тень (30px) помещалась и не обрезалась */
+/* Внешние отступы (обнулены боковые) */
 .chat-block[data-user="bagercaa"] {
-    margin: 25px 20px 20px 20px; 
+    margin: 25px 0 15px 0; 
 }
 
 /* ==============================================

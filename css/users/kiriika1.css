@@ -5,10 +5,10 @@
 /* Подключаем идеальный пиксельный шрифт */
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap');
 
-/* Внешние отступы, чтобы жесткая тень (8px) помещалась */
+/* Внешние отступы (обнулены боковые) */
 .chat-block[data-user="kiriika1"], 
 .chat-block[data-user="kiriika11"] {
-    margin: 15px 20px 20px 10px; 
+    margin: 15px 0 15px 0; 
 }
 
 /* ==============================================

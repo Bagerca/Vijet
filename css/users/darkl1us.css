@@ -5,9 +5,9 @@
 /* Подключаем брутальные шрифты: Трафаретный (Black Ops One) и Технический (Rajdhani) */
 @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@500;600;700&display=swap');
 
-/* Внешние отступы: убраны багованные 100% ширины, теперь бабл тянется естественно */
+/* Внешние отступы (обнулены боковые) */
 .chat-block[data-user="darkl1us"] {
-    margin: 15px 20px 20px 10px; 
+    margin: 15px 0 15px 0; 
     z-index: 40; 
 }
 
