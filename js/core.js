@@ -1,7 +1,7 @@
 /* ================= CORE (ЯДРО СИСТЕМЫ) ================= */
 window.AppCore = {
     greetedUsers: new Set(), 
-    commandCooldowns: {}, // Хранилище кулдаунов (Анти-спам)
+    commandCooldowns: {}, 
 
     init: function() {
         if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
@@ -13,56 +13,40 @@ window.AppCore = {
         }
     },
 
-    // Вспомогательная функция для генерации фейковых данных реплая
     generateFakeReply: function() {
-        return {
-            user: "СлучайныйЗритель",
-            htmlText: "Это какой-то текст, на который отвечает кастомный юзер."
-        };
+        return { user: "СлучайныйЗритель", htmlText: "Это какой-то текст, на который отвечает кастомный юзер." };
     },
 
-    // Умный парсер тестовых команд с флагами (-hl, -rep, -ping, -tts)
     handleTestCommand: function(userAlias, color, avatarUrl, defaultText, arg) {
         let isHighlight = false;
         let isReply = false;
         let isPing = false;
         let isTts = false;
+        let isFirstTime = false;
         let finalMessage = arg;
 
-        // Парсим флаги
         if (finalMessage.includes("-hl")) { isHighlight = true; finalMessage = finalMessage.replace("-hl", "").trim(); }
         if (finalMessage.includes("-rep")) { isReply = true; finalMessage = finalMessage.replace("-rep", "").trim(); }
         if (finalMessage.includes("-ping")) { isPing = true; finalMessage = finalMessage.replace("-ping", "").trim(); }
         if (finalMessage.includes("-tts")) { isTts = true; finalMessage = finalMessage.replace("-tts", "").trim(); }
+        if (finalMessage.includes("-first")) { isFirstTime = true; finalMessage = finalMessage.replace("-first", "").trim(); }
 
-        // Если текст пустой после вырезания флагов, ставим дефолтный
         if (finalMessage === "") finalMessage = defaultText;
 
-        // === ИСПРАВЛЕНИЕ: ПРОПУСКАЕМ ТЕСТОВЫЙ ТЕКСТ ЧЕРЕЗ ФИЛЬТР МАТА ===
         let { text: cleanText, hasForbidden } = window.ChatFilter.processText(finalMessage, window.AppConfig.forbiddenWords);
 
-        // Если есть флаг -tts, отправляем в озвучку (уже очищенный от мата текст!)
         if (isTts) {
-            let cleanTtsText = cleanText.replace(/<[^>]+>/g, ''); // Убираем HTML-теги для TTS
+            let cleanTtsText = cleanText.replace(/<[^>]+>/g, ''); 
             window.AppEvents.emit('TTS_ADD', { user: userAlias, text: cleanTtsText });
         }
 
-        // Если есть флаг пинга, добавляем пинг к очищенному тексту
-        if (isPing) {
-            cleanText = `<span class="chat-ping">@${window.AppConfig.channelName}</span> ${cleanText}`;
-        }
+        if (isPing) cleanText = `<span class="chat-ping">@${window.AppConfig.channelName}</span> ${cleanText}`;
 
-        // Отправляем на рендер
         window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-            user: userAlias,
-            color: color,
-            avatarUrl: avatarUrl,
+            user: userAlias, color: color, avatarUrl: avatarUrl,
             time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            htmlText: cleanText, // <-- Теперь тут очищенный текст!
-            replyData: isReply ? this.generateFakeReply() : null,
-            isFirstTime: false,
-            isHighlighted: isHighlight,
-            isMention: isPing
+            htmlText: cleanText, replyData: isReply ? this.generateFakeReply() : null,
+            isFirstTime: isFirstTime, isHighlighted: isHighlight, isMention: isPing
         });
     },
 
@@ -83,69 +67,45 @@ window.AppCore = {
             const mentionRegex = new RegExp(`@${window.AppConfig.channelName}\\b`, 'ig');
             const isMention = mentionRegex.test(cleanText);
 
-            // === ФИЛЬТР ШТОРМА СОБЫТИЙ ПИТОМЦА ===
-            let petEmotion = null;
-            let petPrio = 0;
+            let petEmotion = null; let petPrio = 0;
             const setPet = (emo, prio) => { if (prio > petPrio) { petEmotion = emo; petPrio = prio; } };
 
-            if (hasForbidden) {
-                setPet('angry', 10); // Высший приоритет
-            } else {
+            if (hasForbidden) { setPet('angry', 10); } 
+            else {
                 const isAllowedUser = window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(lowerUser);
                 if ((isAllowedUser || flags.broadcaster) && !this.greetedUsers.has(lowerUser)) {
-                    this.greetedUsers.add(lowerUser);
-                    setPet('love', 5);
+                    this.greetedUsers.add(lowerUser); setPet('love', 5);
                 } 
                 if (isMention) setPet('alert', 4);
-                
-                // Обработка смайлов
-                if (extra.messageEmotes) {
-                    setPet('hype', 1); 
-                    window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes); 
-                }
+                if (extra.messageEmotes) { setPet('hype', 1); window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes); }
             }
-            
             if (petEmotion) window.AppEvents.emit('PET_EMOTION', { emotion: petEmotion, duration: 4000 });
 
-            if (isMention && !hasForbidden) {
-                cleanText = cleanText.replace(mentionRegex, `<span class="chat-ping">$&</span>`);
-            }
+            if (isMention && !hasForbidden) cleanText = cleanText.replace(mentionRegex, `<span class="chat-ping">$&</span>`);
 
             if (isTwitchHighlight && !hasForbidden) {
                 window.AppEvents.emit('TICKER_REWARD', { user, reward: "Выделенное сообщение", message: cleanText });
-                let textForTTS = cleanText.replace(/<[^>]+>/g, '');
-                window.AppEvents.emit('TTS_ADD', { user: user, text: textForTTS });
+                window.AppEvents.emit('TTS_ADD', { user: user, text: cleanText.replace(/<[^>]+>/g, '') });
             }
             
             const avatarUrl = await window.AvatarManager.get(user, userColor);
-
             let replyData = null;
             if (extra.userState && extra.userState['reply-parent-display-name']) {
                 const replyUser = extra.userState['reply-parent-display-name'];
-                let replyTextRaw = (extra.userState['reply-parent-msg-body'] || '').replace(/\\s/g, ' '); 
-                replyTextRaw = replyTextRaw.replace(/^@[a-zA-Z0-9_]+\s*,?\s*/i, '');
-                
-                let escapedReply = window.ChatFilter.escapeHTML(replyTextRaw);
-                let cleanReply = window.ChatFilter.processText(escapedReply, window.AppConfig.forbiddenWords).text;
+                let replyTextRaw = (extra.userState['reply-parent-msg-body'] || '').replace(/\\s/g, ' ').replace(/^@[a-zA-Z0-9_]+\s*,?\s*/i, '');
+                let cleanReply = window.ChatFilter.processText(window.ChatFilter.escapeHTML(replyTextRaw), window.AppConfig.forbiddenWords).text;
                 replyData = { user: replyUser, htmlText: cleanReply };
-
-                const replyMentionRegex = new RegExp(`^@${replyUser}\\s*,?\\s*`, 'i');
-                cleanText = cleanText.replace(replyMentionRegex, '');
+                cleanText = cleanText.replace(new RegExp(`^@${replyUser}\\s*,?\\s*`, 'i'), '');
             }
 
-            window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
-                user, color: userColor, avatarUrl, time, htmlText: cleanText, replyData, isFirstTime, isHighlighted, isMention
-            });
+            window.AppEvents.emit('CHAT_RENDER_MESSAGE', { user, color: userColor, avatarUrl, time, htmlText: cleanText, replyData, isFirstTime, isHighlighted, isMention });
         };
 
         ComfyJS.onReward = (user, reward, cost, message, extra) => {
             window.AppEvents.emit('TICKER_REWARD', { user, reward, message });
             window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
 
-            if (reward === window.AppConfig.wheelRewardName) {
-                window.AppEvents.emit('WHEEL_ADD', { text: message });
-                window.AppEvents.emit('WHEEL_TOGGLE', { state: true });
-            }
+            if (reward === window.AppConfig.wheelRewardName) { window.AppEvents.emit('WHEEL_ADD', { text: message }); window.AppEvents.emit('WHEEL_TOGGLE', { state: true }); }
             if (reward === window.AppConfig.ttsRewardName) window.AppEvents.emit('TTS_ADD', { user, text: message });
             if (reward === window.AppConfig.rewardName) window.AppEvents.emit('QUEUE_ADD', { user, url: message });
             if (reward === window.AppConfig.feedRewardName) window.AppEvents.emit('PET_EMOTION', { emotion: 'nom', duration: 6000 });
@@ -161,13 +121,12 @@ window.AppCore = {
         };
 
         const triggerLove = () => window.AppEvents.emit('PET_EMOTION', { emotion: 'love', duration: 5000 });
-        
         ComfyJS.onSub = (user, message) => { window.AppEvents.emit('ALERT_ADD', { user, type: 'sub', msg: message }); triggerLove(); };
         ComfyJS.onResub = (user, message, sMonths, cMonths) => { window.AppEvents.emit('ALERT_ADD', { user, type: 'resub', msg: message, val: cMonths }); triggerLove(); };
         ComfyJS.onSubGift = (gifter, streak, recUser) => { window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `для ${recUser}` }); triggerLove(); };
         ComfyJS.onSubMysteryGift = (gifter, numb) => { window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `подарил ${numb} саб.!` }); triggerLove(); };
 
-        ComfyJS.onCommand = (user, command, message, flags) => {
+        ComfyJS.onCommand = async (user, command, message, flags) => {
             const isMod = flags.broadcaster || flags.mod;
             const isAllowedUser = window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(user.toLowerCase());
             const hasPermission = isMod || isAllowedUser;
@@ -183,36 +142,40 @@ window.AppCore = {
                 this.commandCooldowns[cmdKey] = now;
             }
 
+            // Запрашиваем аватарку для тестов, чтобы она была реальной
+            let testAvatar = "https://ui-avatars.com/api/?name=Test&background=FF4477&color=fff";
+            if (hasPermission && cmdKey.startsWith('test')) {
+                testAvatar = await window.AvatarManager.get(user, '#FF4477');
+            }
+
             switch (cmdKey) {
+                case "widget":
+                case "виджет":
+                    if (hasPermission) {
+                        let parts = argLow.split(' ');
+                        if (parts.length >= 2) window.AppEvents.emit('WIDGET_TOGGLE', { widget: parts[0], state: parts[1] });
+                    }
+                    break;
                 case "протокол":
                 case "protocol":
                     if (hasPermission) {
-                        if (argLow === "цирк" || argLow === "circus") {
-                            window.AppEvents.emit('THEME_CHANGE', { theme: 'circus' });
-                            window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 5000 });
-                        } 
-                        else if (argLow === "нуар" || argLow === "noir") {
-                            window.AppEvents.emit('THEME_CHANGE', { theme: 'noir' });
-                            window.AppEvents.emit('PET_EMOTION', { emotion: 'listen', duration: 5000 }); 
-                        } 
-                        else if (argLow === "отмена" || argLow === "off" || argLow === "default") {
-                            window.AppEvents.emit('THEME_CHANGE', { theme: 'default' });
-                            window.AppEvents.emit('PET_EMOTION', { emotion: 'idle', duration: 2000 });
-                        }
+                        if (argLow === "цирк" || argLow === "circus") { window.AppEvents.emit('THEME_CHANGE', { theme: 'circus' }); window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 5000 }); } 
+                        else if (argLow === "нуар" || argLow === "noir") { window.AppEvents.emit('THEME_CHANGE', { theme: 'noir' }); window.AppEvents.emit('PET_EMOTION', { emotion: 'listen', duration: 5000 }); } 
+                        else if (argLow === "отмена" || argLow === "off" || argLow === "default") { window.AppEvents.emit('THEME_CHANGE', { theme: 'default' }); window.AppEvents.emit('PET_EMOTION', { emotion: 'idle', duration: 2000 }); }
                     }
                     break;
-
                 case "refresh":
                     if (hasPermission) {
-                        if (argLow === "core") {
-                            const coreUrl = new URL(window.location.href);
-                            coreUrl.searchParams.set('nocache', Date.now());
-                            window.location.href = coreUrl.toString();
-                        } else window.AppEvents.emit('FORCE_RELOAD_VISUAL');
+                        if (argLow === "core") { const coreUrl = new URL(window.location.href); coreUrl.searchParams.set('nocache', Date.now()); window.location.href = coreUrl.toString(); } 
+                        else window.AppEvents.emit('FORCE_RELOAD_VISUAL');
                     }
                     break;
 
-                // === УМНЫЕ ТЕСТОВЫЕ КОМАНДЫ ===
+                // Умные тестовые команды
+                case "testfirst": if (hasPermission) this.handleTestCommand(user, "#FF4477", testAvatar, "Привет, я впервые на этом крутом стриме!", "-first " + arg); break;
+                case "testmention": if (hasPermission) this.handleTestCommand(user, "#00E5FF", testAvatar, "Зацени это!", "-ping " + arg); break;
+                case "testhighlight": if (hasPermission) this.handleTestCommand(user, "#FFD700", testAvatar, "Это очень важное сообщение за баллы!", "-hl " + arg); break;
+
                 case "testhk": if (hasPermission) this.handleTestCommand("bagercaa", "#8bb9d2", "https://ui-avatars.com/api/?name=bg&background=10141e&color=8bb9d2", "Высшее существо, эти слова для тебя одного...", arg); break;
                 case "testmc": if (hasPermission) this.handleTestCommand("kiriika1", "#5ea936", "https://ui-avatars.com/api/?name=MC&background=744d32&color=fff", "Пшшш... крипер сзади!", arg); break;
                 case "testangel": if (hasPermission) this.handleTestCommand("to_be_ang", "#FFD700", "https://ui-avatars.com/api/?name=ANG&background=fff&color=FFD700", "Свет укажет нам путь...", arg); break;
@@ -220,17 +183,9 @@ window.AppCore = {
                 case "testhacker": if (hasPermission) this.handleTestCommand("tetlabot", "#00ff41", "https://ui-avatars.com/api/?name=SYS&background=000&color=00ff41", "System breach detected. Firewall disabled.", arg); break;
                 case "testpda": if (hasPermission) this.handleTestCommand("ksusha__sher", "#00ffea", "https://ui-avatars.com/api/?name=PDA&background=091e32&color=00ffea", "Внимание: Обнаружены формы жизни класса Левиафан.", arg); break;
                 case "testarmy": if (hasPermission) this.handleTestCommand("darkl1us", "#dd5500", "https://ui-avatars.com/api/?name=DL&background=1a1c19&color=dd5500", "Цель обнаружена. Запрашиваю поддержку с воздуха.", arg); break;
+                case "testtts": if (hasPermission) { let parts = arg.split(' '); let targetUser = parts[0] || "tetlabot"; let ttsText = parts.slice(1).join(' ') || "Внимание. Тестирование вокального модуля успешно завершено."; window.AppEvents.emit('TTS_ADD', { user: targetUser, text: ttsText }); } break;
 
-                // === ПРЯМОЙ ТЕСТ ОЗВУЧКИ ЛЮБОГО ЮЗЕРА ===
-                case "testtts":
-                    if (hasPermission) {
-                        let parts = arg.split(' ');
-                        let targetUser = parts[0] || "tetlabot";
-                        let ttsText = parts.slice(1).join(' ') || "Внимание. Тестирование вокального модуля успешно завершено.";
-                        window.AppEvents.emit('TTS_ADD', { user: targetUser, text: ttsText });
-                    }
-                    break;
-
+                // Базовые команды управления
                 case "wheel":
                 case "рулетка":
                     if (hasPermission) {
@@ -243,70 +198,40 @@ window.AppCore = {
                     }
                     break;
                 case "sr":     
-                case "play":   
-                    if (message !== "") window.AppEvents.emit('QUEUE_ADD', { user, url: message });
-                    break;
+                case "play":   if (message !== "") window.AppEvents.emit('QUEUE_ADD', { user, url: message }); break;
                 case "so":
-                case "shoutout":
-                    if (hasPermission && message !== "") window.AppEvents.emit('SHOUTOUT_ADD', { user: message });
-                    break;
-                case "skip": 
-                    if (hasPermission) {
-                        if (argLow === "all") window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_all' });
-                        else window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_track' });
-                    }
-                    break;
+                case "shoutout": if (hasPermission && message !== "") window.AppEvents.emit('SHOUTOUT_ADD', { user: message }); break;
+                case "skip": if (hasPermission) { if (argLow === "all") window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_all' }); else window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_track' }); } break;
                 case "clear": if (hasPermission) window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' }); break;
                 case "vol": if (hasPermission && message !== "") window.AppEvents.emit('PLAYER_VOL', { vol: message }); break;
                 case "cam": if (hasPermission) window.AppEvents.emit('MEDIA_CAM', { state: argLow }); break;
                 case "mic": if (hasPermission) window.AppEvents.emit('MEDIA_MIC', { state: argLow }); break;
                 case "emotes":
-                case "смайлы":
-                    if (hasPermission) window.AppEvents.emit('EMOTES_CMD', { cmd: argLow });
-                    break;
-                case "tts":
-                    if (hasPermission && message !== "") {
-                        if (argLow === "stop" || argLow === "skip") window.AppEvents.emit('TTS_CMD', { stop: true }); 
-                        else window.AppEvents.emit('TTS_ADD', { user, text: message });
-                    }
-                    break;
+                case "смайлы": if (hasPermission) window.AppEvents.emit('EMOTES_CMD', { cmd: argLow }); break;
+                case "tts": if (hasPermission && message !== "") { if (argLow === "stop" || argLow === "skip") window.AppEvents.emit('TTS_CMD', { stop: true }); else window.AppEvents.emit('TTS_ADD', { user, text: message }); } break;
                 case "blur":
-                case "блюр":
-                    if (hasPermission) window.AppEvents.emit('BLUR_TOGGLE', { state: argLow });
-                    break;
-                
+                case "блюр": if (hasPermission) window.AppEvents.emit('BLUR_TOGGLE', { state: argLow }); break;
                 case "media":
                 case "медиа":
                     if (hasPermission) {
-                        if (argLow === "off" || argLow === "clear" || argLow === "hide") {
-                            window.AppEvents.emit('MEDIA_SET', { type: 'off' });
-                        } else if (argLow.startsWith("yt ") || argLow.startsWith("youtube ")) {
+                        if (argLow === "off" || argLow === "clear" || argLow === "hide") window.AppEvents.emit('MEDIA_SET', { type: 'off' });
+                        else if (argLow.startsWith("yt ") || argLow.startsWith("youtube ")) {
                             const query = arg.substring(arg.indexOf(' ') + 1).trim();
                             const match = query.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
                             const ytId = (match && match[2].length === 11) ? match[2] : (query.length === 11 ? query : null);
                             if (ytId) window.AppEvents.emit('MEDIA_SET', { type: 'yt', query: ytId });
                         } else if (argLow.startsWith("game ") || argLow.startsWith("игра ")) {
-                            const query = argLow.replace("game ", "").replace("игра ", "").trim();
-                            window.AppEvents.emit('MEDIA_SET', { type: 'game', query: query });
+                            window.AppEvents.emit('MEDIA_SET', { type: 'game', query: argLow.replace("game ", "").replace("игра ", "").trim() });
                         }
                     }
                     break;
-                
                 case "game":
-                case "игра":
-                    if (hasPermission) {
-                        if (argLow === "off" || argLow === "clear" || argLow === "hide") window.AppEvents.emit('MEDIA_SET', { type: 'off' });
-                        else window.AppEvents.emit('MEDIA_SET', { type: 'game', query: argLow });
-                    }
-                    break;
-                    
+                case "игра": if (hasPermission) { if (argLow === "off" || argLow === "clear" || argLow === "hide") window.AppEvents.emit('MEDIA_SET', { type: 'off' }); else window.AppEvents.emit('MEDIA_SET', { type: 'game', query: argLow }); } break;
                 case "death":
                 case "deaths":
                 case "смерть":
                     if (hasPermission) {
-                        if (!["off", "hide", "-", "sub", "reset", "clear"].includes(argLow) && !argLow.startsWith("set")) {
-                            window.AppEvents.emit('PET_EMOTION', { emotion: 'scared', duration: 3000 });
-                        }
+                        if (!["off", "hide", "-", "sub", "reset", "clear"].includes(argLow) && !argLow.startsWith("set")) window.AppEvents.emit('PET_EMOTION', { emotion: 'scared', duration: 3000 });
                         window.AppEvents.emit('DEATHS_CMD', { cmd: argLow });
                     }
                     break;
@@ -322,12 +247,7 @@ window.AppCore = {
                         else if (argLow === "танцуй" || argLow === "вайб") window.AppEvents.emit('PET_EMOTION', { emotion: 'jam', duration: 5000 });
                     }
                     break;
-                case "alert":
-                    if (hasPermission) {
-                        triggerLove();
-                        window.AppEvents.emit('ALERT_TEST', { type: argLow });
-                    }
-                    break;
+                case "alert": if (hasPermission) { triggerLove(); window.AppEvents.emit('ALERT_TEST', { type: argLow }); } break;
             }
         };
 
@@ -335,10 +255,7 @@ window.AppCore = {
         if (client) {
             client.on("raw_message", (messageCloned, message) => {
                 if (message.command === "USERNOTICE" && message.tags && message.tags["msg-id"] === "viewermilestone") {
-                    const user = message.tags["display-name"] || message.tags["login"];
-                    const streakCount = message.tags["msg-param-value"]; 
-                    let customMsg = (message.params && message.params.length > 1) ? message.params[1] : "";
-                    window.AppEvents.emit('ALERT_ADD', { user, type: 'streak', msg: customMsg, val: streakCount });
+                    window.AppEvents.emit('ALERT_ADD', { user: message.tags["display-name"] || message.tags["login"], type: 'streak', msg: (message.params && message.params.length > 1) ? message.params[1] : "", val: message.tags["msg-param-value"] });
                     triggerLove();
                 }
             });
