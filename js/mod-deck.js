@@ -7,6 +7,22 @@ const AppDeck = {
         token: localStorage.getItem('uso_mod_token') || ''
     },
 
+    // Список виджетов для автогенерации тумблеров в Мастер-панели
+    masterWidgets: [
+        { id: 'chat', label: 'Чат' },
+        { id: 'media', label: 'Сейчас играем' },
+        { id: 'goal', label: 'Цель фолловеров' },
+        { id: 'alerts', label: 'Алерты' },
+        { id: 'socials', label: 'Соцсети' },
+        { id: 'ticker', label: 'Бегущая строка' },
+        { id: 'pet', label: 'Питомец (Лиса)' },
+        { id: 'emotes', label: 'Смайлы чата' },
+        { id: 'music', label: 'Плеер YouTube' },
+        { id: 'tts', label: 'TTS Эквалайзер' },
+        { id: 'particles', label: 'Фон. частицы' },
+        { id: 'shoutout', label: 'Shoutout' }
+    ],
+
     init: function() {
         this.bindAuthEvents();
         if (this.creds.channel && this.creds.user && this.creds.token) {
@@ -15,6 +31,7 @@ const AppDeck = {
             document.getElementById('auth-modal').classList.remove('hidden');
         }
         
+        this.generateMasterSwitches();
         this.populateDynamicSelects(); 
         this.setupCustomSelects();     
         this.setupModifierPills(); 
@@ -49,7 +66,7 @@ const AppDeck = {
         document.getElementById('ui-channel-name').innerText = this.creds.channel;
 
         ComfyJS.Init(this.creds.user, this.creds.token, this.creds.channel);
-        ComfyJS.onConnected = () => this.showToast("⚡ СВЯЗЬ С ЯДРОМ УСТАНОВЛЕНА");
+        ComfyJS.onConnected = () => this.showToast("⚡ СВЯЗЬ УСТАНОВЛЕНА");
 
         this.embedTwitchWidgets();
     },
@@ -81,7 +98,7 @@ const AppDeck = {
     sendCmd: function(commandString) {
         if (!commandString || commandString.trim() === "") return;
         ComfyJS.Say(commandString, this.creds.channel);
-        this.showToast(`✔️ ${commandString.split(' ')[0]}`);
+        this.showToast(`✔️ Отправлено`);
     },
 
     showToast: function(msg) {
@@ -91,6 +108,37 @@ const AppDeck = {
         toast.offsetHeight; 
         toast.style.animation = null;
         setTimeout(() => toast.classList.add('hidden'), 2500);
+    },
+
+    generateMasterSwitches: function() {
+        const grid = document.getElementById('widget-master-grid');
+        if (!grid) return;
+
+        let html = '';
+        this.masterWidgets.forEach(w => {
+            html += `
+                <div class="toggle-row">
+                    <span class="toggle-label">${w.label}</span>
+                    <label class="switch"><input type="checkbox" class="widget-toggle" data-widget="${w.id}" checked><span class="slider"></span></label>
+                </div>
+            `;
+        });
+        grid.innerHTML = html;
+
+        // Вешаем слушатели на все тумблеры (включая ручные, вроде камеры и блюра)
+        document.querySelectorAll('.widget-toggle').forEach(toggle => {
+            toggle.addEventListener('change', (e) => {
+                const widgetName = e.target.getAttribute('data-widget');
+                const state = e.target.checked ? 'on' : 'off';
+                
+                // Специальные команды для камеры и блюра
+                if (widgetName === 'cam') this.sendCmd(`!cam ${state}`);
+                else if (widgetName === 'blur') this.sendCmd(`!blur ${state}`);
+                else if (widgetName === 'deaths') this.sendCmd(`!death ${state === 'on' ? 'show' : 'hide'}`);
+                // Стандартный виджет
+                else this.sendCmd(`!widget ${widgetName} ${state}`);
+            });
+        });
     },
 
     populateDynamicSelects: function() {
@@ -104,7 +152,7 @@ const AppDeck = {
             
             for (let key in window.GamesDatabase) {
                 const item = window.GamesDatabase[key];
-                const coverHtml = item.cover ? `<img src="${item.cover}" class="select-item-cover">` : '';
+                const coverHtml = item.cover ? `<img src="${item.cover}" class="select-item-cover" style="width:20px; height:26px; border-radius:4px; object-fit:cover; flex-shrink:0;">` : '';
                 const row = `<div class="item-with-cover" data-value="${key}">${coverHtml}<span>${item.title}</span></div>`;
                 
                 if (item.type === 'game') htmlGames += row;
@@ -231,91 +279,108 @@ const AppDeck = {
     },
 
     bindCommands: function() {
-        document.querySelectorAll('.cmd-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const t = e.currentTarget;
-                t.style.transform = 'scale(0.92)';
-                setTimeout(() => t.style.transform = '', 150);
-                this.sendCmd(t.getAttribute('data-cmd'));
+
+        // ================= СЛАЙДЕР ГРОМКОСТИ =================
+        const volSlider = document.getElementById('input-vol');
+        const volLabel = document.getElementById('vol-label');
+        if (volSlider && volLabel) {
+            // Обновляем циферку и заливку линии в реальном времени
+            volSlider.addEventListener('input', (e) => {
+                const val = e.target.value;
+                volLabel.innerText = val + '%';
+                // Волшебство заливки: передаем процент в CSS
+                volSlider.style.setProperty('--slider-fill', val + '%');
             });
+            
+            // Отправляем команду ТОЛЬКО когда пользователь отпустил ползунок
+            volSlider.addEventListener('change', (e) => {
+                this.sendCmd(`!vol ${e.target.value}`);
+            });
+        }
+
+        // ================= ДЕЛЕГИРОВАНИЕ КЛИКОВ (КНОПКИ) =================
+        document.querySelector('.control-panel').addEventListener('click', (e) => {
+            const btn = e.target.closest('.cmd-btn, .action-btn');
+            if (!btn) return;
+
+            // Анимация нажатия
+            btn.style.transform = 'scale(0.92)';
+            setTimeout(() => btn.style.transform = '', 150);
+
+            // Обработка прямых команд (!cmd)
+            const cmd = btn.getAttribute('data-cmd');
+            if (cmd) {
+                this.sendCmd(cmd);
+                return;
+            }
+
+            // Обработка составных экшенов (с чтением input'ов)
+            const action = btn.getAttribute('data-action');
+            let inputEl, val;
+
+            switch(action) {
+                case 'play':
+                    inputEl = document.getElementById('input-play'); val = inputEl.value.trim();
+                    if (val) { this.sendCmd(`!play ${val}`); inputEl.value = ''; } break;
+                case 'tts':
+                    inputEl = document.getElementById('input-tts'); val = inputEl.value.trim();
+                    if (val) { this.sendCmd(`!tts ${val}`); inputEl.value = ''; } break;
+                case 'so':
+                    inputEl = document.getElementById('input-so'); val = inputEl.value.trim();
+                    if (val) { this.sendCmd(`!so ${val}`); inputEl.value = ''; } break;
+                case 'set_death':
+                    inputEl = document.getElementById('input-death-val'); val = inputEl.value.trim();
+                    if (val !== "") { this.sendCmd(`!death set ${val}`); inputEl.value = ''; } break;
+                
+                // НОВОЕ: Включение YouTube видео для плашки
+                case 'setmedia_yt':
+                    inputEl = document.getElementById('input-media-yt'); val = inputEl.value.trim();
+                    if (val) { this.sendCmd(`!media yt ${val}`); inputEl.value = ''; } break;
+
+                case 'setgame':
+                    inputEl = document.getElementById('custom-game-select'); val = inputEl.getAttribute('data-value');
+                    if (val === "off") this.sendCmd(`!game off`); else this.sendCmd(`!game ${val}`);
+                    break;
+                case 'settheme':
+                    inputEl = document.getElementById('custom-theme-select'); val = inputEl.getAttribute('data-value');
+                    this.sendCmd(`!протокол ${val}`);
+                    break;
+                case 'testalert':
+                    inputEl = document.getElementById('custom-test-alert'); val = inputEl.getAttribute('data-value');
+                    this.sendCmd(`!${val}`);
+                    break;
+                case 'testchat':
+                    const baseCmd = document.getElementById('custom-test-chat').getAttribute('data-value');
+                    const msgInput = document.getElementById('test-chat-msg').value.trim();
+                    let flags = "";
+                    document.querySelectorAll('.mod-pill.active').forEach(pill => { flags += pill.getAttribute('data-mod') + " "; });
+                    
+                    let finalCmd = `!${baseCmd}`;
+                    if (flags.trim() !== "") finalCmd += ` ${flags.trim()}`;
+                    if (msgInput !== "") finalCmd += ` ${msgInput}`;
+                    
+                    this.sendCmd(finalCmd);
+                    document.getElementById('test-chat-msg').value = '';
+                    break;
+                case 'add_wheel_custom':
+                    inputEl = document.getElementById('input-wheel'); val = inputEl.value.trim();
+                    if (val) { this.sendCmd(`!wheel add ${val}`); inputEl.value = ''; } break;
+                case 'add_wheel_db':
+                    inputEl = document.getElementById('custom-wheel-db'); val = inputEl.getAttribute('data-value');
+                    if (val && val !== "") {
+                        const dbItem = window.GamesDatabase[val];
+                        const name = dbItem ? dbItem.title : val;
+                        this.sendCmd(`!wheel add ${name}`);
+                    }
+                    break;
+                case 'spawn_emotes':
+                    this.sendCmd(`Kappa LUL PogChamp BibleThump Kreygasm Kappa LUL PogChamp BibleThump Kreygasm ${Math.floor(Math.random() * 1000)}`);
+                    break;
+            }
         });
 
-        document.querySelectorAll('.action-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const action = e.currentTarget.getAttribute('data-action');
-                let inputEl, val;
-
-                const t = e.currentTarget;
-                t.style.transform = 'scale(0.92)';
-                setTimeout(() => t.style.transform = '', 150);
-
-                switch(action) {
-                    case 'play':
-                        inputEl = document.getElementById('input-play'); val = inputEl.value.trim();
-                        if (val) { this.sendCmd(`!play ${val}`); inputEl.value = ''; } break;
-                    case 'tts':
-                        inputEl = document.getElementById('input-tts'); val = inputEl.value.trim();
-                        if (val) { this.sendCmd(`!tts ${val}`); inputEl.value = ''; } break;
-                    case 'so':
-                        inputEl = document.getElementById('input-so'); val = inputEl.value.trim();
-                        if (val) { this.sendCmd(`!so ${val}`); inputEl.value = ''; } break;
-                    
-                    case 'set_death':
-                        inputEl = document.getElementById('input-death-val'); val = inputEl.value.trim();
-                        if (val !== "") { this.sendCmd(`!death set ${val}`); inputEl.value = ''; } break;
-
-                    case 'setgame':
-                        inputEl = document.getElementById('custom-game-select'); val = inputEl.getAttribute('data-value');
-                        if (val === "off") this.sendCmd(`!game off`); else this.sendCmd(`!game ${val}`);
-                        break;
-                    case 'settheme':
-                        inputEl = document.getElementById('custom-theme-select'); val = inputEl.getAttribute('data-value');
-                        this.sendCmd(`!протокол ${val}`);
-                        break;
-                        
-                    case 'testalert':
-                        inputEl = document.getElementById('custom-test-alert'); val = inputEl.getAttribute('data-value');
-                        this.sendCmd(`!${val}`);
-                        break;
-                    
-                    case 'testchat':
-                        const baseCmd = document.getElementById('custom-test-chat').getAttribute('data-value');
-                        const msgInput = document.getElementById('test-chat-msg').value.trim();
-                        
-                        let flags = "";
-                        document.querySelectorAll('.mod-pill.active').forEach(pill => {
-                            flags += pill.getAttribute('data-mod') + " ";
-                        });
-                        
-                        let finalCmd = `!${baseCmd}`;
-                        if (flags.trim() !== "") finalCmd += ` ${flags.trim()}`;
-                        if (msgInput !== "") finalCmd += ` ${msgInput}`;
-                        
-                        this.sendCmd(finalCmd);
-                        document.getElementById('test-chat-msg').value = '';
-                        break;
-
-                    case 'add_wheel_custom':
-                        inputEl = document.getElementById('input-wheel'); val = inputEl.value.trim();
-                        if (val) { this.sendCmd(`!wheel add ${val}`); inputEl.value = ''; } break;
-                    
-                    case 'add_wheel_db':
-                        inputEl = document.getElementById('custom-wheel-db'); val = inputEl.getAttribute('data-value');
-                        if (val && val !== "") {
-                            const dbItem = window.GamesDatabase[val];
-                            const name = dbItem ? dbItem.title : val;
-                            this.sendCmd(`!wheel add ${name}`);
-                        }
-                        break;
-                        
-                    case 'spawn_emotes':
-                        this.sendCmd(`Kappa LUL PogChamp BibleThump Kreygasm Kappa LUL PogChamp BibleThump Kreygasm ${Math.floor(Math.random() * 1000)}`);
-                        break;
-                }
-            });
-        });
-
-        document.querySelectorAll('.smart-input input, .mini-input').forEach(input => {
+        // Энтер в полях ввода
+        document.querySelectorAll('.smart-input input, .counter-input').forEach(input => {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     const actionBtn = e.currentTarget.parentElement.querySelector('.action-btn');
