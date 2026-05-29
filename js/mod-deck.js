@@ -1,4 +1,4 @@
-/* ================= УМНАЯ СТУДИЙНАЯ КОНСОЛЬ (PRO EDITION) ================= */
+/* ================= УМНАЯ СТУДИЙНАЯ КОНСОЛЬ (PRO EDITION + AUTO-RECONNECT) ================= */
 
 const AppDeck = {
     creds: {
@@ -7,7 +7,6 @@ const AppDeck = {
         token: localStorage.getItem('uso_mod_token') || ''
     },
 
-    // Список виджетов для автогенерации тумблеров в Мастер-панели
     masterWidgets: [
         { id: 'chat', label: 'Чат' },
         { id: 'media', label: 'Сейчас играем' },
@@ -36,6 +35,7 @@ const AppDeck = {
         this.setupCustomSelects();     
         this.setupModifierPills(); 
         this.bindCommands();
+        this.setupAutoWakeUp(); // Инициализация умного пробуждения вкладки
     },
 
     bindAuthEvents: function() {
@@ -55,9 +55,13 @@ const AppDeck = {
             this.connectToTwitch();
         });
 
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            localStorage.clear(); location.reload();
-        });
+        // Кнопка логаута
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogout) {
+            btnLogout.addEventListener('click', () => {
+                localStorage.clear(); location.reload();
+            });
+        }
     },
 
     connectToTwitch: function() {
@@ -65,10 +69,62 @@ const AppDeck = {
         document.getElementById('app-container').classList.remove('hidden');
         document.getElementById('ui-channel-name').innerText = this.creds.channel;
 
+        this.updateStatusUI('yellow', 'ПОДКЛЮЧЕНИЕ...');
+
         ComfyJS.Init(this.creds.user, this.creds.token, this.creds.channel);
-        ComfyJS.onConnected = () => this.showToast("⚡ СВЯЗЬ УСТАНОВЛЕНА");
+        
+        // Подключаем слушатели стабильности соединения через секунду, когда клиент создастся
+        setTimeout(() => this.setupConnectionMonitors(), 1000);
 
         this.embedTwitchWidgets();
+    },
+
+    // ================= МОНИТОРИНГ СОЕДИНЕНИЯ =================
+    setupConnectionMonitors: function() {
+        const client = ComfyJS.GetClient();
+        if (!client) return;
+
+        client.on("connected", () => {
+            this.updateStatusUI('green', 'ПОДКЛЮЧЕНО');
+            this.showToast("⚡ СВЯЗЬ УСТАНОВЛЕНА");
+        });
+
+        client.on("disconnected", (reason) => {
+            this.updateStatusUI('red', 'ОТКЛЮЧЕНО');
+            console.warn("[USO] Соединение с Twitch разорвано:", reason);
+        });
+
+        client.on("reconnect", () => {
+            this.updateStatusUI('yellow', 'ПЕРЕПОДКЛЮЧЕНИЕ');
+        });
+    },
+
+    updateStatusUI: function(colorType, text) {
+        const indicator = document.querySelector('.live-indicator');
+        if (!indicator) return;
+        
+        let hexColor = '#00FF7F'; // Green
+        let pulse = 'pulse 1.5s infinite';
+        
+        if (colorType === 'yellow') { hexColor = '#FEE101'; pulse = 'none'; }
+        if (colorType === 'red') { hexColor = '#FF0050'; pulse = 'none'; }
+
+        indicator.innerHTML = `<span class="live-dot" style="background: ${hexColor}; box-shadow: 0 0 10px ${hexColor}; animation: ${pulse};"></span> ${text}`;
+    },
+
+    // ================= УМНОЕ ПРОБУЖДЕНИЕ (Анти-Сон браузера) =================
+    setupAutoWakeUp: function() {
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'visible') {
+                const client = ComfyJS.GetClient();
+                // Если мы вернулись на вкладку, а сокет мертв — пинаем его
+                if (client && client.readyState() !== "OPEN") {
+                    console.log("[USO] Вкладка проснулась. Выполняю принудительный реконнект...");
+                    this.updateStatusUI('yellow', 'ВОССТАНОВЛЕНИЕ...');
+                    client.connect().catch(e => console.warn("Ошибка авто-реконнекта:", e));
+                }
+            }
+        });
     },
 
     embedTwitchWidgets: function() {
@@ -80,14 +136,19 @@ const AppDeck = {
         document.getElementById('twitch-chat-container').innerHTML = '';
 
         try {
+            // Встраиваем видео. Явно разрешаем github.io в parent
             new Twitch.Embed("twitch-video-container", {
                 width: "100%", height: "100%",
                 channel: channelName, layout: "video", autoplay: true, muted: true,
-                parent: [currentDomain]
+                parent: [currentDomain, "github.io"] 
             });
 
             const chatIframe = document.createElement('iframe');
-            chatIframe.src = `https://www.twitch.tv/embed/${channelName}/chat?darkpopout&parent=${currentDomain}`;
+            let iframeSrc = `https://www.twitch.tv/embed/${channelName}/chat?darkpopout&parent=${currentDomain}`;
+            if (currentDomain.includes('github.io')) {
+                iframeSrc += `&parent=github.io`;
+            }
+            chatIframe.src = iframeSrc;
             chatIframe.style.width = "100%"; chatIframe.style.height = "100%"; chatIframe.style.border = "none";
             document.getElementById('twitch-chat-container').appendChild(chatIframe);
         } catch (e) {
@@ -97,13 +158,35 @@ const AppDeck = {
 
     sendCmd: function(commandString) {
         if (!commandString || commandString.trim() === "") return;
-        ComfyJS.Say(commandString, this.creds.channel);
-        this.showToast(`✔️ Отправлено`);
+        
+        const client = ComfyJS.GetClient();
+        if (client && client.readyState() === "OPEN") {
+            ComfyJS.Say(commandString, this.creds.channel);
+            this.showToast(`✔️ Отправлено`);
+        } else {
+            this.showToast(`❌ ОШИБКА: НЕТ СВЯЗИ`);
+            this.updateStatusUI('red', 'СВЯЗЬ ПОТЕРЯНА');
+            // Пытаемся восстановить
+            if (client) client.connect().catch(e => {});
+        }
     },
 
     showToast: function(msg) {
         const toast = document.getElementById('toast');
-        toast.innerText = msg; toast.classList.remove('hidden');
+        toast.innerText = msg; 
+        
+        // Меняем цвет тоста при ошибке
+        if (msg.includes("ОШИБКА")) {
+            toast.style.background = "#FF0050";
+            toast.style.color = "#fff";
+            toast.style.boxShadow = "0 10px 30px rgba(255, 0, 80, 0.4)";
+        } else {
+            toast.style.background = "var(--c-green)";
+            toast.style.color = "#000";
+            toast.style.boxShadow = "0 10px 30px var(--c-green-glow)";
+        }
+
+        toast.classList.remove('hidden');
         toast.style.animation = 'none';
         toast.offsetHeight; 
         toast.style.animation = null;
@@ -125,24 +208,20 @@ const AppDeck = {
         });
         grid.innerHTML = html;
 
-        // Вешаем слушатели на все тумблеры (включая ручные, вроде камеры и блюра)
         document.querySelectorAll('.widget-toggle').forEach(toggle => {
             toggle.addEventListener('change', (e) => {
                 const widgetName = e.target.getAttribute('data-widget');
                 const state = e.target.checked ? 'on' : 'off';
                 
-                // Специальные команды для камеры и блюра
                 if (widgetName === 'cam') this.sendCmd(`!cam ${state}`);
                 else if (widgetName === 'blur') this.sendCmd(`!blur ${state}`);
                 else if (widgetName === 'deaths') this.sendCmd(`!death ${state === 'on' ? 'show' : 'hide'}`);
-                // Стандартный виджет
                 else this.sendCmd(`!widget ${widgetName} ${state}`);
             });
         });
     },
 
     populateDynamicSelects: function() {
-        // 1. Заполняем списки Игр и Рулетки
         if (window.GamesDatabase) {
             const gameList = document.getElementById('dynamic-game-list');
             const wheelList = document.getElementById('dynamic-wheel-list');
@@ -163,7 +242,6 @@ const AppDeck = {
             if (wheelList) wheelList.innerHTML = htmlGames + htmlSeries;
         }
 
-        // 2. АВТОМАТИЧЕСКАЯ ГЕНЕРАЦИЯ КАСТОМНЫХ БАБЛОВ
         const chatList = document.getElementById('dynamic-chat-styles');
         if (chatList) {
             const baseOptions = `
@@ -174,7 +252,6 @@ const AppDeck = {
                 <div class="optgroup">Кастомные стили (VIP)</div>
             `;
             
-            // ВПИШИ СЮДА ВСЕХ ЮЗЕРОВ С КАСТОМНЫМИ СТИЛЯМИ
             const vipUsers = [
                 { login: "ksusha__sher", label: "Neon (Владелец)" },
                 { login: "bagercaa", label: "Hollow Knight" },
@@ -186,7 +263,6 @@ const AppDeck = {
                 { login: "treebals", label: "Terminal" }
             ];
 
-            // Вставляем базовую верстку с временными аватарками (ФИКС СПЛЮСНУТЫХ КРУГОВ)
             chatList.innerHTML = baseOptions + vipUsers.map(u => 
                 `<div data-value="testuser ${u.login}" class="item-with-cover">
                     <img src="https://ui-avatars.com/api/?name=${u.login}&background=222&color=fff" class="select-item-cover" id="av-${u.login}" style="width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; object-fit: cover;">
@@ -194,7 +270,6 @@ const AppDeck = {
                 </div>`
             ).join('');
 
-            // Асинхронно скачиваем реальные аватарки с Twitch и подменяем их в меню!
             vipUsers.forEach(async (u) => {
                 try {
                     const res = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${u.login}`);
@@ -210,7 +285,6 @@ const AppDeck = {
 
     setupCustomSelects: function() {
         const customSelects = document.querySelectorAll('.custom-select');
-        
         const resetZIndex = () => {
             document.querySelectorAll('.card').forEach(c => c.style.zIndex = '');
             document.querySelectorAll('.smart-input').forEach(i => i.style.zIndex = '2');
@@ -226,16 +300,10 @@ const AppDeck = {
             newSelected.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
-                document.querySelectorAll('.select-items').forEach(el => {
-                    if (el !== itemsList) el.classList.add('select-hide');
-                });
-                document.querySelectorAll('.select-selected').forEach(el => {
-                    if (el !== newSelected) el.classList.remove('select-arrow-active');
-                });
+                document.querySelectorAll('.select-items').forEach(el => { if (el !== itemsList) el.classList.add('select-hide'); });
+                document.querySelectorAll('.select-selected').forEach(el => { if (el !== newSelected) el.classList.remove('select-arrow-active'); });
                 
-                const isOpening = itemsList.classList.contains('select-hide');
-                
-                if (isOpening) {
+                if (itemsList.classList.contains('select-hide')) {
                     resetZIndex(); 
                     const parentCard = customSelect.closest('.card');
                     const parentInput = customSelect.closest('.smart-input');
@@ -272,49 +340,32 @@ const AppDeck = {
 
     setupModifierPills: function() {
         document.querySelectorAll('.mod-pill').forEach(pill => {
-            pill.addEventListener('click', (e) => {
-                e.currentTarget.classList.toggle('active');
-            });
+            pill.addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); });
         });
     },
 
     bindCommands: function() {
-
-        // ================= СЛАЙДЕР ГРОМКОСТИ =================
         const volSlider = document.getElementById('input-vol');
         const volLabel = document.getElementById('vol-label');
         if (volSlider && volLabel) {
-            // Обновляем циферку и заливку линии в реальном времени
             volSlider.addEventListener('input', (e) => {
                 const val = e.target.value;
                 volLabel.innerText = val + '%';
-                // Волшебство заливки: передаем процент в CSS
                 volSlider.style.setProperty('--slider-fill', val + '%');
             });
-            
-            // Отправляем команду ТОЛЬКО когда пользователь отпустил ползунок
-            volSlider.addEventListener('change', (e) => {
-                this.sendCmd(`!vol ${e.target.value}`);
-            });
+            volSlider.addEventListener('change', (e) => { this.sendCmd(`!vol ${e.target.value}`); });
         }
 
-        // ================= ДЕЛЕГИРОВАНИЕ КЛИКОВ (КНОПКИ) =================
         document.querySelector('.control-panel').addEventListener('click', (e) => {
             const btn = e.target.closest('.cmd-btn, .action-btn');
             if (!btn) return;
 
-            // Анимация нажатия
             btn.style.transform = 'scale(0.92)';
             setTimeout(() => btn.style.transform = '', 150);
 
-            // Обработка прямых команд (!cmd)
             const cmd = btn.getAttribute('data-cmd');
-            if (cmd) {
-                this.sendCmd(cmd);
-                return;
-            }
+            if (cmd) { this.sendCmd(cmd); return; }
 
-            // Обработка составных экшенов (с чтением input'ов)
             const action = btn.getAttribute('data-action');
             let inputEl, val;
 
@@ -331,37 +382,27 @@ const AppDeck = {
                 case 'set_death':
                     inputEl = document.getElementById('input-death-val'); val = inputEl.value.trim();
                     if (val !== "") { this.sendCmd(`!death set ${val}`); inputEl.value = ''; } break;
-                
-                // НОВОЕ: Включение YouTube видео для плашки
                 case 'setmedia_yt':
                     inputEl = document.getElementById('input-media-yt'); val = inputEl.value.trim();
                     if (val) { this.sendCmd(`!media yt ${val}`); inputEl.value = ''; } break;
-
                 case 'setgame':
                     inputEl = document.getElementById('custom-game-select'); val = inputEl.getAttribute('data-value');
-                    if (val === "off") this.sendCmd(`!game off`); else this.sendCmd(`!game ${val}`);
-                    break;
+                    if (val === "off") this.sendCmd(`!game off`); else this.sendCmd(`!game ${val}`); break;
                 case 'settheme':
                     inputEl = document.getElementById('custom-theme-select'); val = inputEl.getAttribute('data-value');
-                    this.sendCmd(`!протокол ${val}`);
-                    break;
+                    this.sendCmd(`!протокол ${val}`); break;
                 case 'testalert':
                     inputEl = document.getElementById('custom-test-alert'); val = inputEl.getAttribute('data-value');
-                    this.sendCmd(`!${val}`);
-                    break;
+                    this.sendCmd(`!${val}`); break;
                 case 'testchat':
                     const baseCmd = document.getElementById('custom-test-chat').getAttribute('data-value');
                     const msgInput = document.getElementById('test-chat-msg').value.trim();
                     let flags = "";
                     document.querySelectorAll('.mod-pill.active').forEach(pill => { flags += pill.getAttribute('data-mod') + " "; });
-                    
                     let finalCmd = `!${baseCmd}`;
                     if (flags.trim() !== "") finalCmd += ` ${flags.trim()}`;
                     if (msgInput !== "") finalCmd += ` ${msgInput}`;
-                    
-                    this.sendCmd(finalCmd);
-                    document.getElementById('test-chat-msg').value = '';
-                    break;
+                    this.sendCmd(finalCmd); document.getElementById('test-chat-msg').value = ''; break;
                 case 'add_wheel_custom':
                     inputEl = document.getElementById('input-wheel'); val = inputEl.value.trim();
                     if (val) { this.sendCmd(`!wheel add ${val}`); inputEl.value = ''; } break;
@@ -371,15 +412,13 @@ const AppDeck = {
                         const dbItem = window.GamesDatabase[val];
                         const name = dbItem ? dbItem.title : val;
                         this.sendCmd(`!wheel add ${name}`);
-                    }
-                    break;
+                    } break;
                 case 'spawn_emotes':
                     this.sendCmd(`Kappa LUL PogChamp BibleThump Kreygasm Kappa LUL PogChamp BibleThump Kreygasm ${Math.floor(Math.random() * 1000)}`);
                     break;
             }
         });
 
-        // Энтер в полях ввода
         document.querySelectorAll('.smart-input input, .counter-input').forEach(input => {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
