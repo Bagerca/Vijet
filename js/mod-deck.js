@@ -14,7 +14,9 @@ const AppDeck = {
         } else {
             document.getElementById('auth-modal').classList.remove('hidden');
         }
-        this.setupCustomSelects(); 
+        
+        this.populateDynamicSelects(); 
+        this.setupCustomSelects();     
         this.setupModifierPills(); 
         this.bindCommands();
     },
@@ -72,28 +74,47 @@ const AppDeck = {
             chatIframe.style.width = "100%"; chatIframe.style.height = "100%"; chatIframe.style.border = "none";
             document.getElementById('twitch-chat-container').appendChild(chatIframe);
         } catch (e) {
-            console.warn("Встройка Twitch не удалась. Убедитесь, что вы используете локальный сервер.", e);
+            console.warn("Встройка Twitch не удалась.", e);
         }
     },
 
     sendCmd: function(commandString) {
         if (!commandString || commandString.trim() === "") return;
         ComfyJS.Say(commandString, this.creds.channel);
-        this.showToast(`✔️ Отправлено: ${commandString.split(' ')[0]}`);
+        this.showToast(`✔️ ${commandString.split(' ')[0]}`);
     },
 
     showToast: function(msg) {
         const toast = document.getElementById('toast');
         toast.innerText = msg; toast.classList.remove('hidden');
-        
         toast.style.animation = 'none';
         toast.offsetHeight; 
         toast.style.animation = null;
-        
         setTimeout(() => toast.classList.add('hidden'), 2500);
     },
 
-    // --- ЛОГИКА КАСТОМНЫХ ВЫПАДАЮЩИХ СПИСКОВ С ФИКСОМ СЛОЕВ ---
+    populateDynamicSelects: function() {
+        if (!window.GamesDatabase) return;
+
+        const gameList = document.getElementById('dynamic-game-list');
+        const wheelList = document.getElementById('dynamic-wheel-list');
+        
+        let htmlGames = `<div class="optgroup">Игры</div>`;
+        let htmlSeries = `<div class="optgroup">Кино/Анимация</div>`;
+        
+        for (let key in window.GamesDatabase) {
+            const item = window.GamesDatabase[key];
+            const coverHtml = item.cover ? `<img src="${item.cover}" class="select-item-cover">` : '';
+            const row = `<div class="item-with-cover" data-value="${key}">${coverHtml}<span>${item.title}</span></div>`;
+            
+            if (item.type === 'game') htmlGames += row;
+            else htmlSeries += row;
+        }
+
+        if (gameList) gameList.innerHTML = `<div data-value="off">❌ Скрыть плашку</div>` + htmlGames + htmlSeries;
+        if (wheelList) wheelList.innerHTML = htmlGames + htmlSeries;
+    },
+
     setupCustomSelects: function() {
         const customSelects = document.querySelectorAll('.custom-select');
         
@@ -106,33 +127,33 @@ const AppDeck = {
             const selected = customSelect.querySelector('.select-selected');
             const itemsList = customSelect.querySelector('.select-items');
 
-            selected.addEventListener('click', (e) => {
+            const newSelected = selected.cloneNode(true);
+            selected.parentNode.replaceChild(newSelected, selected);
+            
+            newSelected.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
-                // Закрываем другие списки
                 document.querySelectorAll('.select-items').forEach(el => {
                     if (el !== itemsList) el.classList.add('select-hide');
                 });
                 document.querySelectorAll('.select-selected').forEach(el => {
-                    if (el !== selected) el.classList.remove('select-arrow-active');
+                    if (el !== newSelected) el.classList.remove('select-arrow-active');
                 });
                 
                 const isOpening = itemsList.classList.contains('select-hide');
                 
                 if (isOpening) {
-                    resetZIndex(); // Сбрасываем старые слои
-                    
-                    // ПОДНИМАЕМ ВЫБРАННЫЙ СПИСОК НА САМЫЙ ВЕРХ
+                    resetZIndex(); 
                     const parentCard = customSelect.closest('.card');
                     const parentInput = customSelect.closest('.smart-input');
                     if (parentCard) parentCard.style.zIndex = '9999';
                     if (parentInput) parentInput.style.zIndex = '9999';
 
                     itemsList.classList.remove('select-hide');
-                    selected.classList.add('select-arrow-active');
+                    newSelected.classList.add('select-arrow-active');
                 } else {
                     itemsList.classList.add('select-hide');
-                    selected.classList.remove('select-arrow-active');
+                    newSelected.classList.remove('select-arrow-active');
                     resetZIndex();
                 }
             });
@@ -140,16 +161,15 @@ const AppDeck = {
             const options = itemsList.querySelectorAll('div[data-value]');
             options.forEach(option => {
                 option.addEventListener('click', () => {
-                    selected.innerHTML = option.innerHTML;
+                    newSelected.innerHTML = option.innerHTML;
                     customSelect.setAttribute('data-value', option.getAttribute('data-value'));
                     itemsList.classList.add('select-hide');
-                    selected.classList.remove('select-arrow-active');
-                    resetZIndex(); // Опускаем слой обратно после выбора
+                    newSelected.classList.remove('select-arrow-active');
+                    resetZIndex(); 
                 });
             });
         });
 
-        // Закрываем списки при клике в любое другое место
         document.addEventListener('click', () => {
             document.querySelectorAll('.select-items').forEach(el => el.classList.add('select-hide'));
             document.querySelectorAll('.select-selected').forEach(el => el.classList.remove('select-arrow-active'));
@@ -195,6 +215,10 @@ const AppDeck = {
                         inputEl = document.getElementById('input-so'); val = inputEl.value.trim();
                         if (val) { this.sendCmd(`!so ${val}`); inputEl.value = ''; } break;
                     
+                    case 'set_death':
+                        inputEl = document.getElementById('input-death-val'); val = inputEl.value.trim();
+                        if (val !== "") { this.sendCmd(`!death set ${val}`); inputEl.value = ''; } break;
+
                     case 'setgame':
                         inputEl = document.getElementById('custom-game-select'); val = inputEl.getAttribute('data-value');
                         if (val === "off") this.sendCmd(`!game off`); else this.sendCmd(`!game ${val}`);
@@ -232,15 +256,29 @@ const AppDeck = {
                     
                     case 'add_wheel_db':
                         inputEl = document.getElementById('custom-wheel-db'); val = inputEl.getAttribute('data-value');
-                        if (val && val !== "") this.sendCmd(`!wheel add ${val}`);
+                        if (val && val !== "") {
+                            const dbItem = window.GamesDatabase[val];
+                            const name = dbItem ? dbItem.title : val;
+                            this.sendCmd(`!wheel add ${name}`);
+                        }
+                        break;
+                        
+                    // НОВОЕ: Спавн кучи эмодзи
+                    case 'spawn_emotes':
+                        // Отправляем строку с кучей глобальных смайлов Twitch, ядро их распарсит
+                        // Добавляем рандомное число, чтобы антиспам Twitch не заблокировал одинаковые сообщения
+                        this.sendCmd(`Kappa LUL PogChamp BibleThump Kreygasm Kappa LUL PogChamp BibleThump Kreygasm ${Math.floor(Math.random() * 1000)}`);
                         break;
                 }
             });
         });
 
-        document.querySelectorAll('.smart-input input').forEach(input => {
+        document.querySelectorAll('.smart-input input, .mini-input').forEach(input => {
             input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') e.currentTarget.parentElement.querySelector('.action-btn').click();
+                if (e.key === 'Enter') {
+                    const actionBtn = e.currentTarget.parentElement.querySelector('.action-btn');
+                    if (actionBtn) actionBtn.click();
+                }
             });
         });
     }
