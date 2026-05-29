@@ -44,7 +44,7 @@ window.GamesDatabase = {
         tags: ["Кооп / Аркада", "TBA"], details: { "Разработчик": "Студия", "Год": "2024", "Платформа": "PC" }
     },
     "content warning": {
-        title: "Content Warning", cover: "img/covers/content_warning.jpg", themeColor: "#f1c40f", type: "game",
+        title: "Content Warning", cover: "img/covers/content_warning.png", themeColor: "#f1c40f", type: "game",
         tags: ["Кооп Хоррор", "9.0 / 10"], details: { "Разработчик": "Skog, Zorro", "Год": "2024", "Платформа": "PC" }
     },
     "cs2": {
@@ -86,7 +86,7 @@ window.GamesDatabase = {
         tags: ["Супергероика", "Нуар"], details: { "В гл. роли": "Николас Кейдж", "Платформа": "Amazon Prime", "Год": "2025" }
     },
     "spider noir color": {
-        title: "Spider-Noir", cover: "img/covers/spider_noir_color.jpg", themeColor: "#991B1B", type: "series",
+        title: "Spider-Noir", cover: "img/covers/с.jpg", themeColor: "#991B1B", type: "series",
         tags: ["Супергероика", "Комиксы"], details: { "В гл. роли": "Николас Кейдж", "Платформа": "Amazon Prime", "Год": "2025" }
     }
 };
