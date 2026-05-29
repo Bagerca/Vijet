@@ -1,7 +1,7 @@
 /* ================= ОСНОВНОЙ КОНФИГ СИСТЕМЫ ================= */
 window.AppConfig = {
     channelName: "ksusha__sher",
-    allowedUsers: ["bagercaa", "to_be_ang"], 
+    allowedUsers: ["bagercaa", "to_be_ang", "treebals"], 
     
     // ==========================================
     // СЛОВАРЬ ЗАПРЕТОК (Twitch TOS)

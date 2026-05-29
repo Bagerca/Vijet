@@ -262,24 +262,14 @@
                         <button class="btn btn-solid-green action-btn" data-action="testalert">ТЕСТ</button>
                     </div>
     
+                    <!-- ОБНОВЛЕНО: ДИНАМИЧЕСКИЙ СПИСОК АВАТАРОК -->
                     <div class="card-divider mt-2"><span>Конструктор Баблов Чата</span></div>
                     <label class="input-label">Отправитель (Стиль):</label>
                     <div class="smart-input">
                         <div class="custom-select" id="custom-test-chat" data-value="testfirst">
                             <div class="select-selected">Дефолт (Впервые в чате)</div>
-                            <div class="select-items select-hide">
-                                <div class="optgroup">Обычный чат</div>
-                                <div data-value="testfirst">Дефолт (Впервые)</div>
-                                <div data-value="testhighlight">Дефолт (За баллы)</div>
-                                <div data-value="testmention">Дефолт (Пинг)</div>
-                                <div class="optgroup">VIP Юзеры</div>
-                                <div data-value="testpda">Владелец (ksusha__sher)</div>
-                                <div data-value="testhk">Hollow Knight (bagercaa)</div>
-                                <div data-value="testmc">Minecraft (kiriika1)</div>
-                                <div data-value="testangel">Ангел (to_be_ang)</div>
-                                <div data-value="testbendy">Bendy (dragonsmaddison)</div>
-                                <div data-value="testarmy">Tactical HUD (darkl1us)</div>
-                                <div data-value="testhacker">Хакер (tetlabot)</div>
+                            <div class="select-items select-hide" id="dynamic-chat-styles">
+                                <!-- Список юзеров и их аватарки загрузятся сюда автоматически через JS -->
                             </div>
                         </div>
                     </div>

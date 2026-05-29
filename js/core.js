@@ -142,7 +142,6 @@ window.AppCore = {
                 this.commandCooldowns[cmdKey] = now;
             }
 
-            // Запрашиваем аватарку для тестов, чтобы она была реальной
             let testAvatar = "https://ui-avatars.com/api/?name=Test&background=FF4477&color=fff";
             if (hasPermission && cmdKey.startsWith('test')) {
                 testAvatar = await window.AvatarManager.get(user, '#FF4477');
@@ -171,18 +170,24 @@ window.AppCore = {
                     }
                     break;
 
-                // Умные тестовые команды
+                // Базовые тесты дефолтного чата
                 case "testfirst": if (hasPermission) this.handleTestCommand(user, "#FF4477", testAvatar, "Привет, я впервые на этом крутом стриме!", "-first " + arg); break;
                 case "testmention": if (hasPermission) this.handleTestCommand(user, "#00E5FF", testAvatar, "Зацени это!", "-ping " + arg); break;
                 case "testhighlight": if (hasPermission) this.handleTestCommand(user, "#FFD700", testAvatar, "Это очень важное сообщение за баллы!", "-hl " + arg); break;
 
-                case "testhk": if (hasPermission) this.handleTestCommand("bagercaa", "#8bb9d2", "https://ui-avatars.com/api/?name=bg&background=10141e&color=8bb9d2", "Высшее существо, эти слова для тебя одного...", arg); break;
-                case "testmc": if (hasPermission) this.handleTestCommand("kiriika1", "#5ea936", "https://ui-avatars.com/api/?name=MC&background=744d32&color=fff", "Пшшш... крипер сзади!", arg); break;
-                case "testangel": if (hasPermission) this.handleTestCommand("to_be_ang", "#FFD700", "https://ui-avatars.com/api/?name=ANG&background=fff&color=FFD700", "Свет укажет нам путь...", arg); break;
-                case "testbendy": if (hasPermission) this.handleTestCommand("dragonsmaddison", "#13100c", "https://ui-avatars.com/api/?name=DM&background=dfca96&color=13100c", "Чернила текут рекой в этой старой студии...", arg); break;
-                case "testhacker": if (hasPermission) this.handleTestCommand("tetlabot", "#00ff41", "https://ui-avatars.com/api/?name=SYS&background=000&color=00ff41", "System breach detected. Firewall disabled.", arg); break;
-                case "testpda": if (hasPermission) this.handleTestCommand("ksusha__sher", "#00ffea", "https://ui-avatars.com/api/?name=PDA&background=091e32&color=00ffea", "Внимание: Обнаружены формы жизни класса Левиафан.", arg); break;
-                case "testarmy": if (hasPermission) this.handleTestCommand("darkl1us", "#dd5500", "https://ui-avatars.com/api/?name=DL&background=1a1c19&color=dd5500", "Цель обнаружена. Запрашиваю поддержку с воздуха.", arg); break;
+                // УНИВЕРСАЛЬНАЯ КОМАНДА ДЛЯ ЛЮБОГО ЮЗЕРА
+                // Использование: !testuser [никнейм] [флаги] [текст]
+                case "testuser": 
+                    if (hasPermission) {
+                        let parts = arg.split(' ');
+                        let targetUser = parts[0] || user;
+                        let restArgs = parts.slice(1).join(' ');
+                        // Ядро само скачает реальную аватарку с Twitch для этого юзера
+                        let targetAvatar = await window.AvatarManager.get(targetUser, "#FF4477");
+                        this.handleTestCommand(targetUser, "#FF4477", targetAvatar, "Проверка кастомного стиля на связи!", restArgs);
+                    } 
+                    break;
+
                 case "testtts": if (hasPermission) { let parts = arg.split(' '); let targetUser = parts[0] || "tetlabot"; let ttsText = parts.slice(1).join(' ') || "Внимание. Тестирование вокального модуля успешно завершено."; window.AppEvents.emit('TTS_ADD', { user: targetUser, text: ttsText }); } break;
 
                 // Базовые команды управления

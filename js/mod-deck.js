@@ -94,25 +94,70 @@ const AppDeck = {
     },
 
     populateDynamicSelects: function() {
-        if (!window.GamesDatabase) return;
-
-        const gameList = document.getElementById('dynamic-game-list');
-        const wheelList = document.getElementById('dynamic-wheel-list');
-        
-        let htmlGames = `<div class="optgroup">Игры</div>`;
-        let htmlSeries = `<div class="optgroup">Кино/Анимация</div>`;
-        
-        for (let key in window.GamesDatabase) {
-            const item = window.GamesDatabase[key];
-            const coverHtml = item.cover ? `<img src="${item.cover}" class="select-item-cover">` : '';
-            const row = `<div class="item-with-cover" data-value="${key}">${coverHtml}<span>${item.title}</span></div>`;
+        // 1. Заполняем списки Игр и Рулетки
+        if (window.GamesDatabase) {
+            const gameList = document.getElementById('dynamic-game-list');
+            const wheelList = document.getElementById('dynamic-wheel-list');
             
-            if (item.type === 'game') htmlGames += row;
-            else htmlSeries += row;
+            let htmlGames = `<div class="optgroup">Игры</div>`;
+            let htmlSeries = `<div class="optgroup">Кино/Анимация</div>`;
+            
+            for (let key in window.GamesDatabase) {
+                const item = window.GamesDatabase[key];
+                const coverHtml = item.cover ? `<img src="${item.cover}" class="select-item-cover">` : '';
+                const row = `<div class="item-with-cover" data-value="${key}">${coverHtml}<span>${item.title}</span></div>`;
+                
+                if (item.type === 'game') htmlGames += row;
+                else htmlSeries += row;
+            }
+
+            if (gameList) gameList.innerHTML = `<div data-value="off">❌ Скрыть плашку</div>` + htmlGames + htmlSeries;
+            if (wheelList) wheelList.innerHTML = htmlGames + htmlSeries;
         }
 
-        if (gameList) gameList.innerHTML = `<div data-value="off">❌ Скрыть плашку</div>` + htmlGames + htmlSeries;
-        if (wheelList) wheelList.innerHTML = htmlGames + htmlSeries;
+        // 2. АВТОМАТИЧЕСКАЯ ГЕНЕРАЦИЯ КАСТОМНЫХ БАБЛОВ
+        const chatList = document.getElementById('dynamic-chat-styles');
+        if (chatList) {
+            const baseOptions = `
+                <div class="optgroup">Обычный чат</div>
+                <div data-value="testfirst">Дефолт (Впервые)</div>
+                <div data-value="testhighlight">Дефолт (За баллы)</div>
+                <div data-value="testmention">Дефолт (Пинг)</div>
+                <div class="optgroup">Кастомные стили (VIP)</div>
+            `;
+            
+            // ВПИШИ СЮДА ВСЕХ ЮЗЕРОВ С КАСТОМНЫМИ СТИЛЯМИ
+            const vipUsers = [
+                { login: "ksusha__sher", label: "Neon (Владелец)" },
+                { login: "bagercaa", label: "Hollow Knight" },
+                { login: "kiriika1", label: "Minecraft" },
+                { login: "to_be_ang", label: "Ангел" },
+                { login: "dragonsmaddison", label: "Bendy 1930s" },
+                { login: "darkl1us", label: "Tactical HUD" },
+                { login: "tetlabot", label: "Terminal" },
+                { login: "treebals", label: "Terminal" }
+            ];
+
+            // Вставляем базовую верстку с временными аватарками (ФИКС СПЛЮСНУТЫХ КРУГОВ)
+            chatList.innerHTML = baseOptions + vipUsers.map(u => 
+                `<div data-value="testuser ${u.login}" class="item-with-cover">
+                    <img src="https://ui-avatars.com/api/?name=${u.login}&background=222&color=fff" class="select-item-cover" id="av-${u.login}" style="width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; object-fit: cover;">
+                    <span>${u.login} <span class="text-muted">(${u.label})</span></span>
+                </div>`
+            ).join('');
+
+            // Асинхронно скачиваем реальные аватарки с Twitch и подменяем их в меню!
+            vipUsers.forEach(async (u) => {
+                try {
+                    const res = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${u.login}`);
+                    const data = await res.json();
+                    if (data && data.length > 0 && data[0].logo) {
+                        const img = document.getElementById(`av-${u.login}`);
+                        if (img) img.src = data[0].logo;
+                    }
+                } catch(e) {}
+            });
+        }
     },
 
     setupCustomSelects: function() {
@@ -263,10 +308,7 @@ const AppDeck = {
                         }
                         break;
                         
-                    // НОВОЕ: Спавн кучи эмодзи
                     case 'spawn_emotes':
-                        // Отправляем строку с кучей глобальных смайлов Twitch, ядро их распарсит
-                        // Добавляем рандомное число, чтобы антиспам Twitch не заблокировал одинаковые сообщения
                         this.sendCmd(`Kappa LUL PogChamp BibleThump Kreygasm Kappa LUL PogChamp BibleThump Kreygasm ${Math.floor(Math.random() * 1000)}`);
                         break;
                 }
