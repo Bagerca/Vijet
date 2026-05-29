@@ -15,7 +15,7 @@ const AppDeck = {
             document.getElementById('auth-modal').classList.remove('hidden');
         }
         this.setupCustomSelects(); 
-        this.setupModifierPills(); // Логика флажков для тестов
+        this.setupModifierPills(); 
         this.bindCommands();
     },
 
@@ -72,7 +72,7 @@ const AppDeck = {
             chatIframe.style.width = "100%"; chatIframe.style.height = "100%"; chatIframe.style.border = "none";
             document.getElementById('twitch-chat-container').appendChild(chatIframe);
         } catch (e) {
-            console.warn("Встройка Twitch не удалась. Убедитесь, что вы используете локальный сервер (localhost).", e);
+            console.warn("Встройка Twitch не удалась. Убедитесь, что вы используете локальный сервер.", e);
         }
     },
 
@@ -87,22 +87,29 @@ const AppDeck = {
         toast.innerText = msg; toast.classList.remove('hidden');
         
         toast.style.animation = 'none';
-        toast.offsetHeight; /* trigger reflow */
+        toast.offsetHeight; 
         toast.style.animation = null;
         
         setTimeout(() => toast.classList.add('hidden'), 2500);
     },
 
-    // --- ЛОГИКА КАСТОМНЫХ ВЫПАДАЮЩИХ СПИСКОВ ---
+    // --- ЛОГИКА КАСТОМНЫХ ВЫПАДАЮЩИХ СПИСКОВ С ФИКСОМ СЛОЕВ ---
     setupCustomSelects: function() {
         const customSelects = document.querySelectorAll('.custom-select');
         
+        const resetZIndex = () => {
+            document.querySelectorAll('.card').forEach(c => c.style.zIndex = '');
+            document.querySelectorAll('.smart-input').forEach(i => i.style.zIndex = '2');
+        };
+
         customSelects.forEach(customSelect => {
             const selected = customSelect.querySelector('.select-selected');
             const itemsList = customSelect.querySelector('.select-items');
 
             selected.addEventListener('click', (e) => {
                 e.stopPropagation();
+                
+                // Закрываем другие списки
                 document.querySelectorAll('.select-items').forEach(el => {
                     if (el !== itemsList) el.classList.add('select-hide');
                 });
@@ -110,8 +117,24 @@ const AppDeck = {
                     if (el !== selected) el.classList.remove('select-arrow-active');
                 });
                 
-                itemsList.classList.toggle('select-hide');
-                selected.classList.toggle('select-arrow-active');
+                const isOpening = itemsList.classList.contains('select-hide');
+                
+                if (isOpening) {
+                    resetZIndex(); // Сбрасываем старые слои
+                    
+                    // ПОДНИМАЕМ ВЫБРАННЫЙ СПИСОК НА САМЫЙ ВЕРХ
+                    const parentCard = customSelect.closest('.card');
+                    const parentInput = customSelect.closest('.smart-input');
+                    if (parentCard) parentCard.style.zIndex = '9999';
+                    if (parentInput) parentInput.style.zIndex = '9999';
+
+                    itemsList.classList.remove('select-hide');
+                    selected.classList.add('select-arrow-active');
+                } else {
+                    itemsList.classList.add('select-hide');
+                    selected.classList.remove('select-arrow-active');
+                    resetZIndex();
+                }
             });
 
             const options = itemsList.querySelectorAll('div[data-value]');
@@ -121,17 +144,19 @@ const AppDeck = {
                     customSelect.setAttribute('data-value', option.getAttribute('data-value'));
                     itemsList.classList.add('select-hide');
                     selected.classList.remove('select-arrow-active');
+                    resetZIndex(); // Опускаем слой обратно после выбора
                 });
             });
         });
 
+        // Закрываем списки при клике в любое другое место
         document.addEventListener('click', () => {
             document.querySelectorAll('.select-items').forEach(el => el.classList.add('select-hide'));
             document.querySelectorAll('.select-selected').forEach(el => el.classList.remove('select-arrow-active'));
+            resetZIndex();
         });
     },
 
-    // --- ЛОГИКА КНОПОК-ПЕРЕКЛЮЧАТЕЛЕЙ (PILLS) ---
     setupModifierPills: function() {
         document.querySelectorAll('.mod-pill').forEach(pill => {
             pill.addEventListener('click', (e) => {
@@ -141,7 +166,6 @@ const AppDeck = {
     },
 
     bindCommands: function() {
-        // Обычные кнопки
         document.querySelectorAll('.cmd-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const t = e.currentTarget;
@@ -151,7 +175,6 @@ const AppDeck = {
             });
         });
 
-        // Умные кнопки
         document.querySelectorAll('.action-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const action = e.currentTarget.getAttribute('data-action');
@@ -186,7 +209,6 @@ const AppDeck = {
                         this.sendCmd(`!${val}`);
                         break;
                     
-                    // Умный конструктор тестового бабла
                     case 'testchat':
                         const baseCmd = document.getElementById('custom-test-chat').getAttribute('data-value');
                         const msgInput = document.getElementById('test-chat-msg').value.trim();
@@ -196,21 +218,18 @@ const AppDeck = {
                             flags += pill.getAttribute('data-mod') + " ";
                         });
                         
-                        // Собираем итоговую команду
                         let finalCmd = `!${baseCmd}`;
                         if (flags.trim() !== "") finalCmd += ` ${flags.trim()}`;
                         if (msgInput !== "") finalCmd += ` ${msgInput}`;
                         
                         this.sendCmd(finalCmd);
-                        document.getElementById('test-chat-msg').value = ''; // очищаем только текст
+                        document.getElementById('test-chat-msg').value = '';
                         break;
 
-                    // Добавление в колесо (свой текст)
                     case 'add_wheel_custom':
                         inputEl = document.getElementById('input-wheel'); val = inputEl.value.trim();
                         if (val) { this.sendCmd(`!wheel add ${val}`); inputEl.value = ''; } break;
                     
-                    // Добавление в колесо (из выпадающего списка БД)
                     case 'add_wheel_db':
                         inputEl = document.getElementById('custom-wheel-db'); val = inputEl.getAttribute('data-value');
                         if (val && val !== "") this.sendCmd(`!wheel add ${val}`);
@@ -219,7 +238,6 @@ const AppDeck = {
             });
         });
 
-        // Нажатие Enter
         document.querySelectorAll('.smart-input input').forEach(input => {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') e.currentTarget.parentElement.querySelector('.action-btn').click();
