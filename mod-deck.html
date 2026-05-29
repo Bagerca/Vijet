@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>USO | Studio Console</title>
-    <!-- Подключаем шрифт Outfit как в теме стримера -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/mod-deck.css">
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     <script src="https://embed.twitch.tv/embed/v1.js"></script>
@@ -16,9 +15,9 @@
     <div id="auth-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="auth-logo">USO STUDIO</div>
-            <p class="text-center text-muted">Модераторская консоль управления</p>
+            <p class="text-center text-muted">Модераторская консоль</p>
             
-            <div class="input-group">
+            <div class="input-group mt-2">
                 <label>Канал стримера:</label>
                 <input type="text" id="auth-channel" placeholder="Например: ksusha__sher">
             </div>
@@ -43,148 +42,258 @@
             <div class="twitch-header">
                 <div class="live-indicator"><span class="live-dot"></span> LIVE</div>
                 <span id="ui-channel-name" class="channel-name">канал</span>
-                <button id="btn-logout" class="btn-icon" title="Выйти"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></button>
+                <button id="btn-logout" class="btn-icon" title="Выйти">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </button>
             </div>
             <div id="twitch-video-container" class="twitch-video"></div>
+            <div class="chat-header-mini">ЧАТ ТРАНСЛЯЦИИ</div>
             <div id="twitch-chat-container" class="twitch-chat"></div>
         </aside>
 
         <!-- КОЛОНКА 2: УПРАВЛЕНИЕ -->
         <main class="control-panel">
             
-            <!-- БЛОК 1: ЗАЩИТА И КАМЕРА -->
-            <section class="card card-pink">
-                <div class="card-header">🛡️ ЗАЩИТА И КАМЕРА</div>
-                <div class="grid-2">
-                    <button class="btn btn-outline-pink cmd-btn" data-cmd="!blur on">🔒 БЛЮР ON</button>
-                    <button class="btn btn-outline cmd-btn" data-cmd="!blur off">🔓 БЛЮР OFF</button>
-                    <button class="btn btn-outline cmd-btn" data-cmd="!cam on">📷 Вебка ON</button>
-                    <button class="btn btn-outline cmd-btn" data-cmd="!cam off">📷 Вебка OFF</button>
-                </div>
-                <div class="compact-row mt-2">
-                    <span class="row-label">Смерти:</span>
-                    <button class="btn btn-small cmd-btn" data-cmd="!death -">-1</button>
-                    <button class="btn btn-small btn-solid-pink cmd-btn" data-cmd="!death">+1</button>
-                    <button class="btn btn-small cmd-btn" data-cmd="!death reset" style="margin-left: auto;">Сброс</button>
-                </div>
-            </section>
-
-            <!-- БЛОК 2: МУЗЫКА И ОЗВУЧКА -->
-            <section class="card card-green">
-                <div class="card-header">🎵 МУЗЫКА И TTS</div>
-                <div class="smart-input">
-                    <input type="text" id="input-play" placeholder="Ссылка YouTube...">
-                    <button class="btn btn-solid-green action-btn" data-action="play">PLAY</button>
-                </div>
-                <div class="grid-3 mt-1">
-                    <button class="btn btn-outline cmd-btn" data-cmd="!skip">Скип</button>
-                    <button class="btn btn-outline cmd-btn" data-cmd="!skip all">Скип плейлист</button>
-                    <button class="btn btn-outline-pink cmd-btn" data-cmd="!clear">Очистить всё</button>
-                </div>
+            <!-- РЯД 1 -->
+            <div class="panel-row">
                 
-                <div class="smart-input mt-2">
-                    <input type="text" id="input-tts" placeholder="Озвучить ботом...">
-                    <button class="btn btn-solid-green action-btn" data-action="tts">ОЗВУЧИТЬ</button>
-                </div>
-                <button class="btn btn-full mt-1 btn-outline-pink cmd-btn" data-cmd="!tts stop">🤫 Заткнуть бота (Stop TTS)</button>
-            </section>
+                <!-- БАЗОВЫЙ КОНТРОЛЬ -->
+                <section class="card glow-pink">
+                    <div class="card-header"><span class="icon-wrap pink-wrap">🛡️</span> БАЗОВЫЙ КОНТРОЛЬ</div>
+                    
+                    <div class="grid-2 mt-1">
+                        <button class="btn btn-outline-pink cmd-btn" data-cmd="!blur on">🔒 БЛЮР ON</button>
+                        <button class="btn btn-outline cmd-btn" data-cmd="!blur off">🔓 БЛЮР OFF</button>
+                        <button class="btn btn-outline cmd-btn" data-cmd="!cam on">📷 Вебка ON</button>
+                        <button class="btn btn-outline cmd-btn" data-cmd="!cam off">📷 Вебка OFF</button>
+                    </div>
+                    
+                    <div class="card-divider mt-2">Счетчик смертей</div>
+                    <div class="flex-row">
+                        <button class="btn btn-outline cmd-btn" data-cmd="!death -">-1</button>
+                        <button class="btn btn-solid-pink cmd-btn" data-cmd="!death">+1</button>
+                        <button class="btn btn-outline cmd-btn ml-auto" data-cmd="!death reset">Сброс</button>
+                    </div>
+    
+                    <div class="card-divider mt-2">Система</div>
+                    <button class="btn btn-full btn-outline-pink cmd-btn" data-cmd="!refresh">🔄 ПЕРЕЗАГРУЗИТЬ ВИЗУАЛ</button>
+                </section>
+    
+                <!-- МУЗЫКА И TTS -->
+                <section class="card glow-green">
+                    <div class="card-header"><span class="icon-wrap green-wrap">🎵</span> МУЗЫКА И TTS</div>
+                    
+                    <label class="input-label mt-1">Плеер YouTube:</label>
+                    <div class="smart-input">
+                        <input type="text" id="input-play" placeholder="Вставьте ссылку...">
+                        <button class="btn btn-solid-green action-btn" data-action="play">PLAY</button>
+                    </div>
+                    <div class="grid-3 mt-1">
+                        <button class="btn btn-outline cmd-btn" data-cmd="!skip">Скип</button>
+                        <button class="btn btn-outline cmd-btn" data-cmd="!skip all">Скип всё</button>
+                        <button class="btn btn-outline-pink cmd-btn" data-cmd="!clear">Очистить</button>
+                    </div>
+                    
+                    <label class="input-label mt-2">Озвучка ботом (TTS):</label>
+                    <div class="smart-input">
+                        <input type="text" id="input-tts" placeholder="Введите текст...">
+                        <button class="btn btn-solid-green action-btn" data-action="tts">ОЗВУЧИТЬ</button>
+                    </div>
+                    <button class="btn btn-full mt-1 btn-outline-pink cmd-btn" data-cmd="!tts stop">🤫 ЗАТКНУТЬ БОТА</button>
+                </section>
 
-            <!-- БЛОК 3: СМАРТ-ИНФО И ТЕМЫ (С КАСТОМНЫМИ СЕЛЕКТАМИ) -->
-            <section class="card card-gradient">
-                <div class="card-header">🎮 СМАРТ-ИНФО И ТЕМЫ</div>
+                <!-- ОФОРМЛЕНИЕ И ИНФО -->
+                <section class="card glow-gradient">
+                    <div class="card-header"><span class="icon-wrap grad-wrap">🎮</span> ОФОРМЛЕНИЕ И ИНФО</div>
+                    
+                    <label class="input-label mt-1">Плашка "Сейчас на стриме":</label>
+                    <div class="smart-input">
+                        <div class="custom-select" id="custom-game-select" data-value="off">
+                            <div class="select-selected">❌ Скрыть плашку</div>
+                            <div class="select-items select-hide">
+                                <div data-value="off">❌ Скрыть плашку</div>
+                                <div class="optgroup">Игры</div>
+                                <div data-value="subnautica">Subnautica</div>
+                                <div data-value="subnautica 2">Subnautica 2</div>
+                                <div data-value="lethal company">Lethal Company</div>
+                                <div data-value="repo">R.E.P.O.</div>
+                                <div data-value="minecraft">Minecraft</div>
+                                <div data-value="dome keeper">Dome Keeper</div>
+                                <div data-value="winx">Winx Club</div>
+                                <div data-value="valorant">VALORANT</div>
+                                <div data-value="abyssus">Abyssus</div>
+                                <div data-value="burglin' gnomes">Burglin' Gnomes</div>
+                                <div data-value="content warning">Content Warning</div>
+                                <div data-value="cs2">Counter-Strike 2</div>
+                                <div data-value="stick fight">Stick Fight</div>
+                                <div data-value="vrchat">VRChat</div>
+                                <div data-value="bendy and the ink factory">Bendy Factory</div>
+                                <div data-value="bendy: the cage">Bendy: The Cage</div>
+                                <div data-value="atomic heart">Atomic Heart</div>
+                                <div data-value="stalker">S.T.A.L.K.E.R.</div>
+                                <div class="optgroup">Кино/Анимация</div>
+                                <div data-value="digital circus">Удивительный цифровой цирк</div>
+                                <div data-value="spider noir">Spider-Noir (Ч/Б)</div>
+                                <div data-value="spider noir color">Spider-Noir (Цвет)</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-solid-gradient action-btn" data-action="setgame">ПРИМЕНИТЬ</button>
+                    </div>
+    
+                    <label class="input-label mt-2">Глобальная тема стрима:</label>
+                    <div class="smart-input">
+                        <div class="custom-select" id="custom-theme-select" data-value="default">
+                            <div class="select-selected">🟢 Дефолт (Неон)</div>
+                            <div class="select-items select-hide">
+                                <div data-value="default">🟢 Дефолт (Неон)</div>
+                                <div data-value="нуар">🕵️‍♂️ Нуар (Комикс)</div>
+                                <div data-value="цирк">🎪 Цифровой Цирк</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-solid-gradient action-btn" data-action="settheme">ВКЛЮЧИТЬ</button>
+                    </div>
+                    
+                    <label class="input-label mt-2">Реклама стримера (Shoutout):</label>
+                    <div class="smart-input">
+                        <input type="text" id="input-so" placeholder="Никнейм стримера...">
+                        <button class="btn btn-solid-gradient action-btn" data-action="so">SHOUTOUT</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- РЯД 2 -->
+            <div class="panel-row">
                 
-                <label class="input-label">Плашка "Сейчас на стриме":</label>
-                <div class="smart-input">
-                    <!-- Кастомный Select для Игр -->
-                    <div class="custom-select" id="custom-game-select" data-value="off">
-                        <div class="select-selected">❌ Скрыть плашку</div>
-                        <div class="select-items select-hide">
-                            <div data-value="off">❌ Скрыть плашку</div>
-                            <div class="optgroup">Игры</div>
-                            <div data-value="subnautica">Subnautica</div>
-                            <div data-value="lethal company">Lethal Company</div>
-                            <div data-value="minecraft">Minecraft</div>
-                            <div data-value="valorant">Valorant</div>
-                            <div data-value="cs2">CS 2</div>
-                            <div data-value="stalker">S.T.A.L.K.E.R.</div>
-                            <div class="optgroup">Кино/Анимация</div>
-                            <div data-value="digital circus">Удивительный цифровой цирк</div>
-                            <div data-value="spider noir">Spider-Noir</div>
+                <!-- ИНТЕРАКТИВ И ЭКРАН -->
+                <section class="card glow-pink">
+                    <div class="card-header"><span class="icon-wrap pink-wrap">🦊</span> ИНТЕРАКТИВ И ЭКРАН</div>
+                    
+                    <label class="input-label mt-1">Питомец (Лиса):</label>
+                    <div class="fox-grid">
+                        <button class="btn btn-outline cmd-btn" data-cmd="!fox sleep" title="Сон">💤</button>
+                        <button class="btn btn-outline cmd-btn" data-cmd="!fox scared" title="Страх">😱</button>
+                        <button class="btn btn-outline cmd-btn" data-cmd="!fox angry" title="Злость">😡</button>
+                        <button class="btn btn-outline cmd-btn" data-cmd="!fox love" title="Любовь">❤️</button>
+                        <button class="btn btn-outline cmd-btn" data-cmd="!fox jam" title="Вайб">🎧</button>
+                        <button class="btn btn-solid-pink cmd-btn" data-cmd="!fox nom" title="Покормить">🍪</button>
+                    </div>
+    
+                    <div class="card-divider mt-2">Колесо Фортуны</div>
+                    <div class="flex-row">
+                        <button class="btn btn-outline cmd-btn" data-cmd="!wheel show">Показать</button>
+                        <button class="btn btn-outline cmd-btn" data-cmd="!wheel hide">Скрыть</button>
+                        <button class="btn btn-solid-pink cmd-btn flex-grow" data-cmd="!wheel spin">КРУТИТЬ</button>
+                        <button class="btn btn-outline-pink cmd-btn" data-cmd="!wheel clear">🗑️</button>
+                    </div>
+                    
+                    <!-- НОВОЕ: Добавление в рулетку -->
+                    <div class="smart-input mt-1">
+                        <input type="text" id="input-wheel" placeholder="Свой вариант...">
+                        <button class="btn btn-outline action-btn" data-action="add_wheel_custom">ДОБАВИТЬ</button>
+                    </div>
+                    <div class="smart-input mt-1">
+                        <div class="custom-select" id="custom-wheel-db" data-value="">
+                            <div class="select-selected">Выбрать игру из базы...</div>
+                            <div class="select-items select-hide">
+                                <div data-value="Subnautica">Subnautica</div>
+                                <div data-value="Lethal Company">Lethal Company</div>
+                                <div data-value="Minecraft">Minecraft</div>
+                                <div data-value="Valorant">Valorant</div>
+                                <div data-value="CS 2">CS 2</div>
+                                <div data-value="S.T.A.L.K.E.R.">S.T.A.L.K.E.R.</div>
+                                <div data-value="R.E.P.O.">R.E.P.O.</div>
+                                <div data-value="Dome Keeper">Dome Keeper</div>
+                                <div data-value="Content Warning">Content Warning</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline action-btn" data-action="add_wheel_db">ДОБАВИТЬ</button>
+                    </div>
+    
+                    <div class="card-divider mt-2">Включение виджетов</div>
+                    <div class="widget-grid">
+                        <div class="widget-row">
+                            <span>Полоса цели:</span>
+                            <button class="btn btn-tiny btn-outline-green cmd-btn" data-cmd="!widget goal on">ON</button>
+                            <button class="btn btn-tiny btn-outline-pink cmd-btn" data-cmd="!widget goal off">OFF</button>
+                        </div>
+                        <div class="widget-row">
+                            <span>Чат на экране:</span>
+                            <button class="btn btn-tiny btn-outline-green cmd-btn" data-cmd="!widget chat on">ON</button>
+                            <button class="btn btn-tiny btn-outline-pink cmd-btn" data-cmd="!widget chat off">OFF</button>
+                        </div>
+                        <div class="widget-row">
+                            <span>Бегущая строка:</span>
+                            <button class="btn btn-tiny btn-outline-green cmd-btn" data-cmd="!widget ticker on">ON</button>
+                            <button class="btn btn-tiny btn-outline-pink cmd-btn" data-cmd="!widget ticker off">OFF</button>
                         </div>
                     </div>
-                    <button class="btn btn-solid-gradient action-btn" data-action="setgame">ПРИМЕНИТЬ</button>
-                </div>
-
-                <label class="input-label mt-2">Глобальная тема оформления:</label>
-                <div class="smart-input">
-                    <!-- Кастомный Select для Тем -->
-                    <div class="custom-select" id="custom-theme-select" data-value="default">
-                        <div class="select-selected">🟢 Дефолт (Неон)</div>
-                        <div class="select-items select-hide">
-                            <div data-value="default">🟢 Дефолт (Неон)</div>
-                            <div data-value="нуар">🕵️‍♂️ Нуар (Комикс)</div>
-                            <div data-value="цирк">🎪 Цифровой Цирк</div>
+                </section>
+    
+                <!-- ТЕСТЫ И ДИАГНОСТИКА -->
+                <section class="card glow-green">
+                    <div class="card-header"><span class="icon-wrap green-wrap">🧪</span> ТЕСТЫ И ДИАГНОСТИКА</div>
+                    
+                    <label class="input-label mt-1">Эмуляция Алертов:</label>
+                    <div class="smart-input">
+                        <div class="custom-select" id="custom-test-alert" data-value="alert sub">
+                            <div class="select-selected">⭐ Обычная подписка</div>
+                            <div class="select-items select-hide">
+                                <div data-value="alert sub">⭐ Обычная подписка</div>
+                                <div data-value="alert resub">🔥 Продление (Ресаб)</div>
+                                <div data-value="alert gift">🎁 Подарочная подписка</div>
+                                <div data-value="alert streak">📺 Стрик просмотра</div>
+                                <div data-value="alert follow">💖 Новый фолловер</div>
+                                <div class="optgroup">Награды за баллы</div>
+                                <div data-value="alert series">🎬 Заказ сериала</div>
+                                <div data-value="alert movie">🍿 Заказ фильма</div>
+                                <div data-value="alert video">📺 Заказ видео</div>
+                                <div data-value="alert game">🎮 Заказ игры</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-solid-green action-btn" data-action="testalert">ТЕСТ</button>
+                    </div>
+    
+                    <!-- НОВОЕ: Продвинутый конструктор баблов -->
+                    <div class="card-divider mt-2">Конструктор Баблов Чата</div>
+                    <label class="input-label">Отправитель (Стиль):</label>
+                    <div class="smart-input">
+                        <div class="custom-select" id="custom-test-chat" data-value="testfirst">
+                            <div class="select-selected">Дефолт (Впервые в чате)</div>
+                            <div class="select-items select-hide">
+                                <div class="optgroup">Обычный чат</div>
+                                <div data-value="testfirst">Дефолт (Впервые)</div>
+                                <div data-value="testhighlight">Дефолт (За баллы)</div>
+                                <div data-value="testmention">Дефолт (Пинг)</div>
+                                <div class="optgroup">VIP Юзеры</div>
+                                <div data-value="testpda">Владелец (ksusha__sher)</div>
+                                <div data-value="testhk">Hollow Knight (bagercaa)</div>
+                                <div data-value="testmc">Minecraft (kiriika1)</div>
+                                <div data-value="testangel">Ангел (to_be_ang)</div>
+                                <div data-value="testbendy">Bendy (dragonsmaddison)</div>
+                                <div data-value="testarmy">Tactical HUD (darkl1us)</div>
+                                <div data-value="testhacker">Хакер (tetlabot)</div>
+                            </div>
                         </div>
                     </div>
-                    <button class="btn btn-solid-gradient action-btn" data-action="settheme">ВКЛЮЧИТЬ</button>
-                </div>
-                
-                <label class="input-label mt-2">Реклама стримера (Shoutout):</label>
-                <div class="smart-input">
-                    <input type="text" id="input-so" placeholder="Никнейм...">
-                    <button class="btn btn-solid-gradient action-btn" data-action="so">SHOUTOUT</button>
-                </div>
-            </section>
-
-            <!-- БЛОК 4: ИНТЕРАКТИВ И ЛИСА -->
-            <section class="card card-pink">
-                <div class="card-header">🦊 ЛИСА И РУЛЕТКА</div>
-                <div class="fox-grid">
-                    <button class="btn btn-outline cmd-btn" data-cmd="!fox sleep" title="Сон">💤</button>
-                    <button class="btn btn-outline cmd-btn" data-cmd="!fox scared" title="Страх">😱</button>
-                    <button class="btn btn-outline cmd-btn" data-cmd="!fox angry" title="Злость">😡</button>
-                    <button class="btn btn-outline cmd-btn" data-cmd="!fox love" title="Любовь">❤️</button>
-                    <button class="btn btn-outline cmd-btn" data-cmd="!fox jam" title="Вайб">🎧</button>
-                    <button class="btn btn-solid-pink cmd-btn" data-cmd="!fox nom" title="Покормить">🍪</button>
-                </div>
-
-                <div class="card-divider mt-2">РУЛЕТКА</div>
-                <div class="compact-row">
-                    <button class="btn btn-small btn-outline cmd-btn" data-cmd="!wheel show">Показать</button>
-                    <button class="btn btn-small btn-outline cmd-btn" data-cmd="!wheel hide">Скрыть</button>
-                    <button class="btn btn-small btn-solid-pink cmd-btn" data-cmd="!wheel spin" style="flex-grow: 1;">КРУТИТЬ</button>
-                    <button class="btn btn-small btn-outline-pink cmd-btn" data-cmd="!wheel clear">🗑️</button>
-                </div>
-            </section>
-
-            <!-- БЛОК 5: СИСТЕМНЫЕ ВИДЖЕТЫ -->
-            <section class="card card-green">
-                <div class="card-header">⚙️ СИСТЕМНЫЕ ВИДЖЕТЫ</div>
-                <div class="widget-grid">
-                    <div class="widget-row">
-                        <span>Полоса цели:</span>
-                        <button class="btn btn-tiny btn-outline-green cmd-btn" data-cmd="!widget goal on">ON</button>
-                        <button class="btn btn-tiny btn-outline-pink cmd-btn" data-cmd="!widget goal off">OFF</button>
+                    
+                    <label class="input-label mt-2">Модификаторы (Флаги):</label>
+                    <div class="modifier-pills">
+                        <div class="mod-pill" data-mod="-rep" title="Имитация ответа на чужое сообщение">Ответ (Reply)</div>
+                        <div class="mod-pill" data-mod="-hl" title="Свечение сообщения">За баллы (HL)</div>
+                        <div class="mod-pill" data-mod="-ping" title="Красный пинг стримера">Упоминание</div>
+                        <div class="mod-pill" data-mod="-first" title="Бейдж впервые в чате">Новичок</div>
+                        <div class="mod-pill" data-mod="-tts" title="Бот зачитает этот текст вслух">Озвучка (TTS)</div>
                     </div>
-                    <div class="widget-row">
-                        <span>Чат на экране:</span>
-                        <button class="btn btn-tiny btn-outline-green cmd-btn" data-cmd="!widget chat on">ON</button>
-                        <button class="btn btn-tiny btn-outline-pink cmd-btn" data-cmd="!widget chat off">OFF</button>
-                    </div>
-                    <div class="widget-row">
-                        <span>Соцсети:</span>
-                        <button class="btn btn-tiny btn-outline-green cmd-btn" data-cmd="!widget socials on">ON</button>
-                        <button class="btn btn-tiny btn-outline-pink cmd-btn" data-cmd="!widget socials off">OFF</button>
-                    </div>
-                    <div class="widget-row">
-                        <span>Бегущая строка:</span>
-                        <button class="btn btn-tiny btn-outline-green cmd-btn" data-cmd="!widget ticker on">ON</button>
-                        <button class="btn btn-tiny btn-outline-pink cmd-btn" data-cmd="!widget ticker off">OFF</button>
-                    </div>
-                </div>
-                <button class="btn btn-full mt-2 btn-outline-pink cmd-btn" style="box-shadow: 0 0 15px rgba(255,68,119,0.3);" data-cmd="!refresh">🔄 ПЕРЕЗАГРУЗИТЬ ВИЗУАЛ ОВЕРЛЕЯ</button>
-            </section>
 
+                    <label class="input-label mt-2">Текст (Необязательно):</label>
+                    <div class="smart-input">
+                        <input type="text" id="test-chat-msg" placeholder="Оставьте пустым для авто-текста">
+                        <button class="btn btn-solid-green action-btn" data-action="testchat">ОТПРАВИТЬ</button>
+                    </div>
+
+                </section>
+            </div>
+            
         </main>
     </div>
 

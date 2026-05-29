@@ -1,4 +1,4 @@
-/* ================= УМНАЯ СТУДИЙНАЯ КОНСОЛЬ (NEON EDITION) ================= */
+/* ================= УМНАЯ СТУДИЙНАЯ КОНСОЛЬ (PRO EDITION) ================= */
 
 const AppDeck = {
     creds: {
@@ -14,7 +14,8 @@ const AppDeck = {
         } else {
             document.getElementById('auth-modal').classList.remove('hidden');
         }
-        this.setupCustomSelects(); // Инициализация красивых списков
+        this.setupCustomSelects(); 
+        this.setupModifierPills(); // Логика флажков для тестов
         this.bindCommands();
     },
 
@@ -45,11 +46,9 @@ const AppDeck = {
         document.getElementById('app-container').classList.remove('hidden');
         document.getElementById('ui-channel-name').innerText = this.creds.channel;
 
-        // 1. ПОДКЛЮЧАЕМ ЧАТ
         ComfyJS.Init(this.creds.user, this.creds.token, this.creds.channel);
-        ComfyJS.onConnected = () => this.showToast("Связь с ядром установлена!");
+        ComfyJS.onConnected = () => this.showToast("⚡ СВЯЗЬ С ЯДРОМ УСТАНОВЛЕНА");
 
-        // 2. ВСТРАИВАЕМ TWITCH СТРИМ И ЧАТ
         this.embedTwitchWidgets();
     },
 
@@ -80,15 +79,15 @@ const AppDeck = {
     sendCmd: function(commandString) {
         if (!commandString || commandString.trim() === "") return;
         ComfyJS.Say(commandString, this.creds.channel);
-        this.showToast(`Отправлено: ${commandString.split(' ')[0]}`);
+        this.showToast(`✔️ Отправлено: ${commandString.split(' ')[0]}`);
     },
 
     showToast: function(msg) {
         const toast = document.getElementById('toast');
         toast.innerText = msg; toast.classList.remove('hidden');
-        // Сброс анимации для повторных кликов
+        
         toast.style.animation = 'none';
-        toast.offsetHeight; 
+        toast.offsetHeight; /* trigger reflow */
         toast.style.animation = null;
         
         setTimeout(() => toast.classList.add('hidden'), 2500);
@@ -102,10 +101,8 @@ const AppDeck = {
             const selected = customSelect.querySelector('.select-selected');
             const itemsList = customSelect.querySelector('.select-items');
 
-            // Клик по шапке (открыть/закрыть)
             selected.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // Закрываем все остальные открытые списки
                 document.querySelectorAll('.select-items').forEach(el => {
                     if (el !== itemsList) el.classList.add('select-hide');
                 });
@@ -117,7 +114,6 @@ const AppDeck = {
                 selected.classList.toggle('select-arrow-active');
             });
 
-            // Клик по элементу списка
             const options = itemsList.querySelectorAll('div[data-value]');
             options.forEach(option => {
                 option.addEventListener('click', () => {
@@ -129,30 +125,41 @@ const AppDeck = {
             });
         });
 
-        // Закрываем списки при клике вне их области
         document.addEventListener('click', () => {
             document.querySelectorAll('.select-items').forEach(el => el.classList.add('select-hide'));
             document.querySelectorAll('.select-selected').forEach(el => el.classList.remove('select-arrow-active'));
         });
     },
 
+    // --- ЛОГИКА КНОПОК-ПЕРЕКЛЮЧАТЕЛЕЙ (PILLS) ---
+    setupModifierPills: function() {
+        document.querySelectorAll('.mod-pill').forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                e.currentTarget.classList.toggle('active');
+            });
+        });
+    },
+
     bindCommands: function() {
-        // Обычные кнопки с командами в data-cmd
+        // Обычные кнопки
         document.querySelectorAll('.cmd-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Добавляем эффект нажатия на кнопку для отклика
                 const t = e.currentTarget;
-                t.style.transform = 'scale(0.9)';
+                t.style.transform = 'scale(0.92)';
                 setTimeout(() => t.style.transform = '', 150);
                 this.sendCmd(t.getAttribute('data-cmd'));
             });
         });
 
-        // Умные кнопки (читают данные из инпутов и селектов)
+        // Умные кнопки
         document.querySelectorAll('.action-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const action = e.currentTarget.getAttribute('data-action');
                 let inputEl, val;
+
+                const t = e.currentTarget;
+                t.style.transform = 'scale(0.92)';
+                setTimeout(() => t.style.transform = '', 150);
 
                 switch(action) {
                     case 'play':
@@ -165,7 +172,6 @@ const AppDeck = {
                         inputEl = document.getElementById('input-so'); val = inputEl.value.trim();
                         if (val) { this.sendCmd(`!so ${val}`); inputEl.value = ''; } break;
                     
-                    // Чтение из кастомного селекта
                     case 'setgame':
                         inputEl = document.getElementById('custom-game-select'); val = inputEl.getAttribute('data-value');
                         if (val === "off") this.sendCmd(`!game off`); else this.sendCmd(`!game ${val}`);
@@ -174,11 +180,46 @@ const AppDeck = {
                         inputEl = document.getElementById('custom-theme-select'); val = inputEl.getAttribute('data-value');
                         this.sendCmd(`!протокол ${val}`);
                         break;
+                        
+                    case 'testalert':
+                        inputEl = document.getElementById('custom-test-alert'); val = inputEl.getAttribute('data-value');
+                        this.sendCmd(`!${val}`);
+                        break;
+                    
+                    // Умный конструктор тестового бабла
+                    case 'testchat':
+                        const baseCmd = document.getElementById('custom-test-chat').getAttribute('data-value');
+                        const msgInput = document.getElementById('test-chat-msg').value.trim();
+                        
+                        let flags = "";
+                        document.querySelectorAll('.mod-pill.active').forEach(pill => {
+                            flags += pill.getAttribute('data-mod') + " ";
+                        });
+                        
+                        // Собираем итоговую команду
+                        let finalCmd = `!${baseCmd}`;
+                        if (flags.trim() !== "") finalCmd += ` ${flags.trim()}`;
+                        if (msgInput !== "") finalCmd += ` ${msgInput}`;
+                        
+                        this.sendCmd(finalCmd);
+                        document.getElementById('test-chat-msg').value = ''; // очищаем только текст
+                        break;
+
+                    // Добавление в колесо (свой текст)
+                    case 'add_wheel_custom':
+                        inputEl = document.getElementById('input-wheel'); val = inputEl.value.trim();
+                        if (val) { this.sendCmd(`!wheel add ${val}`); inputEl.value = ''; } break;
+                    
+                    // Добавление в колесо (из выпадающего списка БД)
+                    case 'add_wheel_db':
+                        inputEl = document.getElementById('custom-wheel-db'); val = inputEl.getAttribute('data-value');
+                        if (val && val !== "") this.sendCmd(`!wheel add ${val}`);
+                        break;
                 }
             });
         });
 
-        // Отправка по нажатию Enter в инпутах
+        // Нажатие Enter
         document.querySelectorAll('.smart-input input').forEach(input => {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') e.currentTarget.parentElement.querySelector('.action-btn').click();
