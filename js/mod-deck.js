@@ -416,6 +416,9 @@ const AppDeck = {
                 case 'spawn_emotes':
                     this.sendCmd(`Kappa LUL PogChamp BibleThump Kreygasm Kappa LUL PogChamp BibleThump Kreygasm ${Math.floor(Math.random() * 1000)}`);
                     break;
+                case 'testticker_custom':
+                    inputEl = document.getElementById('input-test-ticker'); val = inputEl.value.trim();
+                    if (val) { this.sendCmd(`!testticker ${val}`); inputEl.value = ''; } break;
             }
         });
 

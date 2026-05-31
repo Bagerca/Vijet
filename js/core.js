@@ -176,19 +176,30 @@ window.AppCore = {
                 case "testhighlight": if (hasPermission) this.handleTestCommand(user, "#FFD700", testAvatar, "Это очень важное сообщение за баллы!", "-hl " + arg); break;
 
                 // УНИВЕРСАЛЬНАЯ КОМАНДА ДЛЯ ЛЮБОГО ЮЗЕРА
-                // Использование: !testuser [никнейм] [флаги] [текст]
                 case "testuser": 
                     if (hasPermission) {
                         let parts = arg.split(' ');
                         let targetUser = parts[0] || user;
                         let restArgs = parts.slice(1).join(' ');
-                        // Ядро само скачает реальную аватарку с Twitch для этого юзера
                         let targetAvatar = await window.AvatarManager.get(targetUser, "#FF4477");
                         this.handleTestCommand(targetUser, "#FF4477", targetAvatar, "Проверка кастомного стиля на связи!", restArgs);
                     } 
                     break;
 
                 case "testtts": if (hasPermission) { let parts = arg.split(' '); let targetUser = parts[0] || "tetlabot"; let ttsText = parts.slice(1).join(' ') || "Внимание. Тестирование вокального модуля успешно завершено."; window.AppEvents.emit('TTS_ADD', { user: targetUser, text: ttsText }); } break;
+
+                // Тест бегущей строки 2.0
+                case "testticker":
+                    if (hasPermission) {
+                        if (argLow === "music") {
+                            window.AppEvents.emit('TICKER_CUSTOM', { msg: "<span style='color: #FF4477; font-weight: 800;'>🎵 test_user</span> заказал трек: Секретная Песня", badge: "МУЗЫКА", color: "#FF4477" });
+                        } else if (argLow === "alert") {
+                            window.AppEvents.emit('TICKER_CUSTOM', { msg: "<span style='color: #00FF7F; font-weight: 800;'>💎 big_boss</span> активировал: Выпить шот", badge: "НАГРАДА", color: "#00FF7F" });
+                        } else {
+                            window.AppEvents.emit('TICKER_CUSTOM', { msg: arg || "Это тестовое сообщение для проверки системы бегущей строки 2.0!", badge: "ТЕСТ", color: "#FFD700" });
+                        }
+                    }
+                    break;
 
                 // Базовые команды управления
                 case "wheel":

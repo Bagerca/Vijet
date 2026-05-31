@@ -309,3 +309,17 @@ body.theme-circus .blur-subtitle {
     0% { transform: scale(1) rotate(-10deg); box-shadow: 0 0 20px rgba(254, 225, 1, 0.8); }
     100% { transform: scale(1.1) rotate(10deg); box-shadow: 0 0 40px rgba(254, 225, 1, 1), 0 0 20px #E52521; }
 }
+
+/* ТЕМА ЦИРК: Бегущая строка */
+body.theme-circus #ticker-container {
+    background: #FEE101 !important;
+    border: 4px solid #E52521 !important;
+    border-radius: 20px !important;
+    box-shadow: 10px 10px 0 #004CB8 !important;
+    backdrop-filter: none !important;
+}
+body.theme-circus #ticker-badge { background: #E52521 !important; border-right: 4px solid #004CB8 !important; }
+body.theme-circus #ticker-badge-text { color: #ffffff !important; font-size: 14px !important; }
+body.theme-circus .t-dot { background: #FEE101 !important; }
+body.theme-circus #ticker-text { color: #004CB8 !important; font-weight: 900 !important; font-size: 18px !important; }
+body.theme-circus .t-highlight { background: #004CB8 !important; color: #ffffff !important; }

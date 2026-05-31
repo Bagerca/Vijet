@@ -418,3 +418,17 @@ body.theme-noir .part-zzz {
     color: var(--n-red) !important;
     filter: drop-shadow(2px 2px 0 #121214) !important;
 }
+
+/* ТЕМА НУАР: Бегущая строка (Телетайпная лента) */
+body.theme-noir #ticker-container {
+    background: var(--n-paper) !important;
+    border: var(--n-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 8px 8px 0 var(--n-bg) !important;
+    backdrop-filter: none !important;
+}
+body.theme-noir #ticker-badge { background: var(--n-bg) !important; border-right: none !important; }
+body.theme-noir #ticker-badge-text { color: var(--n-paper) !important; font-family: 'Special Elite', monospace !important;}
+body.theme-noir .t-dot { border-radius: 0 !important; background: var(--n-red) !important; box-shadow: none !important; }
+body.theme-noir #ticker-text { font-family: 'Special Elite', monospace !important; color: var(--n-bg) !important; font-weight: bold !important;}
+body.theme-noir .t-highlight { background: var(--n-bg) !important; color: var(--n-paper) !important; border-radius: 0 !important; }

@@ -1,6 +1,150 @@
-/* ================= БЕГУЩАЯ СТРОКА (СВЕТЛАЯ) ================= */
-#ticker-container { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); width: 600px; height: 44px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(245, 245, 250, 0.75) 100%); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 50px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); display: flex; align-items: center; overflow: hidden; z-index: 50; opacity: 0; transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%); }
-#ticker-container.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
-#ticker-text { white-space: nowrap; color: #1a1a1a; font-size: 16px; font-weight: 700; padding-left: 100%; will-change: transform; }
-#ticker-text.scrolling { animation: tickerScroll 15s linear forwards; }
-@keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+/* ================= БЕГУЩАЯ СТРОКА 2.0 (Premium 3D Animations) ================= */
+#ticker-container { 
+    position: absolute; 
+    bottom: 40px; 
+    left: 50%; 
+    width: 700px; 
+    height: 48px; 
+    
+    /* Темное стекло */
+    background: rgba(10, 10, 15, 0.75); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px); 
+    border: 1px solid rgba(255, 255, 255, 0.08); 
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px; 
+    
+    display: flex; 
+    align-items: center; 
+    z-index: 50; 
+    opacity: 0; 
+    
+    /* Фиксируем трансформ по умолчанию, чтобы избежать мерцаний */
+    transform: translateX(-50%) translateY(50px) scale(0.9);
+}
+
+#ticker-container.hidden { display: none !important; }
+
+/* === 3D АНИМАЦИЯ ПОЯВЛЕНИЯ === */
+#ticker-container.visible { 
+    animation: tickerFlyIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+}
+
+/* При появлении левый бейдж тоже делает стильный "вылет" */
+#ticker-container.visible #ticker-badge {
+    animation: badgePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+
+/* === 3D АНИМАЦИЯ УХОДА === */
+#ticker-container.is-leaving {
+    animation: tickerFlyOut 0.6s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+}
+
+@keyframes tickerFlyIn {
+    0% {
+        opacity: 0;
+        /* Летит снизу, наклонена назад, размыта */
+        transform: translateX(-50%) translateY(60px) perspective(800px) rotateX(45deg) scale(0.85);
+        filter: blur(10px);
+        box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+    50% {
+        opacity: 1;
+        /* Перелетает финальную точку (эффект удара/пружины) */
+        transform: translateX(-50%) translateY(-5px) perspective(800px) rotateX(-5deg) scale(1.02);
+        filter: blur(0px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 255, 255, 0.15); /* Вспышка тени */
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) perspective(800px) rotateX(0deg) scale(1);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    }
+}
+
+@keyframes badgePop {
+    0% { transform: translateX(-30px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes tickerFlyOut {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    30% {
+        opacity: 1;
+        /* Оттягивается наверх перед падением вниз (эффект Anticipation) */
+        transform: translateX(-50%) translateY(-10px) scale(1.02); 
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(50px) perspective(800px) rotateX(-30deg) scale(0.85);
+        filter: blur(10px);
+    }
+}
+
+/* --- ЛЕВЫЙ СТАТИЧНЫЙ БЕЙДЖ --- */
+#ticker-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 5;
+    box-shadow: 10px 0 20px rgba(0,0,0,0.4);
+}
+
+.t-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #00FF7F;
+    box-shadow: 0 0 10px #00FF7F;
+    animation: tPulse 2s infinite alternate;
+}
+@keyframes tPulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+
+#ticker-badge-text {
+    font-size: 11px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* --- МАСКА И ТЕКСТ --- */
+#ticker-mask {
+    flex-grow: 1;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    /* Градиентное затухание по краям маски */
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+
+#ticker-text { 
+    position: absolute;
+    top: 50%;
+    margin-top: -10px; /* Половина font-size */
+    white-space: nowrap; 
+    color: rgba(255, 255, 255, 0.85); 
+    font-size: 16px; 
+    font-weight: 500;
+    will-change: transform; 
+}
+
+/* Стилизация выделений (префиксы) внутри текста */
+.t-highlight {
+    font-weight: 800;
+    color: #FF4477;
+    background: rgba(255, 68, 119, 0.1);
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-right: 6px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    vertical-align: middle;
+}
