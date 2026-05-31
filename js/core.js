@@ -188,6 +188,11 @@ window.AppCore = {
 
                 case "testtts": if (hasPermission) { let parts = arg.split(' '); let targetUser = parts[0] || "tetlabot"; let ttsText = parts.slice(1).join(' ') || "Внимание. Тестирование вокального модуля успешно завершено."; window.AppEvents.emit('TTS_ADD', { user: targetUser, text: ttsText }); } break;
 
+                // Тест цели (фолловеров)
+                case "testgoal": 
+                    if (hasPermission) window.AppEvents.emit('GOAL_TEST_ADD'); 
+                    break;
+
                 // Тест бегущей строки 2.0
                 case "testticker":
                     if (hasPermission) {

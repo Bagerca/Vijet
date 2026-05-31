@@ -1,9 +1,10 @@
+/* ================= GOAL 2.0 (С МИНИМАЛИСТИЧНЫМ ДИЗАЙНОМ) ================= */
+
 window.AppGoal = {
     container: document.getElementById('goal-container'),
-    fillBar: document.getElementById('goal-bar-fill'),
-    countText: document.getElementById('goal-count'),
-    titleText: document.getElementById('goal-title'),
-    currentFollowers: -1, 
+    currentFollowers: 0,
+    displayFollowers: 0, 
+    animationFrameId: null,
 
     init: function() {
         if (!window.AppConfig.goalTarget || window.AppConfig.goalTarget <= 0) {
@@ -11,70 +12,84 @@ window.AppGoal = {
             return;
         }
 
-        this.titleText.innerText = window.AppConfig.goalTitle || "Цель:";
-        
-        // Устанавливаем базовые цвета через CSS-переменные для удобства анимаций
-        if (window.AppConfig.goalColor) {
-            const color = window.AppConfig.goalColor;
-            this.container.style.setProperty('--goal-color', color);
-            this.container.style.setProperty('--goal-color-light', `${color}88`);
-            this.fillBar.style.background = `linear-gradient(90deg, var(--goal-color-light) 0%, var(--goal-color) 100%)`;
-        }
+        // Рендерим новую, чистую HTML структуру
+        this.container.innerHTML = `
+            <div class="goal-badge">${window.AppConfig.goalTitle || 'Фолловеры'}</div>
+            <div class="goal-content">
+                <span class="goal-current" id="goal-current">0</span>
+                <span style="color: rgba(0,0,0,0.3)">/</span>
+                <span style="color: rgba(0,0,0,0.5)">${window.AppConfig.goalTarget}</span>
+            </div>
+            <div id="goal-bar-fill"></div>
+        `;
 
         this.fetchData();
         setInterval(() => this.fetchData(), window.AppConfig.goalUpdateInterval || 30000);
+
+        // Обработчик тестовой кнопки
+        window.AppEvents.listen('GOAL_TEST_ADD', () => {
+            this.currentFollowers += 1;
+            this.animateValue(this.currentFollowers);
+        });
     },
 
     fetchData: async function() {
         try {
             const response = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${window.AppConfig.channelName}`);
             const data = await response.json();
-            
             if (data && data.length > 0) {
                 const followers = data[0].followers || 0;
-                this.render(followers);
+                if (followers > this.currentFollowers || this.currentFollowers === 0) {
+                    this.currentFollowers = followers;
+                    this.animateValue(followers);
+                }
             }
-        } catch (err) {
-            console.warn("[Goal] Ошибка обновления счетчика фолловеров.", err);
-        }
+        } catch (err) {}
     },
 
-    render: function(followers) {
-        const target = window.AppConfig.goalTarget;
-        
-        // Если значение изменилось (кто-то подписался)
-        if (this.currentFollowers !== followers && this.currentFollowers !== -1) {
+    animateValue: function(targetValue) {
+        const elCurrent = document.getElementById('goal-current');
+        const elBar = document.getElementById('goal-bar-fill');
+        const maxTarget = window.AppConfig.goalTarget;
+
+        // Двигаем нижнюю неоновую полоску
+        let percent = Math.min((targetValue / maxTarget) * 100, 100);
+        elBar.style.width = `${percent}%`;
+
+        if (targetValue >= maxTarget) this.container.classList.add('goal-completed');
+        else this.container.classList.remove('goal-completed');
+
+        // Накручиваем цифры
+        const startValue = this.displayFollowers;
+        const duration = 1500; 
+        const startTime = performance.now();
+
+        const updateCounter = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
             
-            // Анимация прыжка цифр
-            this.countText.classList.remove('animate-pop');
-            void this.countText.offsetWidth; 
-            this.countText.classList.add('animate-pop');
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            this.displayFollowers = Math.floor(startValue + (targetValue - startValue) * easeOut);
+            
+            elCurrent.innerText = this.displayFollowers;
 
-            // Эффект яркой вспышки всей полосы
-            this.fillBar.classList.remove('flash-glow');
-            void this.fillBar.offsetWidth;
-            this.fillBar.classList.add('flash-glow');
-        }
+            if (progress < 1) {
+                this.animationFrameId = requestAnimationFrame(updateCounter);
+            } else {
+                elCurrent.innerText = targetValue;
+                this.displayFollowers = targetValue;
+                
+                // Легкий отскок цифры при завершении
+                elCurrent.style.transform = 'scale(1.2)';
+                elCurrent.style.display = 'inline-block';
+                elCurrent.style.transition = 'transform 0.15s ease';
+                setTimeout(() => { elCurrent.style.transform = 'scale(1)'; }, 150);
+            }
+        };
 
-        this.currentFollowers = followers;
-
-        // Красивое форматирование чисел (например: 1 000)
-        const formatFoll = followers.toLocaleString('ru-RU');
-        const formatTarget = target.toLocaleString('ru-RU');
-        this.countText.innerText = `${formatFoll} / ${formatTarget}`;
-
-        let percent = (followers / target) * 100;
-        
-        if (percent >= 100) {
-            percent = 100;
-            // Если цель достигнута, включаем режим праздника (золотое свечение)
-            this.container.classList.add('goal-completed');
-        } else {
-            this.container.classList.remove('goal-completed');
-        }
-        
-        this.fillBar.style.width = `${percent}%`;
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = requestAnimationFrame(updateCounter);
     }
 };
 
-setTimeout(() => window.AppGoal.init(), 1500);
+setTimeout(() => window.AppGoal.init(), 1000);

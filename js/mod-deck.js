@@ -35,7 +35,7 @@ const AppDeck = {
         this.setupCustomSelects();     
         this.setupModifierPills(); 
         this.bindCommands();
-        this.setupAutoWakeUp(); // Инициализация умного пробуждения вкладки
+        this.setupAutoWakeUp(); 
     },
 
     bindAuthEvents: function() {
@@ -55,7 +55,6 @@ const AppDeck = {
             this.connectToTwitch();
         });
 
-        // Кнопка логаута
         const btnLogout = document.getElementById('btn-logout');
         if (btnLogout) {
             btnLogout.addEventListener('click', () => {
@@ -73,13 +72,11 @@ const AppDeck = {
 
         ComfyJS.Init(this.creds.user, this.creds.token, this.creds.channel);
         
-        // Подключаем слушатели стабильности соединения через секунду, когда клиент создастся
         setTimeout(() => this.setupConnectionMonitors(), 1000);
 
         this.embedTwitchWidgets();
     },
 
-    // ================= МОНИТОРИНГ СОЕДИНЕНИЯ =================
     setupConnectionMonitors: function() {
         const client = ComfyJS.GetClient();
         if (!client) return;
@@ -103,7 +100,7 @@ const AppDeck = {
         const indicator = document.querySelector('.live-indicator');
         if (!indicator) return;
         
-        let hexColor = '#00FF7F'; // Green
+        let hexColor = '#00FF7F'; 
         let pulse = 'pulse 1.5s infinite';
         
         if (colorType === 'yellow') { hexColor = '#FEE101'; pulse = 'none'; }
@@ -112,12 +109,10 @@ const AppDeck = {
         indicator.innerHTML = `<span class="live-dot" style="background: ${hexColor}; box-shadow: 0 0 10px ${hexColor}; animation: ${pulse};"></span> ${text}`;
     },
 
-    // ================= УМНОЕ ПРОБУЖДЕНИЕ (Анти-Сон браузера) =================
     setupAutoWakeUp: function() {
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === 'visible') {
                 const client = ComfyJS.GetClient();
-                // Если мы вернулись на вкладку, а сокет мертв — пинаем его
                 if (client && client.readyState() !== "OPEN") {
                     console.log("[USO] Вкладка проснулась. Выполняю принудительный реконнект...");
                     this.updateStatusUI('yellow', 'ВОССТАНОВЛЕНИЕ...');
@@ -136,7 +131,6 @@ const AppDeck = {
         document.getElementById('twitch-chat-container').innerHTML = '';
 
         try {
-            // Встраиваем видео. Явно разрешаем github.io в parent
             new Twitch.Embed("twitch-video-container", {
                 width: "100%", height: "100%",
                 channel: channelName, layout: "video", autoplay: true, muted: true,
@@ -166,7 +160,6 @@ const AppDeck = {
         } else {
             this.showToast(`❌ ОШИБКА: НЕТ СВЯЗИ`);
             this.updateStatusUI('red', 'СВЯЗЬ ПОТЕРЯНА');
-            // Пытаемся восстановить
             if (client) client.connect().catch(e => {});
         }
     },
@@ -175,7 +168,6 @@ const AppDeck = {
         const toast = document.getElementById('toast');
         toast.innerText = msg; 
         
-        // Меняем цвет тоста при ошибке
         if (msg.includes("ОШИБКА")) {
             toast.style.background = "#FF0050";
             toast.style.color = "#fff";
@@ -394,6 +386,10 @@ const AppDeck = {
                 case 'testalert':
                     inputEl = document.getElementById('custom-test-alert'); val = inputEl.getAttribute('data-value');
                     this.sendCmd(`!${val}`); break;
+                case 'testfollow':
+                    this.sendCmd('!alert follow');
+                    setTimeout(() => this.sendCmd('!testgoal'), 800);
+                    break;
                 case 'testchat':
                     const baseCmd = document.getElementById('custom-test-chat').getAttribute('data-value');
                     const msgInput = document.getElementById('test-chat-msg').value.trim();
