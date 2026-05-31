@@ -1,4 +1,5 @@
-/* ================= БЕГУЩАЯ СТРОКА 2.0 (Premium 3D Animations) ================= */
+/* ================= БЕГУЩАЯ СТРОКА 2.0 (Светлый Premium Glassmorphism) ================= */
+
 #ticker-container { 
     position: absolute; 
     bottom: 40px; 
@@ -6,12 +7,14 @@
     width: 700px; 
     height: 48px; 
     
-    /* Темное стекло */
-    background: rgba(10, 10, 15, 0.75); 
+    /* Светлое матовое стекло */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 245, 250, 0.8) 100%);
     backdrop-filter: blur(20px); 
     -webkit-backdrop-filter: blur(20px); 
-    border: 1px solid rgba(255, 255, 255, 0.08); 
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    
+    /* Нежная рамка и объемная тень */
+    border: 1px solid rgba(255, 255, 255, 1); 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 12px; 
     
     display: flex; 
@@ -30,7 +33,7 @@
     animation: tickerFlyIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
 }
 
-/* При появлении левый бейдж тоже делает стильный "вылет" */
+/* При появлении левый бейдж делает стильный "вылет" */
 #ticker-container.visible #ticker-badge {
     animation: badgePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
 }
@@ -53,12 +56,13 @@
         /* Перелетает финальную точку (эффект удара/пружины) */
         transform: translateX(-50%) translateY(-5px) perspective(800px) rotateX(-5deg) scale(1.02);
         filter: blur(0px);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 255, 255, 0.15); /* Вспышка тени */
+        /* Мягкая розовая/серая тень внизу при ударе */
+        box-shadow: 0 25px 40px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(255, 68, 119, 0.15); 
     }
     100% {
         opacity: 1;
         transform: translateX(-50%) translateY(0) perspective(800px) rotateX(0deg) scale(1);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(255, 68, 119, 0.05);
     }
 }
 
@@ -91,13 +95,18 @@
     gap: 8px;
     padding: 0 16px;
     height: 100%;
-    background: rgba(255, 255, 255, 0.03);
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    
+    /* Легкое затемнение левой части, чтобы отделить бейдж от текста */
+    background: rgba(0, 0, 0, 0.03);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 12px 0 0 12px; /* Скругляем только левые углы */
+    
     position: relative;
     z-index: 5;
-    box-shadow: 10px 0 20px rgba(0,0,0,0.4);
+    box-shadow: 5px 0 15px rgba(0,0,0,0.05); /* Легкая тень от бейджа на текст */
 }
 
+/* Пульсирующая точка */
 .t-dot {
     width: 8px; height: 8px;
     border-radius: 50%;
@@ -105,12 +114,15 @@
     box-shadow: 0 0 10px #00FF7F;
     animation: tPulse 2s infinite alternate;
 }
-@keyframes tPulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+@keyframes tPulse { 
+    0% { opacity: 0.4; transform: scale(0.9); } 
+    100% { opacity: 1; transform: scale(1.1); } 
+}
 
 #ticker-badge-text {
     font-size: 11px;
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(0, 0, 0, 0.6);
     letter-spacing: 2px;
     text-transform: uppercase;
 }
@@ -121,30 +133,49 @@
     height: 100%;
     overflow: hidden;
     position: relative;
-    /* Градиентное затухание по краям маски */
+    /* Градиентное затухание по краям маски. На светлом фоне используем черный цвет маски для прозрачности! */
     -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
 }
 
 #ticker-text { 
     position: absolute;
     top: 50%;
-    margin-top: -10px; /* Половина font-size */
+    margin-top: -10px; /* Выравнивание по центру относительно шрифта 16px */
     white-space: nowrap; 
-    color: rgba(255, 255, 255, 0.85); 
+    
+    /* Темный контрастный текст для светлого фона */
+    color: #1a1a1a; 
     font-size: 16px; 
-    font-weight: 500;
+    font-weight: 600;
+    
     will-change: transform; 
 }
 
-/* Стилизация выделений (префиксы) внутри текста */
+/* ==============================================================
+   Стилизация выделений (префиксы и подсветка) внутри текста 
+   ============================================================== */
+
+/* Цветной ярлык (например, МУЗЫКА, ПИТОМЕЦ) */
 .t-highlight {
     font-weight: 800;
     color: #FF4477;
-    background: rgba(255, 68, 119, 0.1);
+    background: rgba(255, 68, 119, 0.12);
+    border: 1px solid rgba(255, 68, 119, 0.2);
     padding: 2px 8px;
     border-radius: 6px;
     margin-right: 6px;
-    font-size: 13px;
+    font-size: 12px;
     letter-spacing: 1px;
     vertical-align: middle;
+}
+
+/* Если в тексте нужно выделить белым/черным какое-то слово */
+#ticker-text span[style*="color: #fff;"], 
+#ticker-text span[style*="color: #ffffff;"] {
+    color: #000 !important; /* На светлом фоне белый текст не видно, делаем его черным */
+    font-weight: 900;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0 4px;
+    border-radius: 4px;
 }
