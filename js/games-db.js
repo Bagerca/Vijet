@@ -88,5 +88,9 @@ window.GamesDatabase = {
     "spider noir color": {
         title: "Spider-Noir", cover: "img/covers/с.jpg", themeColor: "#991B1B", type: "series",
         tags: ["Супергероика", "Комиксы"], details: { "В гл. роли": "Николас Кейдж", "Платформа": "Amazon Prime", "Год": "2025" }
+    },
+    "lego batman": {
+        title: "Лего Фильм: Бэтмен", cover: "img/covers/lego_batman.jpg", themeColor: "#FFE81F", type: "series",
+        tags: ["Мультфильм", "Комедия"], details: { "Студия": "Warner Bros.", "Год": "2017" }
     }
 };
