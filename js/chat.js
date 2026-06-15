@@ -93,12 +93,16 @@ window.AppChat = {
         this.activeMessageCount++;
         const addedNode = this.container.lastElementChild;
 
-        // 7. Жизненный цикл (Хук после рендера)
-        window.AppEvents.emit('CHAT_NODE_RENDERED', {
-            node: addedNode,
-            styleName: data.styleName,
-            text: data.htmlText
-        });
+        // 7. Жизненный цикл (Локальный хук после рендера)
+        // ВАЖНО: Используем нативный CustomEvent вместо EventBus, 
+        // так как DOM-узлы нельзя клонировать и передавать в другие вкладки!
+        window.dispatchEvent(new CustomEvent('CHAT_NODE_RENDERED', {
+            detail: {
+                node: addedNode,
+                styleName: data.styleName,
+                text: data.htmlText
+            }
+        }));
 
         // 8. Очистка старых сообщений
         const maxMsgs = window.AppConfig.maxChatMessages || 12;
