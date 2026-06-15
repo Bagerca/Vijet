@@ -1,5 +1,5 @@
 /* =====================================================================
-   ЧАТ: АБСОЛЮТНЫЙ СКЕЛЕТ (HEADLESS UI + CSS API)
+   ЧАТ: АБСОЛЮТНЫЙ СКЕЛЕТ (HEADLESS UI + CSS GRID API)
    Здесь только физика, геометрия и анимации. Никакого дизайна!
    ===================================================================== */
 
@@ -41,10 +41,21 @@
 }
 .chat-out { animation: slideOutChat 0.4s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
 
-/* --- 3. ФИЗИКА ВНУТРЕННИХ БЛОКОВ --- */
+/* --- 3. ФИЗИКА ВНУТРЕННИХ БЛОКОВ (CSS GRID) --- */
 .chat-meta { display: flex; flex-direction: column; gap: 4px; width: 100%; margin-bottom: var(--c-margin-bottom, 6px); }
 
 .chat-bubble {
+    /* Базовый Grid Layout для полной свободы */
+    display: grid;
+    grid-template-areas: 
+        "avatar header right"
+        "avatar text text";
+    grid-template-columns: min-content auto 1fr;
+    grid-column-gap: 12px;
+    grid-row-gap: 4px;
+    align-items: start;
+
+    /* Розетки */
     background: var(--c-bg);
     border: var(--c-border);
     border-radius: var(--c-radius);
@@ -56,27 +67,31 @@
     position: relative; overflow: hidden;
 }
 
-/* Шапка (Аватар, Имя, Время) */
-.chat-header { display: flex; align-items: center; width: 100%; position: relative; z-index: 2; gap: 8px; }
-.chat-avatar { flex-shrink: 0; object-fit: cover; }
-.chat-user { 
-    font-family: var(--c-font-user); color: var(--user-color); 
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-}
-.chat-header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+/* Элементы сетки */
+.chat-avatar { grid-area: avatar; align-self: center; flex-shrink: 0; object-fit: cover; }
+.chat-header { grid-area: header; display: flex; align-items: center; gap: 6px; white-space: nowrap; position: relative; z-index: 2; }
+.chat-header-right { grid-area: right; display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-shrink: 0; position: relative; z-index: 2; }
+.chat-text { grid-area: text; align-self: start; font-family: var(--c-font-text); color: var(--c-color-text); position: relative; z-index: 2; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; }
+.chat-user { font-family: var(--c-font-user); color: var(--user-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Текст сообщения */
-.chat-text { 
-    font-family: var(--c-font-text); color: var(--c-color-text);
-    position: relative; z-index: 2; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; 
-}
+/* Значки Твича */
+.chat-badges { display: flex; align-items: center; gap: 4px; }
+.tw-badge { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 4px; color: #fff; }
+.tw-badge svg { width: 12px; height: 12px; }
+.tb-broadcaster { background: #E00543; }
+.tb-mod { background: #00AD03; }
+.tb-vip { background: #E005B9; }
+.tb-sub { background: #8205E0; }
 
-/* --- 4. СИСТЕМНЫЕ ЭЛЕМЕНТЫ (Строгие правила позиционирования) --- */
+/* --- 4. СИСТЕМНЫЕ ЭЛЕМЕНТЫ (Строгие правила) --- */
 .chat-emote { height: 1.6em; vertical-align: middle; margin: -0.2em 2px; display: inline-block; }
 
-/* Системные алерты (Цензура и Пинг) оставляем красными на уровне ядра для безопасности */
+/* Пинг */
 .chat-ping { background: #FF0050; color: #ffffff; font-weight: 800; padding: 1px 6px; border-radius: 6px; display: inline-block; vertical-align: middle; }
-.chat-ping-bell { width: 14px; height: 14px; color: #FF0050; animation: ringBell 2.5s infinite ease-in-out; }
+.chat-ping-bell { display: none; width: 14px; height: 14px; color: #FF0050; animation: ringBell 2.5s infinite ease-in-out; }
+.chat-block[data-mention="true"] .chat-ping-bell { display: block; } /* Управление через Data-Атрибут */
+
+/* Цензура */
 .censured-badge { background: #FF0050; color: #ffffff !important; font-size: 10px !important; font-weight: 900 !important; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; display: inline-block; vertical-align: middle; margin: 0 2px; }
 .censured-message { background: rgba(255, 0, 80, 0.05); border: 1px dashed rgba(255, 0, 80, 0.4); color: #FF0050; font-size: 12px; font-weight: 900; padding: 8px 12px; border-radius: 8px; text-transform: uppercase; text-align: center; width: 100%; box-sizing: border-box; }
 
@@ -85,6 +100,6 @@
 @keyframes slideInChat { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes slideOutChat { from { opacity: 1; transform: scale(1); height: auto; margin-bottom: var(--chat-gap, 14px); } to { opacity: 0; transform: scale(0.8) translateX(-20px); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none; } }
 
-/* --- 6. АДАПТАЦИЯ ДЛЯ СЦЕН (Отменяет ограничения ширины) --- */
+/* --- 6. АДАПТАЦИЯ ДЛЯ СЦЕН --- */
 body.scene-chatting .chat-block { width: 100% !important; max-width: 100% !important; }
 body.scene-chatting .chat-bubble { width: 100% !important; box-sizing: border-box !important; }

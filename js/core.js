@@ -31,6 +31,11 @@ window.AppCore = {
         let isFirstTime = false;
         let finalMessage = arg;
 
+        // Мокирование ролей для тестов
+        let role = "viewer";
+        if (userAlias === window.AppConfig.channelName) role = "broadcaster";
+        else if (finalMessage.includes("-mod")) { role = "mod"; finalMessage = finalMessage.replace("-mod", "").trim(); }
+
         if (finalMessage.includes("-hl")) { isHighlight = true; finalMessage = finalMessage.replace("-hl", "").trim(); }
         if (finalMessage.includes("-rep")) { isReply = true; finalMessage = finalMessage.replace("-rep", "").trim(); }
         if (finalMessage.includes("-ping")) { isPing = true; finalMessage = finalMessage.replace("-ping", "").trim(); }
@@ -56,7 +61,9 @@ window.AppCore = {
             time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             htmlText: cleanText, replyData: isReply ? this.generateFakeReply() : null,
             isFirstTime: isFirstTime, isHighlighted: isHighlight, isMention: isPing,
-            styleName: userStyle // Передаем стиль
+            styleName: userStyle,
+            role: role,
+            badges: role === 'mod' ? { moderator: "1" } : (role === 'broadcaster' ? { broadcaster: "1" } : null)
         });
     },
 
@@ -108,13 +115,21 @@ window.AppCore = {
                 cleanText = cleanText.replace(new RegExp(`^@${replyUser}\\s*,?\\s*`, 'i'), '');
             }
 
-            // Ищем стиль юзера в конфиге
             const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[lowerUser]) || null;
+            
+            // Определяем роль пользователя
+            let role = 'viewer';
+            if (flags.broadcaster) role = 'broadcaster';
+            else if (flags.mod) role = 'mod';
+            else if (flags.vip) role = 'vip';
+            else if (flags.subscriber || flags.founder) role = 'sub';
 
             window.AppEvents.emit('CHAT_RENDER_MESSAGE', { 
                 user, color: userColor, avatarUrl, time, htmlText: cleanText, 
                 replyData, isFirstTime, isHighlighted, isMention,
-                styleName: userStyle // Передаем стиль
+                styleName: userStyle,
+                role: role,
+                badges: extra.userBadges
             });
         };
 

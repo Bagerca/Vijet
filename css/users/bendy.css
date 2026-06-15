@@ -1,401 +1,49 @@
-/* ==========================================================
-   КАСТОМНЫЙ СТИЛЬ: bendy (РЕМАСТЕР: Bendy / Joey Drew Studios)
-   ========================================================== */
-
-/* Подключаем винтажные шрифты: Постерный для ника и печатную машинку для текста */
 @import url('https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&display=swap');
 
-/* Внешние отступы (обнулены боковые) */
-.chat-block[data-style="bendy"] {
-    margin: 15px 0 20px 0; 
-    z-index: 30;
-}
+.chat-block[data-style="bendy"] { margin: 15px 0 20px 0; z-index: 30; }
 
-/* ==============================================
-   БАЗОВЫЙ БАБЛ (СТАРАЯ БУМАГА, ЧЕРНИЛА, ПЛЕНКА)
-   ============================================== */
 .chat-block[data-style="bendy"] .chat-bubble {
-    /* Фон старой бумаги: радиальный градиент от светлой сепии к темной */
     background: radial-gradient(circle at center, #dfca96 0%, #b89c5f 100%) !important;
-    
-    /* Чернильная обводка и жесткая мультяшная тень (2D эффект) */
-    border: 3px solid #13100c !important;
-    border-radius: 6px !important;
-    
-    /* Внутренняя чернильная виньетка (края затемнены) + мультяшная тень */
+    border: 3px solid #13100c !important; border-radius: 6px !important;
     box-shadow: inset 0 0 30px rgba(19, 16, 12, 0.6), 6px 6px 0px rgba(19, 16, 12, 0.9) !important;
-    
-    padding: 18px 20px 16px 20px !important;
-    position: relative;
-    overflow: hidden;
-    min-width: 250px;
-    
-    /* Убираем дефолтный блюр новой системы */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    
-    /* Легкое мерцание старой кинопленки */
+    padding: 18px 20px 16px 20px !important; position: relative; overflow: hidden; min-width: 250px;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
     animation: filmFlicker 4s infinite !important;
 }
 
-/* ==============================================
-   ЧЕРНИЛЬНЫЕ ПЯТНА И ШУМ КИНОПЛЕНКИ
-   ============================================== */
-/* Чернильные подтеки в углах */
-.chat-block[data-style="bendy"] .chat-bubble::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: 
-        radial-gradient(circle at 0% 0%, #13100c 15%, transparent 25%),
-        radial-gradient(circle at 100% 100%, #13100c 10%, transparent 20%);
-    opacity: 0.8;
-    pointer-events: none;
-    z-index: 1;
-}
+.chat-block[data-style="bendy"] .chat-bubble::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at 0% 0%, #13100c 15%, transparent 25%), radial-gradient(circle at 100% 100%, #13100c 10%, transparent 20%); opacity: 0.8; pointer-events: none; z-index: 1; }
+.chat-block[data-style="bendy"] .chat-bubble::after { content: ''; position: absolute; top: -50%; left: -50%; right: -50%; bottom: -50%; background-image: repeating-linear-gradient(45deg, rgba(19,16,12,0.03) 0px, rgba(19,16,12,0.03) 2px, transparent 2px, transparent 4px); pointer-events: none; z-index: 2; animation: filmGrain 0.2s steps(2) infinite; }
 
-/* Эффект шума старой пленки / пыли (накладывается поверх) */
-.chat-block[data-style="bendy"] .chat-bubble::after {
-    content: '';
-    position: absolute;
-    top: -50%; left: -50%; right: -50%; bottom: -50%;
-    background-image: repeating-linear-gradient(45deg, rgba(19,16,12,0.03) 0px, rgba(19,16,12,0.03) 2px, transparent 2px, transparent 4px);
-    pointer-events: none;
-    z-index: 2;
-    animation: filmGrain 0.2s steps(2) infinite;
-}
+.chat-block[data-style="bendy"] .chat-header { border-bottom: 2px dashed rgba(19, 16, 12, 0.4) !important; padding-bottom: 8px; margin-bottom: 10px; }
 
-/* ==============================================
-   ШАПКА (СТАТУС-БАР) И АВАТАРКА
-   ============================================== */
-.chat-block[data-style="bendy"] .chat-header {
-    /* Разделитель в виде пунктирной линии (как перфорация пленки) */
-    border-bottom: 2px dashed rgba(19, 16, 12, 0.4) !important;
-    padding-bottom: 8px;
-    margin-bottom: 10px;
-    position: relative;
-    z-index: 3; /* Поверх чернил */
-    align-items: center;
-}
+.chat-block[data-style="bendy"] .chat-avatar { width: 38px !important; height: 38px !important; border-radius: 4px !important; border: 2px solid #13100c !important; background: #dfca96 !important; filter: grayscale(100%) sepia(80%) hue-rotate(5deg) contrast(1.4) brightness(0.9) !important; box-shadow: 2px 2px 0 #13100c !important; }
+.chat-block[data-style="bendy"] .chat-user { font-family: 'Rye', serif !important; color: #13100c !important; font-size: 22px !important; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 1px 1px 0 rgba(223, 202, 150, 1), 2px 2px 2px rgba(19, 16, 12, 0.5) !important; }
+.chat-block[data-style="bendy"] .chat-time { font-family: 'Special Elite', monospace !important; color: #4a3e2e !important; font-size: 14px !important; font-weight: bold; }
+.chat-block[data-style="bendy"] .chat-text { font-family: 'Special Elite', monospace !important; color: #13100c !important; font-size: 17px !important; line-height: 1.4 !important; font-weight: 600 !important; text-shadow: 0px 0px 1px rgba(19, 16, 12, 0.2) !important; }
 
-/* АВАТАРКА (Стиль: Кадр из мультика 30-х) */
-.chat-block[data-style="bendy"] .chat-avatar {
-    width: 38px !important;
-    height: 38px !important;
-    
-    /* Квадратная форма, как кадр пленки */
-    border-radius: 4px !important; 
-    border: 2px solid #13100c !important;
-    background: #dfca96 !important;
-    margin-right: 12px !important;
-    
-    /* Превращаем любую цветную аватарку в сепию 1930-х годов! */
-    filter: grayscale(100%) sepia(80%) hue-rotate(5deg) contrast(1.4) brightness(0.9) !important;
-    
-    box-shadow: 2px 2px 0 #13100c !important;
-}
+@keyframes filmFlicker { 0%, 100% { filter: brightness(1); } 48% { filter: brightness(1); } 50% { filter: brightness(0.95); } 52% { filter: brightness(1); } 88% { filter: brightness(1); } 90% { filter: brightness(0.92); } 92% { filter: brightness(1); } }
+@keyframes filmGrain { 0% { transform: translate(0, 0); } 100% { transform: translate(-2px, 2px); } }
 
-/* ИМЯ ПОЛЬЗОВАТЕЛЯ (Винтажный постер) */
-.chat-block[data-style="bendy"] .chat-user {
-    font-family: 'Rye', serif !important;
-    color: #13100c !important;
-    font-size: 22px !important;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    
-    /* Эффект слегка "поплывшей" типографской краски */
-    text-shadow: 1px 1px 0 rgba(223, 202, 150, 1), 2px 2px 2px rgba(19, 16, 12, 0.5) !important;
-}
+.chat-block[data-style="bendy"] .chat-reply { background: #eadebc !important; border: 1px solid #13100c !important; border-radius: 2px !important; padding: 6px 12px !important; margin-bottom: 8px !important; box-shadow: 2px 2px 0 #13100c !important; transform: rotate(-1.5deg); position: relative; z-index: 5; }
+.chat-block[data-style="bendy"] .chat-reply::before, .chat-block[data-style="bendy"] .reply-icon { display: none !important; }
+.chat-block[data-style="bendy"] .chat-reply-user::before { content: '↳ '; font-family: 'Special Elite', monospace; color: #13100c; font-size: 14px; font-weight: bold; }
+.chat-block[data-style="bendy"] .chat-reply-user { color: #13100c !important; font-family: 'Rye', serif !important; font-size: 12px !important; letter-spacing: 1px; }
+.chat-block[data-style="bendy"] .chat-reply-text { color: #4a3e2e !important; font-family: 'Special Elite', monospace !important; font-size: 14px !important; font-style: italic !important; }
 
-/* ВРЕМЯ */
-.chat-block[data-style="bendy"] .chat-header-right { margin-left: auto; }
-.chat-block[data-style="bendy"] .chat-time {
-    font-family: 'Special Elite', monospace !important;
-    color: #4a3e2e !important;
-    font-size: 14px !important;
-    font-weight: bold;
-}
+.chat-block[data-msg-type="highlight"][data-style="bendy"] .chat-bubble { background: radial-gradient(circle at center, #1a1612 0%, #0d0b09 100%) !important; border-color: #dfca96 !important; box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9), 6px 6px 0px rgba(0, 0, 0, 1) !important; animation: inkDemonPulse 3s infinite alternate ease-in-out, filmFlicker 4s infinite !important; }
+@keyframes inkDemonPulse { 0% { box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 6px 6px 0px rgba(0,0,0,1); } 100% { box-shadow: inset 0 0 50px rgba(0,0,0,1), 8px 8px 0px rgba(0,0,0,1); } }
+.chat-block[data-msg-type="highlight"][data-style="bendy"] .chat-text, .chat-block[data-msg-type="highlight"][data-style="bendy"] .chat-user, .chat-block[data-msg-type="highlight"][data-style="bendy"] .chat-time { color: #dfca96 !important; }
+.chat-block[data-msg-type="highlight"][data-style="bendy"] .chat-user { text-shadow: 1px 1px 0 rgba(0, 0, 0, 1), 0 0 8px rgba(223, 202, 150, 0.5) !important; }
+.chat-block[data-msg-type="highlight"][data-style="bendy"] .chat-avatar { border-color: #dfca96 !important; background: #13100c !important; filter: invert(100%) grayscale(100%) sepia(80%) hue-rotate(5deg) contrast(1.5) !important; box-shadow: 2px 2px 0 #dfca96 !important; }
+.chat-block[data-msg-type="highlight"][data-style="bendy"] .chat-badge-highlight { background: #dfca96 !important; color: #13100c !important; border: 2px solid #13100c !important; border-radius: 2px !important; font-family: 'Rye', serif !important; font-size: 11px !important; padding: 2px 8px !important; box-shadow: 2px 2px 0 #13100c !important; letter-spacing: 2px !important; }
+.chat-block[data-msg-type="highlight"][data-style="bendy"] .badge-star { display: none !important; }
+.chat-block[data-msg-type="highlight"][data-style="bendy"] .chat-badge-highlight::before { content: 'MASTERPIECE'; }
 
-/* ==============================================
-   ТЕКСТ СООБЩЕНИЯ (ПЕЧАТНАЯ МАШИНКА)
-   ============================================== */
-.chat-block[data-style="bendy"] .chat-text {
-    font-family: 'Special Elite', monospace !important;
-    color: #13100c !important; /* Цвет густых чернил */
-    font-size: 17px !important; /* Чуть крупнее для читаемости */
-    line-height: 1.4 !important;
-    font-weight: 600 !important;
-    position: relative;
-    z-index: 3; /* Поверх чернил */
-    text-shadow: 0px 0px 1px rgba(19, 16, 12, 0.2) !important;
-}
+.chat-block[data-mention="true"][data-style="bendy"] .chat-bubble { border-right: 6px solid #8a1c1c !important; }
+.chat-block[data-mention="true"][data-style="bendy"] .chat-ping { background: transparent !important; color: #8a1c1c !important; font-family: 'Rye', serif !important; border: 2px solid #8a1c1c !important; border-radius: 2px !important; padding: 0 6px !important; font-size: 16px !important; font-weight: normal !important; box-shadow: none !important; display: inline-block; transform: rotate(-2deg); }
+.chat-block[data-mention="true"][data-style="bendy"] .chat-ping::before { content: '☞ '; font-family: sans-serif; }
 
-/* ==============================================
-   АНИМАЦИИ (КИНОПЛЕНКА)
-   ============================================== */
-@keyframes filmFlicker {
-    0%, 100% { filter: brightness(1); }
-    48% { filter: brightness(1); }
-    50% { filter: brightness(0.95); }
-    52% { filter: brightness(1); }
-    88% { filter: brightness(1); }
-    90% { filter: brightness(0.92); }
-    92% { filter: brightness(1); }
-}
-
-@keyframes filmGrain {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(-2px, 2px); }
-}
-
-
-/* =========================================================================
-   ИСПРАВЛЕННЫЕ МОДИФИКАТОРЫ (REPLY, HIGHLIGHT, MENTION, CENSURE, TTS)
-   ========================================================================= */
-
-/* ----------------------------------------------
-   1. ОТВЕТ (REPLY) - "Сценарий / Заметка"
-   ---------------------------------------------- */
-.chat-block[data-style="bendy"] .chat-reply {
-    background: #eadebc !important; /* Чуть светлее сепия, как свежая бумажка */
-    border: 1px solid #13100c !important;
-    border-radius: 2px !important;
-    padding: 6px 12px !important;
-    margin-bottom: 8px !important;
-    box-shadow: 2px 2px 0 #13100c !important;
-    transform: rotate(-1.5deg); /* Слегка криво приколотая записка */
-    position: relative;
-    z-index: 5;
-}
-
-/* Убираем дефолтную боковую палку */
-.chat-block[data-style="bendy"] .chat-reply::before { display: none !important; }
-
-/* Кастомная иконка ответа (Винтажная стрелочка) */
-.chat-block[data-style="bendy"] .reply-icon { display: none !important; }
-.chat-block[data-style="bendy"] .chat-reply-user::before {
-    content: '↳ ';
-    font-family: 'Special Elite', monospace;
-    color: #13100c;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.chat-block[data-style="bendy"] .chat-reply-user {
-    color: #13100c !important;
-    font-family: 'Rye', serif !important;
-    font-size: 12px !important;
-    letter-spacing: 1px;
-}
-
-.chat-block[data-style="bendy"] .chat-reply-text {
-    color: #4a3e2e !important;
-    font-family: 'Special Elite', monospace !important;
-    font-size: 14px !important;
-    font-style: italic !important;
-}
-
-/* ----------------------------------------------
-   2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "Чернильный Демон (Ink Demon)"
-   ---------------------------------------------- */
-/* Инверсия: бабл полностью затапливается чернилами */
-.chat-block.is-highlighted[data-style="bendy"] .chat-bubble {
-    background: radial-gradient(circle at center, #1a1612 0%, #0d0b09 100%) !important;
-    border-color: #dfca96 !important;
-    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9), 6px 6px 0px rgba(0, 0, 0, 1) !important;
-    /* Чернила капают и пульсируют */
-    animation: inkDemonPulse 3s infinite alternate ease-in-out, filmFlicker 4s infinite !important;
-}
-
-@keyframes inkDemonPulse {
-    0% { box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 6px 6px 0px rgba(0,0,0,1); }
-    100% { box-shadow: inset 0 0 50px rgba(0,0,0,1), 8px 8px 0px rgba(0,0,0,1); }
-}
-
-/* Текст и имена становятся золотыми/сепией на черном фоне */
-.chat-block.is-highlighted[data-style="bendy"] .chat-text,
-.chat-block.is-highlighted[data-style="bendy"] .chat-user,
-.chat-block.is-highlighted[data-style="bendy"] .chat-time {
-    color: #dfca96 !important;
-}
-
-.chat-block.is-highlighted[data-style="bendy"] .chat-user {
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 1), 0 0 8px rgba(223, 202, 150, 0.5) !important;
-}
-
-/* Аватарка инвертируется (демон) */
-.chat-block.is-highlighted[data-style="bendy"] .chat-avatar {
-    border-color: #dfca96 !important;
-    background: #13100c !important;
-    filter: invert(100%) grayscale(100%) sepia(80%) hue-rotate(5deg) contrast(1.5) !important;
-    box-shadow: 2px 2px 0 #dfca96 !important;
-}
-
-/* Бейдж: MASTERPIECE */
-.chat-block.is-highlighted[data-style="bendy"] .chat-badge-highlight {
-    background: #dfca96 !important;
-    color: #13100c !important;
-    border: 2px solid #13100c !important;
-    border-radius: 2px !important;
-    font-family: 'Rye', serif !important;
-    font-size: 11px !important;
-    padding: 2px 8px !important;
-    box-shadow: 2px 2px 0 #13100c !important;
-    letter-spacing: 2px !important;
-}
-.chat-block.is-highlighted[data-style="bendy"] .badge-star { display: none !important; }
-.chat-block.is-highlighted[data-style="bendy"] .chat-badge-highlight::before { content: 'MASTERPIECE'; }
-
-/* ----------------------------------------------
-   3. ПИНГ СТРИМЕРА (MENTION) - "Director's Call"
-   ---------------------------------------------- */
-/* Красные старые чернила */
-.chat-block.is-mention[data-style="bendy"] .chat-bubble {
-    border-right: 6px solid #8a1c1c !important;
-}
-
-.chat-block.is-mention[data-style="bendy"] .chat-ping-bell { display: none !important; }
-
-/* Винтажный штамп "ВНИМАНИЕ" */
-.chat-block.is-mention[data-style="bendy"] .chat-ping {
-    background: transparent !important;
-    color: #8a1c1c !important;
-    font-family: 'Rye', serif !important;
-    border: 2px solid #8a1c1c !important;
-    border-radius: 2px !important;
-    padding: 0 6px !important;
-    font-size: 16px !important;
-    font-weight: normal !important;
-    box-shadow: none !important;
-    /* Слегка кривой штамп */
-    display: inline-block;
-    transform: rotate(-2deg);
-}
-.chat-block.is-mention[data-style="bendy"] .chat-ping::before { content: '☞ '; font-family: sans-serif; }
-
-/* ----------------------------------------------
-   4. ЦЕНЗУРА (МАТ) - "Брак / Вычеркнуто"
-   ---------------------------------------------- */
-.chat-block[data-style="bendy"] .censured-badge {
-    background: #13100c !important;
-    color: #dfca96 !important;
-    border: 1px solid #13100c !important;
-    border-radius: 0 !important;
-    font-family: 'Special Elite', monospace !important;
-    font-size: 12px !important;
-    font-weight: bold !important;
-}
+.chat-block[data-style="bendy"] .censured-badge { background: #13100c !important; color: #dfca96 !important; border: 1px solid #13100c !important; border-radius: 0 !important; font-family: 'Special Elite', monospace !important; font-size: 12px !important; font-weight: bold !important; }
 .chat-block[data-style="bendy"] .censured-badge::before { content: 'SCRAPPED'; }
-
-.chat-block[data-style="bendy"] .censured-message {
-    /* Грубая черная замазка (штрихи чернилами) */
-    background: repeating-linear-gradient(45deg, #13100c, #13100c 5px, #dfca96 5px, #dfca96 10px) !important;
-    border: 3px solid #13100c !important;
-    border-radius: 2px !important;
-    color: #13100c !important;
-    font-family: 'Rye', serif !important;
-    font-size: 18px !important;
-    text-shadow: -1px -1px 0 #dfca96, 1px -1px 0 #dfca96, -1px 1px 0 #dfca96, 1px 1px 0 #dfca96 !important;
-    letter-spacing: 3px !important;
-    padding: 10px !important;
-    box-shadow: 4px 4px 0 rgba(0,0,0,0.8) !important;
-}
+.chat-block[data-style="bendy"] .censured-message { background: repeating-linear-gradient(45deg, #13100c, #13100c 5px, #dfca96 5px, #dfca96 10px) !important; border: 3px solid #13100c !important; border-radius: 2px !important; color: #13100c !important; font-family: 'Rye', serif !important; font-size: 18px !important; text-shadow: -1px -1px 0 #dfca96, 1px -1px 0 #dfca96, -1px 1px 0 #dfca96, 1px 1px 0 #dfca96 !important; letter-spacing: 3px !important; padding: 10px !important; box-shadow: 4px 4px 0 rgba(0,0,0,0.8) !important; }
 .chat-block[data-style="bendy"] .censured-message::before { content: 'CENSORED'; }
-
-/* =========================================================================
-   5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Старый Граммофон"
-   ========================================================================= */
-
-#tts-container[data-style="bendy"] {
-    background: radial-gradient(circle at center, #dfca96 0%, #b89c5f 100%) !important;
-    border: 3px solid #13100c !important;
-    border-radius: 6px !important;
-    box-shadow: inset 0 0 20px rgba(19, 16, 12, 0.4), 6px 6px 0px rgba(19, 16, 12, 0.9) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    padding: 15px 20px !important;
-    animation: filmFlicker 4s infinite !important;
-}
-
-/* Иконка - Вращающаяся виниловая пластинка! */
-#tts-container[data-style="bendy"] .tts-icon {
-    font-size: 0 !important; 
-    filter: none !important;
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 50% !important;
-    
-    /* Черный винил с бороздками */
-    background: repeating-radial-gradient(
-        circle at center,
-        #0a0806 0px,
-        #0a0806 2px,
-        #1a1612 2px,
-        #1a1612 4px
-    ) !important;
-    
-    border: 2px solid #13100c !important;
-    box-shadow: 2px 2px 0 rgba(0,0,0,0.5) !important;
-    margin-right: 10px;
-    
-    animation: spinVinyl 2s linear infinite !important;
-    position: relative;
-}
-
-/* Золотой центр пластинки (Лейбл Joey Drew) */
-#tts-container[data-style="bendy"] .tts-icon::after {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 12px; height: 12px;
-    background: #dfca96;
-    border-radius: 50%;
-    border: 1px solid #13100c;
-}
-
-/* Дырочка по центру */
-#tts-container[data-style="bendy"] .tts-icon::before {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 3px; height: 3px;
-    background: #13100c;
-    border-radius: 50%;
-    z-index: 5;
-}
-
-@keyframes spinVinyl {
-    100% { transform: rotate(360deg); }
-}
-
-/* Название ивента */
-#tts-container[data-style="bendy"] .tts-title {
-    font-family: 'Special Elite', monospace !important;
-    color: #4a3e2e !important;
-    font-size: 11px !important;
-    font-weight: bold !important;
-    text-transform: uppercase;
-}
-#tts-container[data-style="bendy"] .tts-title::before { content: 'AUDIO LOG: '; }
-
-/* Имя пользователя */
-#tts-container[data-style="bendy"] .tts-user {
-    font-family: 'Rye', serif !important;
-    color: #13100c !important;
-    font-size: 20px !important;
-    text-shadow: 1px 1px 0 rgba(223, 202, 150, 1) !important;
-}
-
-/* Эквалайзер (Винтажные латунные пластины / струны пианино) */
-#tts-container[data-style="bendy"] .tts-bar {
-    background: #13100c !important; /* Чернила */
-    border-radius: 0 !important;
-    width: 6px !important;
-    box-shadow: 1px 1px 0 #dfca96 !important;
-}
-#tts-container[data-style="bendy"] .tts-bar.active-spike {
-    background: #8a1c1c !important; /* На пике становится винтажно-красным */
-    box-shadow: 2px 2px 0 #13100c !important;
-}

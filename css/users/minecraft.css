@@ -1,328 +1,46 @@
-/* ==========================================================
-   КАСТОМНЫЙ СТИЛЬ: minecraft (РЕМАСТЕР: Minecraft Grass Block)
-   ========================================================== */
-
-/* Подключаем идеальный пиксельный шрифт */
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap');
 
-/* Внешние отступы (обнулены боковые) */
-.chat-block[data-style="minecraft"] {
-    margin: 15px 0 15px 0; 
-}
+.chat-block[data-style="minecraft"] { margin: 15px 0 15px 0; }
 
-/* ==============================================
-   БЛОК ЗЕМЛИ (DIRT) И ГЕОМЕТРИЯ
-   ============================================== */
 .chat-block[data-style="minecraft"] .chat-bubble {
-    /* Базовый цвет земли */
     background-color: #744d32 !important;
-    
-    /* Генерируем пиксельный шум для текстуры земли */
-    background-image: 
-        linear-gradient(45deg, rgba(0,0,0,0.15) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.15) 75%, rgba(0,0,0,0.15)),
-        linear-gradient(45deg, rgba(0,0,0,0.15) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.15) 75%, rgba(0,0,0,0.15)) !important;
-    background-size: 16px 16px !important;
-    background-position: 0 0, 8px 8px !important;
-    
-    /* Никаких скруглений! Только блоки! */
-    border-radius: 0 !important;
-    border: 4px solid #3c2617 !important;
-    
-    /* Жесткая воксельная тень */
-    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5) !important;
-    
-    padding: 15px 20px 20px 20px !important;
-    min-width: 240px;
-    position: relative;
-    
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    
-    /* Резкая анимация "установки блока" */
+    background-image: linear-gradient(45deg, rgba(0,0,0,0.15) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.15) 75%, rgba(0,0,0,0.15)), linear-gradient(45deg, rgba(0,0,0,0.15) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.15) 75%, rgba(0,0,0,0.15)) !important; background-size: 16px 16px !important; background-position: 0 0, 8px 8px !important;
+    border-radius: 0 !important; border: 4px solid #3c2617 !important; box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5) !important;
+    padding: 15px 20px 20px 20px !important; min-width: 240px; position: relative;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
     animation: blockPlace 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
+@keyframes blockPlace { 0% { transform: scale(0.9) translateY(15px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
 
-@keyframes blockPlace {
-    0% { transform: scale(0.9) translateY(15px); opacity: 0; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
-}
-
-/* ==============================================
-   ТРАВА (СВИСАЮЩИЕ ПИКСЕЛИ)
-   ============================================== */
 .chat-block[data-style="minecraft"] .chat-bubble::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 36px; /* Высота слоя травы */
-    
-    /* Рисуем идеальные пиксельные подтеки травы с тенью через SVG-узор */
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 36px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='24'%3E%3Crect width='32' height='12' fill='%235ea936'/%3E%3Cpath d='M0,12 h8 v4 h-8 z M12,12 h8 v8 h-8 z M24,12 h8 v4 h-8 z' fill='%235ea936'/%3E%3Cpath d='M0,16 h8 v4 h-8 z M8,12 h4 v4 h-4 z M12,20 h8 v4 h-8 z M20,12 h4 v4 h-4 z M24,16 h8 v4 h-8 z' fill='%23386b1d'/%3E%3C/svg%3E");
-    background-repeat: repeat-x;
-    background-size: 48px 36px; /* Масштабируем пиксели в 1.5 раза */
-    
-    image-rendering: pixelated;
-    z-index: 1;
+    background-repeat: repeat-x; background-size: 48px 36px; image-rendering: pixelated; z-index: 1;
 }
 
+.chat-block[data-style="minecraft"] .chat-header { border-bottom: none !important; margin-bottom: 12px; position: relative; z-index: 2; align-items: center; }
 
-/* ==============================================
-   ШАПКА (ВЕРХНИЙ СЛОЙ)
-   ============================================== */
-.chat-block[data-style="minecraft"] .chat-header {
-    border-bottom: none !important;
-    margin-bottom: 12px;
-    position: relative;
-    z-index: 2; /* Обязательно поверх травы! */
-    align-items: center;
-}
+.chat-block[data-style="minecraft"] .chat-avatar { width: 36px !important; height: 36px !important; border-radius: 0 !important; background: #8b5a2b !important; border: 3px solid #c08d4b !important; outline: 2px solid #3c2617 !important; padding: 2px !important; box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important; image-rendering: pixelated !important; }
+.chat-block[data-style="minecraft"] .chat-user { font-family: 'Pixelify Sans', sans-serif !important; color: #FFAA00 !important; font-size: 22px !important; font-weight: 700 !important; text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important; letter-spacing: 1px; }
+.chat-block[data-style="minecraft"] .chat-time { font-family: 'Pixelify Sans', sans-serif !important; color: #AAAAAA !important; text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important; font-size: 16px !important; }
+.chat-block[data-style="minecraft"] .chat-text { font-family: 'Pixelify Sans', sans-serif !important; color: #FFFFFF !important; font-size: 20px !important; font-weight: 400 !important; text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important; letter-spacing: 0.5px; position: relative; z-index: 2; line-height: 1.3 !important; }
 
-/* АВАТАРКА (Стилизована под "Рамку" / Item Frame) */
-.chat-block[data-style="minecraft"] .chat-avatar {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 0 !important;
-    
-    /* Фон из кожи и деревянная рамка */
-    background: #8b5a2b !important;
-    border: 3px solid #c08d4b !important;
-    outline: 2px solid #3c2617 !important;
-    
-    padding: 2px !important; /* Отступ внутри рамки до самой картинки */
-    margin-right: 15px;
-    
-    box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important;
-    image-rendering: pixelated !important;
-}
+.chat-block[data-style="minecraft"] .chat-reply { background: #b8945f !important; border: 3px solid #5e4225 !important; border-radius: 0 !important; padding: 6px 12px !important; margin-bottom: 15px !important; box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important; position: relative; z-index: 5; }
+.chat-block[data-style="minecraft"] .chat-reply::before, .chat-block[data-style="minecraft"] .reply-icon { display: none !important; }
+.chat-block[data-style="minecraft"] .chat-reply-user, .chat-block[data-style="minecraft"] .chat-reply-text { color: #000000 !important; font-family: 'Pixelify Sans', sans-serif !important; font-size: 14px !important; text-shadow: none !important; }
 
-/* ==============================================
-   ШРИФТЫ (ПИКСЕЛИ И ЖЕСТКИЕ ТЕНИ)
-   ============================================== */
+.chat-block[data-msg-type="highlight"][data-style="minecraft"] .chat-bubble { border-color: #55FFFF !important; }
+.chat-block[data-msg-type="highlight"][data-style="minecraft"] .chat-avatar { border-color: #55FFFF !important; }
+.chat-block[data-msg-type="highlight"][data-style="minecraft"] .chat-bubble::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(105deg, transparent 20%, rgba(170, 0, 170, 0.4) 40%, rgba(85, 255, 255, 0.3) 60%, transparent 80%); background-size: 200% 200%; mix-blend-mode: color-dodge; pointer-events: none; z-index: 1; animation: enchantGlint 3s infinite linear; }
+@keyframes enchantGlint { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.chat-block[data-msg-type="highlight"][data-style="minecraft"] .chat-badge-highlight { background: #55FFFF !important; color: #000000 !important; border: 2px solid #00AAAA !important; border-radius: 0 !important; font-family: 'Pixelify Sans', sans-serif !important; font-size: 12px !important; box-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important; }
+.chat-block[data-msg-type="highlight"][data-style="minecraft"] .badge-star { display: none !important; }
+.chat-block[data-msg-type="highlight"][data-style="minecraft"] .chat-badge-highlight::before { content: 'ENCHANTED'; font-weight: bold; }
 
-/* ИМЯ ПОЛЬЗОВАТЕЛЯ */
-.chat-block[data-style="minecraft"] .chat-user {
-    font-family: 'Pixelify Sans', sans-serif !important;
-    color: #FFAA00 !important; /* Цвет золота из Майна */
-    font-size: 22px !important;
-    font-weight: 700 !important;
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
-    letter-spacing: 1px;
-}
+.chat-block[data-mention="true"][data-style="minecraft"] .chat-bubble { border-right: 6px solid #FF5555 !important; box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5), inset -10px 0 20px rgba(255, 85, 85, 0.3) !important; }
+.chat-block[data-mention="true"][data-style="minecraft"] .chat-ping { background: #FF5555 !important; color: #FFFFFF !important; font-family: 'Pixelify Sans', sans-serif !important; border: 2px solid #AA0000 !important; border-radius: 0 !important; padding: 0 6px !important; text-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important; box-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important; animation: redstonePulse 1.5s infinite alternate; }
+@keyframes redstonePulse { 0% { filter: brightness(1); } 100% { filter: brightness(1.3); box-shadow: 0 0 10px #FF5555; } }
 
-/* ВРЕМЯ */
-.chat-block[data-style="minecraft"] .chat-header-right { margin-left: auto; }
-.chat-block[data-style="minecraft"] .chat-time {
-    font-family: 'Pixelify Sans', sans-serif !important;
-    color: #AAAAAA !important; /* Светло-серый, как камень */
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
-    font-size: 16px !important;
-}
-
-/* ТЕКСТ СООБЩЕНИЯ */
-.chat-block[data-style="minecraft"] .chat-text {
-    font-family: 'Pixelify Sans', sans-serif !important;
-    color: #FFFFFF !important;
-    font-size: 20px !important;
-    font-weight: 400 !important;
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
-    letter-spacing: 0.5px;
-    position: relative;
-    z-index: 2; /* Поверх травы, если текст длинный */
-    line-height: 1.3 !important;
-}
-
-/* =========================================================================
-   МОДИФИКАТОРЫ МАЙНКРАФТА (REPLY, HIGHLIGHT, MENTION, CENSURE, TTS)
-   ========================================================================= */
-
-/* ----------------------------------------------
-   1. ОТВЕТ (REPLY) - "Дубовая Табличка (Oak Sign)"
-   ---------------------------------------------- */
-.chat-block[data-style="minecraft"] .chat-reply {
-    background: #b8945f !important; /* Цвет дубовых досок */
-    border: 3px solid #5e4225 !important; /* Темная рамка дерева */
-    border-radius: 0 !important;
-    padding: 6px 12px !important;
-    margin-bottom: 15px !important;
-    box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important;
-    position: relative;
-    z-index: 5; /* Поверх травы */
-}
-
-/* Убиваем розовую полоску и иконку стрелки */
-.chat-block[data-style="minecraft"] .chat-reply::before,
-.chat-block[data-style="minecraft"] .reply-icon { display: none !important; }
-
-/* Имя и текст на табличке черные, как в игре */
-.chat-block[data-style="minecraft"] .chat-reply-user {
-    color: #000000 !important;
-    font-family: 'Pixelify Sans', sans-serif !important;
-    font-size: 14px !important;
-    text-shadow: none !important;
-}
-.chat-block[data-style="minecraft"] .chat-reply-text {
-    color: #222222 !important;
-    font-family: 'Pixelify Sans', sans-serif !important;
-    font-size: 14px !important;
-    text-shadow: none !important;
-}
-
-/* ----------------------------------------------
-   2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "Зачарованный Алмазный Блок"
-   ---------------------------------------------- */
-/* Меняем рамку на алмазную */
-.chat-block.is-highlighted[data-style="minecraft"] .chat-bubble {
-    border-color: #55FFFF !important; /* Diamond Blue */
-}
-
-/* Аватарка тоже алмазная */
-.chat-block.is-highlighted[data-style="minecraft"] .chat-avatar {
-    border-color: #55FFFF !important;
-}
-
-/* Эффект Зачарования (Переливающийся фиолетовый блик) */
-.chat-block.is-highlighted[data-style="minecraft"] .chat-bubble::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(105deg, transparent 20%, rgba(170, 0, 170, 0.4) 40%, rgba(85, 255, 255, 0.3) 60%, transparent 80%);
-    background-size: 200% 200%;
-    mix-blend-mode: color-dodge;
-    pointer-events: none;
-    z-index: 1; /* Под текстом, над фоном */
-    animation: enchantGlint 3s infinite linear;
-}
-
-@keyframes enchantGlint {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
-/* Бейдж в стиле меню Майнкрафта */
-.chat-block.is-highlighted[data-style="minecraft"] .chat-badge-highlight {
-    background: #55FFFF !important;
-    color: #000000 !important;
-    border: 2px solid #00AAAA !important;
-    border-radius: 0 !important;
-    font-family: 'Pixelify Sans', sans-serif !important;
-    font-size: 12px !important;
-    box-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important;
-}
-.chat-block.is-highlighted[data-style="minecraft"] .badge-star { display: none !important; }
-.chat-block.is-highlighted[data-style="minecraft"] .chat-badge-highlight::before { content: 'ENCHANTED'; font-weight: bold; }
-
-/* ----------------------------------------------
-   3. ПИНГ СТРИМЕРА (MENTION) - "Редстоун Сигнал"
-   ---------------------------------------------- */
-.chat-block.is-mention[data-style="minecraft"] .chat-bubble {
-    border-right: 6px solid #FF5555 !important; /* Цвет редстоуна */
-    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5), inset -10px 0 20px rgba(255, 85, 85, 0.3) !important;
-}
-
-.chat-block.is-mention[data-style="minecraft"] .chat-ping-bell { display: none !important; }
-
-/* Пинг как кнопка из игры */
-.chat-block.is-mention[data-style="minecraft"] .chat-ping {
-    background: #FF5555 !important;
-    color: #FFFFFF !important;
-    font-family: 'Pixelify Sans', sans-serif !important;
-    border: 2px solid #AA0000 !important;
-    border-radius: 0 !important;
-    padding: 0 6px !important;
-    text-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important;
-    box-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important;
-    animation: redstonePulse 1.5s infinite alternate;
-}
-
-@keyframes redstonePulse {
-    0% { filter: brightness(1); }
-    100% { filter: brightness(1.3); box-shadow: 0 0 10px #FF5555; }
-}
-
-/* ----------------------------------------------
-   4. ЦЕНЗУРА (МАТ) - "Missing Texture (Отсутствующая текстура)"
-   ---------------------------------------------- */
-.chat-block[data-style="minecraft"] .censured-badge {
-    background: #F72DF8 !important; /* Маджента */
-    color: #FFFFFF !important;
-    border: 2px solid #000000 !important;
-    border-radius: 0 !important;
-    font-family: 'Pixelify Sans', sans-serif !important;
-    box-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important;
-    text-shadow: 2px 2px 0 #000 !important;
-}
+.chat-block[data-style="minecraft"] .censured-badge { background: #F72DF8 !important; color: #FFFFFF !important; border: 2px solid #000000 !important; border-radius: 0 !important; font-family: 'Pixelify Sans', sans-serif !important; box-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important; text-shadow: 2px 2px 0 #000 !important; }
 .chat-block[data-style="minecraft"] .censured-badge::before { content: 'ERROR'; }
-
-.chat-block[data-style="minecraft"] .censured-message {
-    /* Легендарная шахматная доска из сломанных текстур GMod / Minecraft */
-    background: repeating-conic-gradient(#F72DF8 0% 25%, #000000 0% 50%) 50% / 16px 16px !important;
-    border: 4px solid #000000 !important;
-    border-radius: 0 !important;
-    color: #FFFFFF !important;
-    font-family: 'Pixelify Sans', sans-serif !important;
-    font-size: 20px !important;
-    text-shadow: 2px 2px 0 #000000, -2px -2px 0 #000000, 2px -2px 0 #000000, -2px 2px 0 #000000 !important; /* Мощная черная обводка */
-    letter-spacing: 2px !important;
-    image-rendering: pixelated !important;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.8) !important;
-}
-
-/* =========================================================================
-   5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Нотный Блок (Note Block)"
-   ========================================================================= */
-
-#tts-container[data-style="minecraft"] {
-    background-color: #744d32 !important; /* Цвет грязи/дерева */
-    border: 4px solid #3c2617 !important;
-    border-radius: 0 !important;
-    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-
-/* Иконка Нотного блока */
-#tts-container[data-style="minecraft"] .tts-icon {
-    font-size: 0 !important; 
-    filter: none !important;
-}
-#tts-container[data-style="minecraft"] .tts-icon::before {
-    content: '🎵'; /* Нота */
-    font-size: 24px;
-    text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
-    display: block;
-    animation: noteBounce 0.5s infinite alternate ease-in-out;
-}
-
-@keyframes noteBounce {
-    0% { transform: translateY(0) scale(1); filter: hue-rotate(0deg); }
-    100% { transform: translateY(-5px) scale(1.2); filter: hue-rotate(90deg); }
-}
-
-/* Название ивента */
-#tts-container[data-style="minecraft"] .tts-title {
-    font-family: 'Pixelify Sans', sans-serif !important;
-    color: #AAAAAA !important;
-    font-size: 12px !important;
-    text-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important;
-}
-
-/* Имя пользователя */
-#tts-container[data-style="minecraft"] .tts-user {
-    font-family: 'Pixelify Sans', sans-serif !important;
-    color: #FFAA00 !important; /* Золотой */
-    font-size: 18px !important;
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
-}
-
-/* Эквалайзер стилизован под XP BAR (Полоса опыта) */
-#tts-container[data-style="minecraft"] .tts-bar {
-    background: #55FF55 !important; /* Ядовито-зеленый XP */
-    border: 2px solid #00AA00 !important; /* Темная зеленая рамка */
-    border-radius: 0 !important;
-    width: 10px !important;
-    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
-}
-#tts-container[data-style="minecraft"] .tts-bar.active-spike {
-    background: #AAFFAA !important; /* Светлая вспышка */
-    border-color: #55FF55 !important;
-}
+.chat-block[data-style="minecraft"] .censured-message { background: repeating-conic-gradient(#F72DF8 0% 25%, #000000 0% 50%) 50% / 16px 16px !important; border: 4px solid #000000 !important; border-radius: 0 !important; color: #FFFFFF !important; font-family: 'Pixelify Sans', sans-serif !important; font-size: 20px !important; text-shadow: 2px 2px 0 #000000, -2px -2px 0 #000000, 2px -2px 0 #000000, -2px 2px 0 #000000 !important; letter-spacing: 2px !important; image-rendering: pixelated !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.8) !important; }

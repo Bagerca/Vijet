@@ -1,10 +1,7 @@
 /* =====================================================================
-   УМНАЯ СТУДИЙНАЯ КОНСОЛЬ (MODULAR ARCHITECTURE + SYNC - FIXED)
+   УМНАЯ СТУДИЙНАЯ КОНСОЛЬ (MODULAR ARCHITECTURE + SYNC)
    ===================================================================== */
 
-// ==============================================
-// 1. МЕНЕДЖЕР АВТОРИЗАЦИИ (Работа с LocalStorage)
-// ==============================================
 const AuthManager = {
     getCreds() {
         return {
@@ -29,9 +26,6 @@ const AuthManager = {
     }
 };
 
-// ==============================================
-// 2. МЕНЕДЖЕР ИНТЕРФЕЙСА (Только работа с DOM)
-// ==============================================
 const UIManager = {
     init() {
         this.setupCustomSelects();
@@ -84,6 +78,7 @@ const UIManager = {
 
     buildDynamicLists() {
         try {
+            // Игры
             if (window.GamesDatabase) {
                 let htmlGames = `<div class="optgroup">Игры</div>`;
                 let htmlSeries = `<div class="optgroup">Кино/Анимация</div>`;
@@ -99,29 +94,33 @@ const UIManager = {
                 if (wheelList) wheelList.innerHTML = htmlGames + htmlSeries;
             }
 
+            // Стили чата (Гарантированно выводим базу, даже если конфиг пустой)
             const chatList = document.getElementById('dynamic-chat-styles');
-            if (chatList && window.AppConfig && window.AppConfig.customChatStyles) {
+            if (chatList) {
                 let baseOptions = `
                     <div class="optgroup">Обычный чат</div>
                     <div data-value="testfirst">Дефолт (Впервые)</div>
                     <div data-value="testhighlight">Дефолт (За баллы)</div>
                     <div data-value="testmention">Дефолт (Пинг)</div>
-                    <div class="optgroup">Кастомные стили (VIP)</div>
                 `;
-                for (const [login, styleId] of Object.entries(window.AppConfig.customChatStyles)) {
-                    baseOptions += `
-                        <div data-value="testuser ${login}" class="item-with-cover">
-                            <img src="https://ui-avatars.com/api/?name=${login}&background=222&color=fff" id="av-${login}" class="select-item-cover" style="border-radius: 50%;">
-                            <span>${login} <span class="text-muted">(${styleId})</span></span>
-                        </div>
-                    `;
-                    this.fetchTwitchAvatar(login);
+                
+                if (window.AppConfig && window.AppConfig.customChatStyles && Object.keys(window.AppConfig.customChatStyles).length > 0) {
+                    baseOptions += `<div class="optgroup">Кастомные стили (VIP)</div>`;
+                    for (const [login, styleId] of Object.entries(window.AppConfig.customChatStyles)) {
+                        baseOptions += `
+                            <div data-value="testuser ${login}" class="item-with-cover">
+                                <img src="https://ui-avatars.com/api/?name=${login}&background=222&color=fff" id="av-${login}" class="select-item-cover" style="border-radius: 50%;">
+                                <span>${login} <span class="text-muted">(${styleId})</span></span>
+                            </div>
+                        `;
+                        this.fetchTwitchAvatar(login);
+                    }
                 }
                 chatList.innerHTML = baseOptions;
             }
         } catch (error) {
-            console.error("[USO] Ошибка парсинга конфига. Проверьте синтаксис config.js!", error);
-            this.showToast("ОШИБКА КОНФИГА", true);
+            console.error("[USO] Ошибка генерации списков:", error);
+            this.showToast("Ошибка в конфиге", true);
         }
     },
 
@@ -144,47 +143,51 @@ const UIManager = {
         }
     },
 
-    // ОПЕЧАТКА ИСПРАВЛЕНА: Инициализация выпадающих меню теперь работает идеально
     setupCustomSelects() {
-        document.querySelectorAll('.custom-select').forEach(customSelect => {
-            const selected = customSelect.querySelector('.select-selected');
-            const itemsList = customSelect.querySelector('.select-items');
-
-            const newSelected = selected.cloneNode(true);
-            selected.parentNode.replaceChild(newSelected, selected);
+        document.querySelectorAll('.custom-select').forEach(cs => {
+            const sel = cs.querySelector('.select-selected');
+            const items = cs.querySelector('.select-items');
             
-            newSelected.addEventListener('click', (e) => {
+            const newSel = sel.cloneNode(true);
+            sel.parentNode.replaceChild(newSel, sel);
+            
+            newSel.addEventListener('click', (e) => {
                 e.stopPropagation();
-                document.querySelectorAll('.select-items').forEach(el => { 
-                    if (el !== itemsList) el.classList.add('select-hide'); 
-                });
-                document.querySelectorAll('.select-selected').forEach(el => { 
-                    if (el !== newSelected) el.classList.remove('select-arrow-active'); 
-                });
                 
-                itemsList.classList.toggle('select-hide');
-                newSelected.classList.toggle('select-arrow-active');
-            });
+                const isOpening = items.classList.contains('select-hide');
 
-            itemsList.querySelectorAll('div[data-value]').forEach(option => {
-                option.addEventListener('click', () => {
-                    newSelected.innerHTML = option.innerHTML;
-                    customSelect.setAttribute('data-value', option.getAttribute('data-value'));
-                    itemsList.classList.add('select-hide');
-                    newSelected.classList.remove('select-arrow-active');
-                });
+                document.querySelectorAll('.select-items').forEach(el => el.classList.add('select-hide'));
+                document.querySelectorAll('.select-selected').forEach(el => el.classList.remove('select-arrow-active'));
+                document.querySelectorAll('.custom-select').forEach(el => el.style.zIndex = "10");
+
+                if (isOpening) {
+                    items.classList.remove('select-hide');
+                    newSel.classList.add('select-arrow-active');
+                    cs.style.zIndex = "9999"; 
+                }
+            });
+            
+            items.addEventListener('click', (e) => {
+                const opt = e.target.closest('div[data-value]');
+                if (!opt) return;
+                
+                newSel.innerHTML = opt.innerHTML;
+                cs.setAttribute('data-value', opt.getAttribute('data-value'));
+                
+                items.classList.add('select-hide');
+                newSel.classList.remove('select-arrow-active');
+                cs.style.zIndex = "10"; 
             });
         });
 
         document.addEventListener('click', () => {
             document.querySelectorAll('.select-items').forEach(el => el.classList.add('select-hide'));
             document.querySelectorAll('.select-selected').forEach(el => el.classList.remove('select-arrow-active'));
+            document.querySelectorAll('.custom-select').forEach(el => el.style.zIndex = "10");
         });
     },
 
-    setupModifierPills() { 
-        document.querySelectorAll('.mod-pill').forEach(p => p.addEventListener('click', e => e.currentTarget.classList.toggle('active'))); 
-    },
+    setupModifierPills() { document.querySelectorAll('.mod-pill').forEach(p => p.addEventListener('click', e => e.currentTarget.classList.toggle('active'))); },
     getInputValue(id) { const el = document.getElementById(id); return el ? el.value.trim() : ""; },
     clearInput(id) { const el = document.getElementById(id); if (el) el.value = ""; },
     getSelectValue(id) { const el = document.getElementById(id); return el ? el.getAttribute('data-value') : null; }
