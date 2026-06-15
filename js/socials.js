@@ -13,54 +13,48 @@ window.AppSocials = {
     init: function() {
         if (!window.AppConfig.socialNetworks || window.AppConfig.socialNetworks.length === 0) return;
         
-        // Первый запуск (небольшая задержка, чтобы красиво выехало при старте)
         setTimeout(() => {
             this.render();
             this.container.classList.remove('fade-out');
         }, 1000);
         
-        // Запускаем цикл смены каждые X секунд
         this.intervalId = setInterval(() => {
             this.next();
         }, window.AppConfig.socialRotateTime || 30000);
     },
     
     next: function() {
-        // 1. Активируем класс исчезновения
         this.container.classList.add('fade-out');
         
-        // 2. Ждем 500мс (пока идет анимация), затем меняем контент и возвращаем блок
         setTimeout(() => {
             this.currentIndex = (this.currentIndex + 1) % window.AppConfig.socialNetworks.length;
             this.render();
-            
-            // Принудительно перерисовываем DOM перед возвратом класса (хак для плавности)
             void this.container.offsetWidth; 
-            
             this.container.classList.remove('fade-out');
         }, 500); 
     },
 
     render: function() {
         const data = window.AppConfig.socialNetworks[this.currentIndex];
-        
-        // Динамически меняем левую границу и добавляем легкое свечение в цвет соцсети
-        this.container.style.borderLeft = `4px solid ${data.color}`;
-        this.container.style.boxShadow = `0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05), -4px 0 15px ${data.color}33`;
-        
-        const iconSvg = this.icons[data.id] || this.icons.telegram; // Дефолт если ID не совпал
+        const iconSvg = this.icons[data.id] || this.icons.telegram; 
+
+        this.container.style.setProperty('--social-color', data.color);
+        // Добавляем '26' к HEX коду (это 15% непрозрачности) для очень мягкого красивого свечения
+        this.container.style.setProperty('--social-glow', data.color + '26'); 
 
         this.container.innerHTML = `
-            <div class="social-icon" style="color: ${data.color}">
+            <div class="social-icon-wrapper" style="color: ${data.color}; background: ${data.color}15; border: 1px solid ${data.color}25;">
                 ${iconSvg}
             </div>
             <div class="social-info">
-                <span class="social-title">${data.title}</span>
+                <div class="social-badge">
+                    <div class="social-dot" style="background: ${data.color}; box-shadow: 0 0 6px ${data.color};"></div>
+                    <span style="color: ${data.color};">${data.title}</span>
+                </div>
                 <span class="social-handle">${data.handle}</span>
             </div>
         `;
     }
 };
 
-// Запуск ротатора при загрузке скрипта
 window.AppSocials.init();

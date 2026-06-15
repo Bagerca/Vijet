@@ -8,6 +8,12 @@ window.AppCore = {
             console.log(`[CORE] Подключение к каналу: ${window.AppConfig.channelName}...`);
             ComfyJS.Init(window.AppConfig.channelName);
             this.setupEvents();
+            
+            // НОВОЕ: Сигнализируем визуалу, что ядро успешно запустилось
+            setTimeout(() => {
+                window.AppEvents.emit('CORE_REBOOT_DONE');
+            }, 1000);
+            
         } else {
             console.warn("[CORE ❌] Имя канала не настроено в config.js!");
         }
@@ -165,8 +171,19 @@ window.AppCore = {
                     break;
                 case "refresh":
                     if (hasPermission) {
-                        if (argLow === "core") { const coreUrl = new URL(window.location.href); coreUrl.searchParams.set('nocache', Date.now()); window.location.href = coreUrl.toString(); } 
-                        else window.AppEvents.emit('FORCE_RELOAD_VISUAL');
+                        if (argLow === "core") { 
+                            // НОВОЕ: Отправляем сигнал Визуалу о начале рестарта Ядра
+                            window.AppEvents.emit('CORE_REBOOT_START');
+                            // Ждем 300мс, чтобы сигнал точно ушел, и только потом рубим страницу
+                            setTimeout(() => {
+                                const coreUrl = new URL(window.location.href); 
+                                coreUrl.searchParams.set('nocache', Date.now()); 
+                                window.location.href = coreUrl.toString(); 
+                            }, 300);
+                        } 
+                        else {
+                            window.AppEvents.emit('FORCE_RELOAD_VISUAL');
+                        }
                     }
                     break;
 

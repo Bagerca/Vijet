@@ -162,18 +162,135 @@
             if (!activeWidgets.includes('wheel')) { if (window.AppWheel) window.AppWheel.toggle = function(){}; }
         }
 
-        window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => {
-            console.log("[ВИЗУАЛ] Получена команда. Принудительный сброс кэша...");
-            const flash = document.createElement('div');
-            flash.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:#00FF7F; z-index:99999; opacity:0.3; transition: opacity 0.4s ease;";
-            document.body.appendChild(flash);
+        // =========================================================
+        // ЛОГИКА РЕФРЕША ВИЗУАЛА (!refresh)
+        // =========================================================
+        const triggerRefreshUI = () => {
+            console.log("[ВИЗУАЛ] Принудительный сброс кэша...");
+            
+            const scene = document.getElementById('scene-wrapper');
+            if (scene) {
+                scene.style.transition = "filter 0.4s ease, opacity 0.4s ease";
+                scene.style.filter = "blur(8px)";
+                scene.style.opacity = "0.7";
+            }
+
+            let loader = document.getElementById('uso-refresh-loader');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'uso-refresh-loader';
+                loader.style.cssText = `
+                    position: fixed;
+                    bottom: 40px;
+                    right: 40px;
+                    z-index: 999999;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 24px;
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 245, 250, 0.85) 100%);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.8);
+                    border-radius: 30px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.15), 0 5px 20px rgba(0, 255, 127, 0.15);
+                    opacity: 0;
+                    transform: translateY(20px) scale(0.95);
+                    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    font-family: 'Montserrat', sans-serif;
+                `;
+
+                loader.innerHTML = `
+                    <svg style="width: 22px; height: 22px; animation: usoLoaderSpin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                        <circle cx="12" cy="12" r="10" stroke="rgba(0,0,0,0.08)"></circle>
+                        <path d="M12 2a10 10 0 0 1 10 10" stroke="#00FF7F"></path>
+                    </svg>
+                    <span style="font-size: 13px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.5px; text-transform: uppercase;">
+                        Обновление сцены
+                    </span>
+                `;
+
+                if (!document.getElementById('uso-loader-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'uso-loader-style';
+                    style.innerHTML = `@keyframes usoLoaderSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                    document.head.appendChild(style);
+                }
+
+                document.body.appendChild(loader);
+            }
+
+            requestAnimationFrame(() => {
+                loader.style.opacity = "1";
+                loader.style.transform = "translateY(0) scale(1)";
+            });
 
             setTimeout(() => {
                 const currentUrl = new URL(window.location.href);
                 currentUrl.searchParams.set('nocache', Date.now());
                 window.location.href = currentUrl.toString();
-            }, 400);
-        });
+            }, 1000); 
+        };
+
+        // =========================================================
+        // ЛОГИКА РЕФРЕША ЯДРА (!refresh core)
+        // =========================================================
+        let coreLoaderTimeout;
+        const triggerCoreRefreshUI = (state) => {
+            let loader = document.getElementById('uso-core-loader');
+            
+            if (state === 'start') {
+                console.log("[ВИЗУАЛ] Ядро ушло на перезагрузку...");
+                if (!loader) {
+                    loader = document.createElement('div');
+                    loader.id = 'uso-core-loader';
+                    // Темная плашка справа внизу (в том же углу, что и общий рефреш)
+                    loader.style.cssText = `
+                        position: fixed; bottom: 40px; right: 40px; z-index: 999999;
+                        display: flex; align-items: center; gap: 12px; padding: 12px 24px;
+                        background: linear-gradient(135deg, rgba(20, 20, 25, 0.95) 0%, rgba(35, 35, 45, 0.85) 100%);
+                        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                        border: 1px solid rgba(255, 68, 119, 0.5); border-radius: 30px;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(255, 68, 119, 0.3);
+                        opacity: 0; transform: translateY(20px) scale(0.95); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        color: #fff; font-family: 'Montserrat', sans-serif;
+                    `;
+                    
+                    loader.innerHTML = `
+                        <svg style="width: 20px; height: 20px; color: #FF4477; animation: usoLoaderSpin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                            <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
+                        </svg>
+                        <span style="font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                            Перезагрузка ядра...
+                        </span>
+                    `;
+                    document.body.appendChild(loader);
+                }
+                
+                requestAnimationFrame(() => {
+                    loader.style.opacity = "1";
+                    loader.style.transform = "translateY(0) scale(1)";
+                });
+                
+                // Защита: если ядро почему-то не вернулось, скрываем лоадер через 5 секунд
+                clearTimeout(coreLoaderTimeout);
+                coreLoaderTimeout = setTimeout(() => triggerCoreRefreshUI('done'), 5000);
+                
+            } else if (state === 'done') {
+                console.log("[ВИЗУАЛ] Ядро успешно загружено и на связи!");
+                clearTimeout(coreLoaderTimeout);
+                if (loader) {
+                    loader.style.opacity = "0";
+                    loader.style.transform = "translateY(20px) scale(0.95)";
+                    setTimeout(() => { if (loader && loader.parentNode) loader.remove(); }, 400);
+                }
+            }
+        };
+
+        // Подписываемся на события
+        window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => triggerRefreshUI());
+        window.AppEvents.listen('CORE_REBOOT_START', () => triggerCoreRefreshUI('start'));
+        window.AppEvents.listen('CORE_REBOOT_DONE', () => triggerCoreRefreshUI('done'));
 
         // --- УПРАВЛЕНИЕ СКРЫТИЕМ ВИДЖЕТОВ ЧЕРЕЗ КОМАНДУ (!widget [name] on/off) ---
         window.AppEvents.listen('WIDGET_TOGGLE', (data) => {
