@@ -25,10 +25,9 @@
         <!-- Сцена: Конец -->
         <div id="ending-container" style="display: none;"><div class="ending-glass-card"><div class="ending-status"><div class="status-dot-offline"></div>ТРАНСЛЯЦИЯ ЗАВЕРШЕНА</div><h1 class="ending-title">А всё,<br>а надо было раньше</h1><div class="ending-subtitle">Спасибо всем, кто был сегодня на стриме 💜</div></div></div>
         
-       <!-- Цель -->
-        <div id="goal-container">
-            <!-- Содержимое генерируется в goal.js -->
-        </div>        
+        <!-- Цель -->
+        <div id="goal-container"></div>        
+
         <!-- Алерты, Реклама, Соцсети, Смерти, Эмодзи -->
         <div id="alert-container" class="hidden"></div>
         <div id="shoutout-container" class="hidden"></div>
@@ -85,6 +84,50 @@
         </div>
     </div>
 
+    <!-- ==========================================
+         ШАБЛОНЫ ДЛЯ ЧАТА (HTML ВНЕ JS)
+         ========================================== -->
+    <template id="tpl-chat-message">
+        <div class="chat-block">
+            <div class="chat-meta" style="display: none;"></div>
+            <div class="chat-bubble">
+                <div class="chat-header">
+                    <img src="" class="chat-avatar" alt="Avatar">
+                    <span class="chat-user"></span>
+                    <div class="chat-header-right">
+                        <svg class="chat-ping-bell" style="display: none;" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                        <span class="chat-time"></span>
+                    </div>
+                </div>
+                <div class="chat-text"></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-chat-reply">
+        <div class="chat-reply">
+            <div class="chat-reply-user">
+                <svg class="reply-icon" viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+                <span class="reply-name"></span>
+            </div>
+            <div class="chat-reply-text"></div>
+        </div>
+    </template>
+
+    <template id="tpl-chat-badge-first">
+        <div class="chat-badge chat-badge-first">
+            <svg class="badge-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path></svg>
+            <span>Впервые в чате</span>
+        </div>
+    </template>
+
+    <template id="tpl-chat-badge-highlight">
+        <div class="chat-badge chat-badge-highlight">
+            <svg class="badge-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <span>Выделено за баллы</span>
+        </div>
+    </template>
+
     <!-- Загрузчик файлов (с обходом кэша) -->
     <script>
         const cacheBuster = new URLSearchParams(window.location.search).get('nocache') || Date.now();
@@ -92,7 +135,7 @@
         const myStyles = [
             "css/base.css", "css/blur.css", "css/pet.css", "css/tts.css", "css/emotes.css",
             "css/chat.css", 
-            /* ОБНОВЛЕННЫЕ ИМЕНА ФАЙЛОВ КАСТОМОК */
+            "css/default_theme.css",
             "css/users/hollow_knight.css", 
             "css/users/minecraft.css", 
             "css/users/angel.css", 
@@ -100,7 +143,6 @@
             "css/users/terminal.css", 
             "css/users/neon_owner.css", 
             "css/users/tactical.css", 
-            
             "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
             "css/mediainfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
@@ -108,9 +150,7 @@
             "css/theme-noir.css", 
             "css/modes.css" 
         ];
-        myStyles.forEach(href => {
-            document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`);
-        });
+        myStyles.forEach(href => { document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`); });
         
         const myScripts = [
             "js/config.js", "js/games-db.js", "js/event-bus.js",
@@ -119,9 +159,7 @@
             "js/shoutout.js", "js/goal.js", "js/ticker.js", "js/deaths.js",
             "js/mediainfo.js", "js/wheel.js", "js/tts.js", "js/countdown.js", "js/blur.js"
         ];
-        myScripts.forEach(src => {
-            document.write(`<script src="${src}?v=${cacheBuster}"><\/script>`);
-        });
+        myScripts.forEach(src => { document.write(`<script src="${src}?v=${cacheBuster}"><\/script>`); });
     </script>
 
     <!-- Основная логика визуала и переключения виджетов -->
@@ -169,9 +207,6 @@
             if (!activeWidgets.includes('wheel')) { if (window.AppWheel) window.AppWheel.toggle = function(){}; }
         }
 
-        // =========================================================
-        // ЛОГИКА РЕФРЕША ВИЗУАЛА (!refresh)
-        // =========================================================
         const triggerRefreshUI = () => {
             console.log("[ВИЗУАЛ] Принудительный сброс кэша...");
             
@@ -239,9 +274,6 @@
             }, 1000); 
         };
 
-        // =========================================================
-        // ЛОГИКА РЕФРЕША ЯДРА (!refresh core)
-        // =========================================================
         let coreLoaderTimeout;
         const triggerCoreRefreshUI = (state) => {
             let loader = document.getElementById('uso-core-loader');
@@ -321,9 +353,7 @@
             localStorage.setItem('uso_current_theme', themeName || 'default');
         };
 
-        window.AppEvents.listen('THEME_CHANGE', (data) => {
-            applyTheme(data.theme);
-        });
+        window.AppEvents.listen('THEME_CHANGE', (data) => applyTheme(data.theme));
 
         const savedTheme = localStorage.getItem('uso_current_theme');
         if (savedTheme) applyTheme(savedTheme);

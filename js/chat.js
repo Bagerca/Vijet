@@ -1,6 +1,22 @@
-/* ================= ЧАТ (ПРОДВИНУТАЯ АРХИТЕКТУРА) ================= */
+/* ================= ЧАТ (OPTIMIZED DOM RENDERING) ================= */
 window.AppChat = {
     container: document.getElementById('chat-messages'),
+    activeMessageCount: 0, 
+    
+    // Кэшируем шаблоны при загрузке, чтобы не искать их каждый раз
+    templates: {
+        message: document.getElementById('tpl-chat-message'),
+        reply: document.getElementById('tpl-chat-reply'),
+        badgeFirst: document.getElementById('tpl-chat-badge-first'),
+        badgeHigh: document.getElementById('tpl-chat-badge-highlight')
+    },
+
+    getColorFromName: function(name) {
+        const colors = ["#FF4477", "#00E5FF", "#00FF7F", "#FFD700", "#a29bfe", "#fd79a8", "#74b9ff", "#55efc4", "#ff7675", "#F59E0B"];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        return colors[Math.abs(hash) % colors.length];
+    },
 
     init: function() {
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', (data) => this.renderMessage(data));
@@ -10,85 +26,70 @@ window.AppChat = {
     },
 
     renderMessage: function(data) {
-        let metaHTML = '';
-        let extraClasses = '';
-        let bellHTML = '';
+        if (!this.templates.message) return; // Защита
 
-        // 1. Формируем Мета-блок (Бейджи и Реплаи над сообщением)
+        // 1. Клонируем закэшированный шаблон
+        const msgFragment = this.templates.message.content.cloneNode(true);
+        const blockNode = msgFragment.querySelector('.chat-block');
+        const metaNode = msgFragment.querySelector('.chat-meta');
+
+        // 2. Настраиваем переменные (CSS API)
+        blockNode.setAttribute('data-user', data.user.toLowerCase());
+        if (data.styleName) blockNode.setAttribute('data-style', data.styleName);
+        blockNode.style.setProperty('--user-color', data.color);
+
+        // 3. Быстрое заполнение контента
+        msgFragment.querySelector('.chat-user').textContent = data.user;
+        msgFragment.querySelector('.chat-user').style.color = data.color;
+        msgFragment.querySelector('.chat-time').textContent = data.time;
+        msgFragment.querySelector('.chat-avatar').src = data.avatarUrl;
+        msgFragment.querySelector('.chat-text').innerHTML = data.htmlText;
+
+        // 4. Опциональные элементы
+        let hasMeta = false;
+
         if (data.replyData) {
-            metaHTML += `
-                <div class="chat-reply">
-                    <div class="chat-reply-user">
-                        <svg class="reply-icon" viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
-                        ${data.replyData.user}
-                    </div>
-                    <div class="chat-reply-text">${data.replyData.htmlText}</div>
-                </div>
-            `;
+            hasMeta = true;
+            const replyFrag = this.templates.reply.content.cloneNode(true);
+            replyFrag.querySelector('.reply-name').textContent = data.replyData.user;
+            replyFrag.querySelector('.chat-reply-text').innerHTML = data.replyData.htmlText;
+            replyFrag.querySelector('.chat-reply').style.setProperty('--reply-color', this.getColorFromName(data.replyData.user));
+            metaNode.appendChild(replyFrag);
         }
 
         if (data.isFirstTime) {
-            extraClasses += ' is-first-time';
-            metaHTML += `
-                <div class="chat-badge chat-badge-first">
-                    <svg class="badge-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path></svg>
-                    Впервые в чате
-                </div>
-            `;
+            hasMeta = true;
+            blockNode.classList.add('is-first-time');
+            metaNode.appendChild(this.templates.badgeFirst.content.cloneNode(true));
         }
 
         if (data.isHighlighted) {
-            extraClasses += ' is-highlighted';
-            metaHTML += `
-                <div class="chat-badge chat-badge-highlight">
-                    <svg class="badge-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                    Выделено за баллы
-                </div>
-            `;
+            hasMeta = true;
+            blockNode.classList.add('is-highlighted');
+            metaNode.appendChild(this.templates.badgeHigh.content.cloneNode(true));
         }
+
+        if (hasMeta) metaNode.style.display = 'flex';
 
         if (data.isMention) {
-            extraClasses += ' is-mention';
-            bellHTML = `<svg class="chat-ping-bell" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>`;
+            blockNode.classList.add('is-mention');
+            msgFragment.querySelector('.chat-ping-bell').style.display = 'block';
         }
 
-        // 2. Создаем Внешний невидимый блок с поддержкой СТИЛЕЙ
-        const blockDiv = document.createElement('div');
-        blockDiv.className = `chat-block${extraClasses}`;
-        blockDiv.setAttribute('data-user', data.user.toLowerCase());
-        
-        // Вешаем кастомный стиль, если он есть
-        if (data.styleName) {
-            blockDiv.setAttribute('data-style', data.styleName);
-        }
-        
-        blockDiv.style.setProperty('--user-color', data.color);
-        
-        // 3. Собираем HTML (Мета-блок отдельно, Бабл отдельно)
-        blockDiv.innerHTML = `
-            ${metaHTML ? `<div class="chat-meta">${metaHTML}</div>` : ''}
-            
-            <div class="chat-bubble">
-                <div class="chat-header">
-                    <img src="${data.avatarUrl}" class="chat-avatar">
-                    <span class="chat-user" style="color: ${data.color}">${data.user}</span>
-                    <div class="chat-header-right">
-                        ${bellHTML}
-                        <span class="chat-time">${data.time}</span>
-                    </div>
-                </div>
-                <div class="chat-text">${data.htmlText}</div>
-            </div>
-        `;
-        
-        this.container.appendChild(blockDiv);
+        // 5. Рендер
+        this.container.appendChild(msgFragment);
+        this.activeMessageCount++;
 
-        // 4. Очистка старых
-        const activeMessages = Array.from(this.container.children).filter(el => !el.classList.contains('chat-out'));
-        if (activeMessages.length > window.AppConfig.maxChatMessages) {
-            const oldestMsg = activeMessages[0];
-            oldestMsg.classList.add('chat-out');
-            setTimeout(() => { if (oldestMsg.parentNode) oldestMsg.remove(); }, 400);
+        // 6. Очистка без тяжелого Array.from().filter() на каждый чих
+        const maxMsgs = window.AppConfig.maxChatMessages || 12;
+        if (this.activeMessageCount > maxMsgs) {
+            // Ищем первый элемент, который еще не в процессе удаления
+            const oldestMsg = this.container.querySelector('.chat-block:not(.chat-out)');
+            if (oldestMsg) {
+                oldestMsg.classList.add('chat-out');
+                this.activeMessageCount--; // Сразу уменьшаем счетчик
+                setTimeout(() => { if (oldestMsg.parentNode) oldestMsg.remove(); }, 400);
+            }
         }
     }
 };

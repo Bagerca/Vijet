@@ -1,288 +1,152 @@
-/* ================= УМНАЯ СТУДИЙНАЯ КОНСОЛЬ (PRO EDITION + AUTO-RECONNECT) ================= */
+/* =====================================================================
+   УМНАЯ СТУДИЙНАЯ КОНСОЛЬ (MODULAR ARCHITECTURE + SYNC - FIXED)
+   ===================================================================== */
 
-const AppDeck = {
-    creds: {
-        channel: localStorage.getItem('uso_mod_channel') || '',
-        user: localStorage.getItem('uso_mod_user') || '',
-        token: localStorage.getItem('uso_mod_token') || ''
+// ==============================================
+// 1. МЕНЕДЖЕР АВТОРИЗАЦИИ (Работа с LocalStorage)
+// ==============================================
+const AuthManager = {
+    getCreds() {
+        return {
+            channel: localStorage.getItem('uso_mod_channel') || '',
+            user: localStorage.getItem('uso_mod_user') || '',
+            token: localStorage.getItem('uso_mod_token') || ''
+        };
+    },
+    saveCreds(channel, user, token) {
+        if (!token.startsWith('oauth:')) token = 'oauth:' + token;
+        localStorage.setItem('uso_mod_channel', channel.trim().toLowerCase());
+        localStorage.setItem('uso_mod_user', user.trim().toLowerCase());
+        localStorage.setItem('uso_mod_token', token.trim());
+    },
+    logout() {
+        localStorage.clear();
+        location.reload();
+    },
+    isValid() {
+        const c = this.getCreds();
+        return c.channel && c.user && c.token;
+    }
+};
+
+// ==============================================
+// 2. МЕНЕДЖЕР ИНТЕРФЕЙСА (Только работа с DOM)
+// ==============================================
+const UIManager = {
+    init() {
+        this.setupCustomSelects();
+        this.setupModifierPills();
     },
 
-    masterWidgets: [
-        { id: 'chat', label: 'Чат' },
-        { id: 'media', label: 'Сейчас играем' },
-        { id: 'goal', label: 'Цель фолловеров' },
-        { id: 'alerts', label: 'Алерты' },
-        { id: 'socials', label: 'Соцсети' },
-        { id: 'ticker', label: 'Бегущая строка' },
-        { id: 'pet', label: 'Питомец (Лиса)' },
-        { id: 'emotes', label: 'Смайлы чата' },
-        { id: 'music', label: 'Плеер YouTube' },
-        { id: 'tts', label: 'TTS Эквалайзер' },
-        { id: 'particles', label: 'Фон. частицы' },
-        { id: 'shoutout', label: 'Shoutout' }
-    ],
-
-    init: function() {
-        this.bindAuthEvents();
-        if (this.creds.channel && this.creds.user && this.creds.token) {
-            this.connectToTwitch();
-        } else {
-            document.getElementById('auth-modal').classList.remove('hidden');
-        }
-        
-        this.generateMasterSwitches();
-        this.populateDynamicSelects(); 
-        this.setupCustomSelects();     
-        this.setupModifierPills(); 
-        this.bindCommands();
-        this.setupAutoWakeUp(); 
-    },
-
-    bindAuthEvents: function() {
-        document.getElementById('btn-connect').addEventListener('click', () => {
-            const channel = document.getElementById('auth-channel').value.trim().toLowerCase();
-            const user = document.getElementById('auth-user').value.trim().toLowerCase();
-            let token = document.getElementById('auth-token').value.trim();
-
-            if (!channel || !user || !token) { alert("Заполните все поля!"); return; }
-            if (!token.startsWith('oauth:')) token = 'oauth:' + token;
-
-            localStorage.setItem('uso_mod_channel', channel);
-            localStorage.setItem('uso_mod_user', user);
-            localStorage.setItem('uso_mod_token', token);
-
-            this.creds = { channel, user, token };
-            this.connectToTwitch();
-        });
-
-        const btnLogout = document.getElementById('btn-logout');
-        if (btnLogout) {
-            btnLogout.addEventListener('click', () => {
-                localStorage.clear(); location.reload();
-            });
-        }
-    },
-
-    connectToTwitch: function() {
+    showApp(channelName) {
         document.getElementById('auth-modal').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
-        document.getElementById('ui-channel-name').innerText = this.creds.channel;
-
-        this.updateStatusUI('yellow', 'ПОДКЛЮЧЕНИЕ...');
-
-        ComfyJS.Init(this.creds.user, this.creds.token, this.creds.channel);
-        
-        setTimeout(() => this.setupConnectionMonitors(), 1000);
-
-        this.embedTwitchWidgets();
+        document.getElementById('ui-channel-name').innerText = channelName;
     },
 
-    setupConnectionMonitors: function() {
-        const client = ComfyJS.GetClient();
-        if (!client) return;
-
-        client.on("connected", () => {
-            this.updateStatusUI('green', 'ПОДКЛЮЧЕНО');
-            this.showToast("⚡ СВЯЗЬ УСТАНОВЛЕНА");
-        });
-
-        client.on("disconnected", (reason) => {
-            this.updateStatusUI('red', 'ОТКЛЮЧЕНО');
-            console.warn("[USO] Соединение с Twitch разорвано:", reason);
-        });
-
-        client.on("reconnect", () => {
-            this.updateStatusUI('yellow', 'ПЕРЕПОДКЛЮЧЕНИЕ');
-        });
-    },
-
-    updateStatusUI: function(colorType, text) {
+    updateLiveStatus(state, text) {
         const indicator = document.querySelector('.live-indicator');
         if (!indicator) return;
-        
-        let hexColor = '#00FF7F'; 
-        let pulse = 'pulse 1.5s infinite';
-        
-        if (colorType === 'yellow') { hexColor = '#FEE101'; pulse = 'none'; }
-        if (colorType === 'red') { hexColor = '#FF0050'; pulse = 'none'; }
-
-        indicator.innerHTML = `<span class="live-dot" style="background: ${hexColor}; box-shadow: 0 0 10px ${hexColor}; animation: ${pulse};"></span> ${text}`;
+        const states = {
+            'connecting': { color: '#FEE101', pulse: 'none' },
+            'connected':  { color: '#00FF7F', pulse: 'pulse 1.5s infinite' },
+            'error':      { color: '#FF0050', pulse: 'none' }
+        };
+        const s = states[state] || states.error;
+        indicator.innerHTML = `<span class="live-dot" style="background: ${s.color}; box-shadow: 0 0 10px ${s.color}; animation: ${s.pulse};"></span> ${text}`;
     },
 
-    setupAutoWakeUp: function() {
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'visible') {
-                const client = ComfyJS.GetClient();
-                if (client && client.readyState() !== "OPEN") {
-                    console.log("[USO] Вкладка проснулась. Выполняю принудительный реконнект...");
-                    this.updateStatusUI('yellow', 'ВОССТАНОВЛЕНИЕ...');
-                    client.connect().catch(e => console.warn("Ошибка авто-реконнекта:", e));
-                }
-            }
-        });
-    },
-
-    embedTwitchWidgets: function() {
-        const channelName = this.creds.channel;
-        let currentDomain = window.location.hostname;
-        if (currentDomain === "" || currentDomain === "127.0.0.1") currentDomain = "localhost";
-
-        document.getElementById('twitch-video-container').innerHTML = '';
-        document.getElementById('twitch-chat-container').innerHTML = '';
-
-        try {
-            new Twitch.Embed("twitch-video-container", {
-                width: "100%", height: "100%",
-                channel: channelName, layout: "video", autoplay: true, muted: true,
-                parent: [currentDomain, "github.io"] 
-            });
-
-            const chatIframe = document.createElement('iframe');
-            let iframeSrc = `https://www.twitch.tv/embed/${channelName}/chat?darkpopout&parent=${currentDomain}`;
-            if (currentDomain.includes('github.io')) {
-                iframeSrc += `&parent=github.io`;
-            }
-            chatIframe.src = iframeSrc;
-            chatIframe.style.width = "100%"; chatIframe.style.height = "100%"; chatIframe.style.border = "none";
-            document.getElementById('twitch-chat-container').appendChild(chatIframe);
-        } catch (e) {
-            console.warn("Встройка Twitch не удалась.", e);
-        }
-    },
-
-    sendCmd: function(commandString) {
-        if (!commandString || commandString.trim() === "") return;
-        
-        const client = ComfyJS.GetClient();
-        if (client && client.readyState() === "OPEN") {
-            ComfyJS.Say(commandString, this.creds.channel);
-            this.showToast(`✔️ Отправлено`);
-        } else {
-            this.showToast(`❌ ОШИБКА: НЕТ СВЯЗИ`);
-            this.updateStatusUI('red', 'СВЯЗЬ ПОТЕРЯНА');
-            if (client) client.connect().catch(e => {});
-        }
-    },
-
-    showToast: function(msg) {
+    showToast(msg, isError = false) {
         const toast = document.getElementById('toast');
         toast.innerText = msg; 
-        
-        if (msg.includes("ОШИБКА")) {
-            toast.style.background = "#FF0050";
-            toast.style.color = "#fff";
-            toast.style.boxShadow = "0 10px 30px rgba(255, 0, 80, 0.4)";
+        if (isError) {
+            toast.style.background = "#FF0050"; toast.style.color = "#fff"; toast.style.boxShadow = "0 10px 30px rgba(255, 0, 80, 0.4)";
         } else {
-            toast.style.background = "var(--c-green)";
-            toast.style.color = "#000";
-            toast.style.boxShadow = "0 10px 30px var(--c-green-glow)";
+            toast.style.background = "var(--c-green)"; toast.style.color = "#000"; toast.style.boxShadow = "0 10px 30px var(--c-green-glow)";
         }
-
         toast.classList.remove('hidden');
         toast.style.animation = 'none';
-        toast.offsetHeight; 
+        void toast.offsetWidth; 
         toast.style.animation = null;
         setTimeout(() => toast.classList.add('hidden'), 2500);
     },
 
-    generateMasterSwitches: function() {
+    buildMasterSwitches(widgetsConfig) {
         const grid = document.getElementById('widget-master-grid');
         if (!grid) return;
-
-        let html = '';
-        this.masterWidgets.forEach(w => {
-            html += `
-                <div class="toggle-row">
-                    <span class="toggle-label">${w.label}</span>
-                    <label class="switch"><input type="checkbox" class="widget-toggle" data-widget="${w.id}" checked><span class="slider"></span></label>
-                </div>
-            `;
-        });
-        grid.innerHTML = html;
-
-        document.querySelectorAll('.widget-toggle').forEach(toggle => {
-            toggle.addEventListener('change', (e) => {
-                const widgetName = e.target.getAttribute('data-widget');
-                const state = e.target.checked ? 'on' : 'off';
-                
-                if (widgetName === 'cam') this.sendCmd(`!cam ${state}`);
-                else if (widgetName === 'blur') this.sendCmd(`!blur ${state}`);
-                else if (widgetName === 'deaths') this.sendCmd(`!death ${state === 'on' ? 'show' : 'hide'}`);
-                else this.sendCmd(`!widget ${widgetName} ${state}`);
-            });
-        });
+        grid.innerHTML = widgetsConfig.map(w => `
+            <div class="toggle-row">
+                <span class="toggle-label">${w.label}</span>
+                <label class="switch"><input type="checkbox" class="widget-toggle" data-widget="${w.id}" checked><span class="slider"></span></label>
+            </div>
+        `).join('');
     },
 
-    populateDynamicSelects: function() {
-        if (window.GamesDatabase) {
-            const gameList = document.getElementById('dynamic-game-list');
-            const wheelList = document.getElementById('dynamic-wheel-list');
-            
-            let htmlGames = `<div class="optgroup">Игры</div>`;
-            let htmlSeries = `<div class="optgroup">Кино/Анимация</div>`;
-            
-            for (let key in window.GamesDatabase) {
-                const item = window.GamesDatabase[key];
-                const coverHtml = item.cover ? `<img src="${item.cover}" class="select-item-cover" style="width:20px; height:26px; border-radius:4px; object-fit:cover; flex-shrink:0;">` : '';
-                const row = `<div class="item-with-cover" data-value="${key}">${coverHtml}<span>${item.title}</span></div>`;
-                
-                if (item.type === 'game') htmlGames += row;
-                else htmlSeries += row;
+    buildDynamicLists() {
+        try {
+            if (window.GamesDatabase) {
+                let htmlGames = `<div class="optgroup">Игры</div>`;
+                let htmlSeries = `<div class="optgroup">Кино/Анимация</div>`;
+                for (let key in window.GamesDatabase) {
+                    const item = window.GamesDatabase[key];
+                    const cover = item.cover ? `<img src="${item.cover}" class="select-item-cover">` : '';
+                    const row = `<div class="item-with-cover" data-value="${key}">${cover}<span>${item.title}</span></div>`;
+                    if (item.type === 'game') htmlGames += row; else htmlSeries += row;
+                }
+                const gameList = document.getElementById('dynamic-game-list');
+                const wheelList = document.getElementById('dynamic-wheel-list');
+                if (gameList) gameList.innerHTML = `<div data-value="off">❌ Скрыть плашку</div>` + htmlGames + htmlSeries;
+                if (wheelList) wheelList.innerHTML = htmlGames + htmlSeries;
             }
 
-            if (gameList) gameList.innerHTML = `<div data-value="off">❌ Скрыть плашку</div>` + htmlGames + htmlSeries;
-            if (wheelList) wheelList.innerHTML = htmlGames + htmlSeries;
-        }
-
-        const chatList = document.getElementById('dynamic-chat-styles');
-        if (chatList) {
-            const baseOptions = `
-                <div class="optgroup">Обычный чат</div>
-                <div data-value="testfirst">Дефолт (Впервые)</div>
-                <div data-value="testhighlight">Дефолт (За баллы)</div>
-                <div data-value="testmention">Дефолт (Пинг)</div>
-                <div class="optgroup">Кастомные стили (VIP)</div>
-            `;
-            
-            const vipUsers = [
-                { login: "ksusha__sher", label: "Neon (Владелец)" },
-                { login: "bagercaa", label: "Hollow Knight" },
-                { login: "kiriika1", label: "Minecraft" },
-                { login: "to_be_ang", label: "Ангел" },
-                { login: "dragonsmaddison", label: "Bendy 1930s" },
-                { login: "darkl1us", label: "Tactical HUD" },
-                { login: "tetlabot", label: "Terminal" },
-                { login: "treebals", label: "Terminal" }
-            ];
-
-            chatList.innerHTML = baseOptions + vipUsers.map(u => 
-                `<div data-value="testuser ${u.login}" class="item-with-cover">
-                    <img src="https://ui-avatars.com/api/?name=${u.login}&background=222&color=fff" class="select-item-cover" id="av-${u.login}" style="width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; object-fit: cover;">
-                    <span>${u.login} <span class="text-muted">(${u.label})</span></span>
-                </div>`
-            ).join('');
-
-            vipUsers.forEach(async (u) => {
-                try {
-                    const res = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${u.login}`);
-                    const data = await res.json();
-                    if (data && data.length > 0 && data[0].logo) {
-                        const img = document.getElementById(`av-${u.login}`);
-                        if (img) img.src = data[0].logo;
-                    }
-                } catch(e) {}
-            });
+            const chatList = document.getElementById('dynamic-chat-styles');
+            if (chatList && window.AppConfig && window.AppConfig.customChatStyles) {
+                let baseOptions = `
+                    <div class="optgroup">Обычный чат</div>
+                    <div data-value="testfirst">Дефолт (Впервые)</div>
+                    <div data-value="testhighlight">Дефолт (За баллы)</div>
+                    <div data-value="testmention">Дефолт (Пинг)</div>
+                    <div class="optgroup">Кастомные стили (VIP)</div>
+                `;
+                for (const [login, styleId] of Object.entries(window.AppConfig.customChatStyles)) {
+                    baseOptions += `
+                        <div data-value="testuser ${login}" class="item-with-cover">
+                            <img src="https://ui-avatars.com/api/?name=${login}&background=222&color=fff" id="av-${login}" class="select-item-cover" style="border-radius: 50%;">
+                            <span>${login} <span class="text-muted">(${styleId})</span></span>
+                        </div>
+                    `;
+                    this.fetchTwitchAvatar(login);
+                }
+                chatList.innerHTML = baseOptions;
+            }
+        } catch (error) {
+            console.error("[USO] Ошибка парсинга конфига. Проверьте синтаксис config.js!", error);
+            this.showToast("ОШИБКА КОНФИГА", true);
         }
     },
 
-    setupCustomSelects: function() {
-        const customSelects = document.querySelectorAll('.custom-select');
-        const resetZIndex = () => {
-            document.querySelectorAll('.card').forEach(c => c.style.zIndex = '');
-            document.querySelectorAll('.smart-input').forEach(i => i.style.zIndex = '2');
-        };
+    async fetchTwitchAvatar(login) {
+        try {
+            const res = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${login}`);
+            const data = await res.json();
+            if (data && data.length > 0 && data[0].logo) {
+                const img = document.getElementById(`av-${login}`);
+                if (img) img.src = data[0].logo;
+            }
+        } catch(e) {}
+    },
 
-        customSelects.forEach(customSelect => {
+    syncToggle(widgetId, state) {
+        const toggle = document.querySelector(`.widget-toggle[data-widget="${widgetId}"]`);
+        if (toggle) {
+            const isTurnedOn = (state === 'on' || state === 'show');
+            if (toggle.checked !== isTurnedOn) toggle.checked = isTurnedOn;
+        }
+    },
+
+    // ОПЕЧАТКА ИСПРАВЛЕНА: Инициализация выпадающих меню теперь работает идеально
+    setupCustomSelects() {
+        document.querySelectorAll('.custom-select').forEach(customSelect => {
             const selected = customSelect.querySelector('.select-selected');
             const itemsList = customSelect.querySelector('.select-items');
 
@@ -291,34 +155,23 @@ const AppDeck = {
             
             newSelected.addEventListener('click', (e) => {
                 e.stopPropagation();
+                document.querySelectorAll('.select-items').forEach(el => { 
+                    if (el !== itemsList) el.classList.add('select-hide'); 
+                });
+                document.querySelectorAll('.select-selected').forEach(el => { 
+                    if (el !== newSelected) el.classList.remove('select-arrow-active'); 
+                });
                 
-                document.querySelectorAll('.select-items').forEach(el => { if (el !== itemsList) el.classList.add('select-hide'); });
-                document.querySelectorAll('.select-selected').forEach(el => { if (el !== newSelected) el.classList.remove('select-arrow-active'); });
-                
-                if (itemsList.classList.contains('select-hide')) {
-                    resetZIndex(); 
-                    const parentCard = customSelect.closest('.card');
-                    const parentInput = customSelect.closest('.smart-input');
-                    if (parentCard) parentCard.style.zIndex = '9999';
-                    if (parentInput) parentInput.style.zIndex = '9999';
-
-                    itemsList.classList.remove('select-hide');
-                    newSelected.classList.add('select-arrow-active');
-                } else {
-                    itemsList.classList.add('select-hide');
-                    newSelected.classList.remove('select-arrow-active');
-                    resetZIndex();
-                }
+                itemsList.classList.toggle('select-hide');
+                newSelected.classList.toggle('select-arrow-active');
             });
 
-            const options = itemsList.querySelectorAll('div[data-value]');
-            options.forEach(option => {
+            itemsList.querySelectorAll('div[data-value]').forEach(option => {
                 option.addEventListener('click', () => {
                     newSelected.innerHTML = option.innerHTML;
                     customSelect.setAttribute('data-value', option.getAttribute('data-value'));
                     itemsList.classList.add('select-hide');
                     newSelected.classList.remove('select-arrow-active');
-                    resetZIndex(); 
                 });
             });
         });
@@ -326,106 +179,139 @@ const AppDeck = {
         document.addEventListener('click', () => {
             document.querySelectorAll('.select-items').forEach(el => el.classList.add('select-hide'));
             document.querySelectorAll('.select-selected').forEach(el => el.classList.remove('select-arrow-active'));
-            resetZIndex();
         });
     },
 
-    setupModifierPills: function() {
-        document.querySelectorAll('.mod-pill').forEach(pill => {
-            pill.addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); });
-        });
+    setupModifierPills() { 
+        document.querySelectorAll('.mod-pill').forEach(p => p.addEventListener('click', e => e.currentTarget.classList.toggle('active'))); 
     },
+    getInputValue(id) { const el = document.getElementById(id); return el ? el.value.trim() : ""; },
+    clearInput(id) { const el = document.getElementById(id); if (el) el.value = ""; },
+    getSelectValue(id) { const el = document.getElementById(id); return el ? el.getAttribute('data-value') : null; }
+};
 
-    bindCommands: function() {
-        const volSlider = document.getElementById('input-vol');
-        const volLabel = document.getElementById('vol-label');
-        if (volSlider && volLabel) {
-            volSlider.addEventListener('input', (e) => {
-                const val = e.target.value;
-                volLabel.innerText = val + '%';
-                volSlider.style.setProperty('--slider-fill', val + '%');
-            });
-            volSlider.addEventListener('change', (e) => { this.sendCmd(`!vol ${e.target.value}`); });
+const TwitchAPI = {
+    channel: null,
+    connect(creds) {
+        this.channel = creds.channel;
+        UIManager.updateLiveStatus('connecting', 'ПОДКЛЮЧЕНИЕ...');
+        ComfyJS.Init(creds.user, creds.token, creds.channel);
+        this.setupMonitors();
+        this.embedIframes(creds.channel);
+        this.setupAutoWakeup();
+    },
+    setupMonitors() {
+        const client = ComfyJS.GetClient();
+        if (!client) return;
+
+        client.on("connected", () => { UIManager.updateLiveStatus('connected', 'ПОДКЛЮЧЕНО'); UIManager.showToast("⚡ СВЯЗЬ УСТАНОВЛЕНА"); });
+        client.on("disconnected", (r) => { UIManager.updateLiveStatus('error', 'ОТКЛЮЧЕНО'); });
+        client.on("reconnect", () => UIManager.updateLiveStatus('connecting', 'ПЕРЕПОДКЛЮЧЕНИЕ'));
+
+        ComfyJS.onCommand = (user, command, message, flags) => {
+            const isMod = flags.broadcaster || flags.mod;
+            if (!isMod) return;
+
+            const cmd = command.toLowerCase();
+            const args = message.toLowerCase().split(' ');
+
+            if (cmd === 'widget' && args.length >= 2) UIManager.syncToggle(args[0], args[1]);
+            if (cmd === 'cam') UIManager.syncToggle('cam', args[0]);
+            if (cmd === 'blur') UIManager.syncToggle('blur', args[0]);
+            if (cmd === 'death' || cmd === 'deaths') UIManager.syncToggle('deaths', args[0]);
+        };
+    },
+    send(commandStr) {
+        if (!commandStr) return;
+        const client = ComfyJS.GetClient();
+        if (client && client.readyState() === "OPEN") {
+            ComfyJS.Say(commandStr, this.channel); UIManager.showToast("✔️ Отправлено");
+        } else {
+            UIManager.showToast("❌ ОШИБКА: НЕТ СВЯЗИ", true); UIManager.updateLiveStatus('error', 'СВЯЗЬ ПОТЕРЯНА');
+            if (client) client.connect().catch(e => {});
         }
-
-        document.querySelector('.control-panel').addEventListener('click', (e) => {
-            const btn = e.target.closest('.cmd-btn, .action-btn');
-            if (!btn) return;
-
-            btn.style.transform = 'scale(0.92)';
-            setTimeout(() => btn.style.transform = '', 150);
-
-            const cmd = btn.getAttribute('data-cmd');
-            if (cmd) { this.sendCmd(cmd); return; }
-
-            const action = btn.getAttribute('data-action');
-            let inputEl, val;
-
-            switch(action) {
-                case 'play':
-                    inputEl = document.getElementById('input-play'); val = inputEl.value.trim();
-                    if (val) { this.sendCmd(`!play ${val}`); inputEl.value = ''; } break;
-                case 'tts':
-                    inputEl = document.getElementById('input-tts'); val = inputEl.value.trim();
-                    if (val) { this.sendCmd(`!tts ${val}`); inputEl.value = ''; } break;
-                case 'so':
-                    inputEl = document.getElementById('input-so'); val = inputEl.value.trim();
-                    if (val) { this.sendCmd(`!so ${val}`); inputEl.value = ''; } break;
-                case 'set_death':
-                    inputEl = document.getElementById('input-death-val'); val = inputEl.value.trim();
-                    if (val !== "") { this.sendCmd(`!death set ${val}`); inputEl.value = ''; } break;
-                case 'setmedia_yt':
-                    inputEl = document.getElementById('input-media-yt'); val = inputEl.value.trim();
-                    if (val) { this.sendCmd(`!media yt ${val}`); inputEl.value = ''; } break;
-                case 'setgame':
-                    inputEl = document.getElementById('custom-game-select'); val = inputEl.getAttribute('data-value');
-                    if (val === "off") this.sendCmd(`!game off`); else this.sendCmd(`!game ${val}`); break;
-                case 'settheme':
-                    inputEl = document.getElementById('custom-theme-select'); val = inputEl.getAttribute('data-value');
-                    this.sendCmd(`!протокол ${val}`); break;
-                case 'testalert':
-                    inputEl = document.getElementById('custom-test-alert'); val = inputEl.getAttribute('data-value');
-                    this.sendCmd(`!${val}`); break;
-                case 'testfollow':
-                    this.sendCmd('!alert follow');
-                    setTimeout(() => this.sendCmd('!testgoal'), 800);
-                    break;
-                case 'testchat':
-                    const baseCmd = document.getElementById('custom-test-chat').getAttribute('data-value');
-                    const msgInput = document.getElementById('test-chat-msg').value.trim();
-                    let flags = "";
-                    document.querySelectorAll('.mod-pill.active').forEach(pill => { flags += pill.getAttribute('data-mod') + " "; });
-                    let finalCmd = `!${baseCmd}`;
-                    if (flags.trim() !== "") finalCmd += ` ${flags.trim()}`;
-                    if (msgInput !== "") finalCmd += ` ${msgInput}`;
-                    this.sendCmd(finalCmd); document.getElementById('test-chat-msg').value = ''; break;
-                case 'add_wheel_custom':
-                    inputEl = document.getElementById('input-wheel'); val = inputEl.value.trim();
-                    if (val) { this.sendCmd(`!wheel add ${val}`); inputEl.value = ''; } break;
-                case 'add_wheel_db':
-                    inputEl = document.getElementById('custom-wheel-db'); val = inputEl.getAttribute('data-value');
-                    if (val && val !== "") {
-                        const dbItem = window.GamesDatabase[val];
-                        const name = dbItem ? dbItem.title : val;
-                        this.sendCmd(`!wheel add ${name}`);
-                    } break;
-                case 'spawn_emotes':
-                    this.sendCmd(`Kappa LUL PogChamp BibleThump Kreygasm Kappa LUL PogChamp BibleThump Kreygasm ${Math.floor(Math.random() * 1000)}`);
-                    break;
-                case 'testticker_custom':
-                    inputEl = document.getElementById('input-test-ticker'); val = inputEl.value.trim();
-                    if (val) { this.sendCmd(`!testticker ${val}`); inputEl.value = ''; } break;
+    },
+    embedIframes(channel) {
+        let d = window.location.hostname; if (!d || d === "127.0.0.1") d = "localhost";
+        try {
+            new Twitch.Embed("twitch-video-container", { width: "100%", height: "100%", channel: channel, layout: "video", autoplay: true, muted: true, parent: [d, "github.io"] });
+            const f = document.createElement('iframe'); f.src = `https://www.twitch.tv/embed/${channel}/chat?darkpopout&parent=${d}${d.includes('github.io') ? '&parent=github.io' : ''}`; f.style.cssText = "width:100%;height:100%;border:none;"; document.getElementById('twitch-chat-container').appendChild(f);
+        } catch (e) {}
+    },
+    setupAutoWakeup() {
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'visible') {
+                const c = ComfyJS.GetClient();
+                if (c && c.readyState() !== "OPEN") { UIManager.updateLiveStatus('connecting', 'ВОССТАНОВЛЕНИЕ...'); c.connect().catch(e => {}); }
             }
         });
+    }
+};
 
-        document.querySelectorAll('.smart-input input, .counter-input').forEach(input => {
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const actionBtn = e.currentTarget.parentElement.querySelector('.action-btn');
-                    if (actionBtn) actionBtn.click();
-                }
+const CommandRouter = {
+    widgetsConfig: [
+        { id: 'chat', label: 'Чат' }, { id: 'media', label: 'Сейчас играем' }, { id: 'goal', label: 'Цель фолловеров' }, { id: 'alerts', label: 'Алерты' },
+        { id: 'socials', label: 'Соцсети' }, { id: 'ticker', label: 'Бегущая строка' }, { id: 'pet', label: 'Питомец (Лиса)' }, { id: 'emotes', label: 'Смайлы чата' },
+        { id: 'music', label: 'Плеер YouTube' }, { id: 'tts', label: 'TTS Эквалайзер' }, { id: 'particles', label: 'Фон. частицы' }, { id: 'shoutout', label: 'Shoutout' }
+    ],
+    init() { UIManager.buildMasterSwitches(this.widgetsConfig); this.bindEvents(); },
+    bindEvents() {
+        document.getElementById('widget-master-grid').addEventListener('change', (e) => {
+            if (!e.target.classList.contains('widget-toggle')) return;
+            TwitchAPI.send(`!widget ${e.target.getAttribute('data-widget')} ${e.target.checked ? 'on' : 'off'}`);
+        });
+        document.querySelectorAll('.widget-toggle').forEach(t => {
+            if (t.closest('#widget-master-grid')) return; 
+            t.addEventListener('change', (e) => {
+                const w = e.target.getAttribute('data-widget'); const s = e.target.checked ? 'on' : 'off';
+                if (w === 'cam') TwitchAPI.send(`!cam ${s}`); else if (w === 'blur') TwitchAPI.send(`!blur ${s}`); else if (w === 'deaths') TwitchAPI.send(`!death ${e.target.checked ? 'show' : 'hide'}`);
             });
         });
+        const vol = document.getElementById('input-vol');
+        if (vol) { vol.addEventListener('input', (e) => { document.getElementById('vol-label').innerText = e.target.value + '%'; vol.style.setProperty('--slider-fill', e.target.value + '%'); }); vol.addEventListener('change', (e) => TwitchAPI.send(`!vol ${e.target.value}`)); }
+        document.querySelectorAll('.smart-input input, .counter-input').forEach(i => { i.addEventListener('keypress', (e) => { if (e.key === 'Enter') { const b = e.currentTarget.parentElement.querySelector('.action-btn'); if (b) b.click(); } }); });
+        document.querySelector('.control-panel').addEventListener('click', (e) => {
+            const btn = e.target.closest('.cmd-btn, .action-btn'); if (!btn) return;
+            btn.style.transform = 'scale(0.92)'; setTimeout(() => btn.style.transform = '', 150);
+            const cmd = btn.getAttribute('data-cmd'); if (cmd) { TwitchAPI.send(cmd); return; }
+            this.handleAction(btn.getAttribute('data-action'));
+        });
+    },
+    handleAction(action) {
+        let v, c = null;
+        switch(action) {
+            case 'play': v = UIManager.getInputValue('input-play'); if (v) { c = `!play ${v}`; UIManager.clearInput('input-play'); } break;
+            case 'tts': v = UIManager.getInputValue('input-tts'); if (v) { c = `!tts ${v}`; UIManager.clearInput('input-tts'); } break;
+            case 'so': v = UIManager.getInputValue('input-so'); if (v) { c = `!so ${v}`; UIManager.clearInput('input-so'); } break;
+            case 'set_death': v = UIManager.getInputValue('input-death-val'); if (v !== "") { c = `!death set ${v}`; UIManager.clearInput('input-death-val'); } break;
+            case 'setmedia_yt': v = UIManager.getInputValue('input-media-yt'); if (v) { c = `!media yt ${v}`; UIManager.clearInput('input-media-yt'); } break;
+            case 'setgame': v = UIManager.getSelectValue('custom-game-select'); c = v === "off" ? "!game off" : `!game ${v}`; break;
+            case 'settheme': v = UIManager.getSelectValue('custom-theme-select'); c = `!протокол ${v}`; break;
+            case 'testalert': v = UIManager.getSelectValue('custom-test-alert'); c = `!${v}`; break;
+            case 'testfollow': TwitchAPI.send('!alert follow'); setTimeout(() => TwitchAPI.send('!testgoal'), 800); break;
+            case 'testchat': const bc = UIManager.getSelectValue('custom-test-chat'); const m = UIManager.getInputValue('test-chat-msg'); let f = Array.from(document.querySelectorAll('.mod-pill.active')).map(p => p.getAttribute('data-mod')).join(" "); c = `!${bc}`; if (f) c += ` ${f}`; if (m) c += ` ${m}`; UIManager.clearInput('test-chat-msg'); break;
+            case 'add_wheel_custom': v = UIManager.getInputValue('input-wheel'); if (v) { c = `!wheel add ${v}`; UIManager.clearInput('input-wheel'); } break;
+            case 'add_wheel_db': v = UIManager.getSelectValue('custom-wheel-db'); if (v) { const d = window.GamesDatabase[v]; c = `!wheel add ${d ? d.title : v}`; } break;
+            case 'spawn_emotes': c = `Kappa LUL PogChamp BibleThump Kreygasm ${Math.floor(Math.random() * 1000)}`; break;
+            case 'testticker_custom': v = UIManager.getInputValue('input-test-ticker'); if (v) { c = `!testticker ${v}`; UIManager.clearInput('input-test-ticker'); } break;
+        }
+        if (c) TwitchAPI.send(c);
+    }
+};
+
+const AppDeck = {
+    init() {
+        document.getElementById('btn-connect').addEventListener('click', () => {
+            const c = document.getElementById('auth-channel').value; const u = document.getElementById('auth-user').value; const t = document.getElementById('auth-token').value;
+            if (!c || !u || !t) return alert("Заполните все поля!"); AuthManager.saveCreds(c, u, t); this.start();
+        });
+        const btnLogout = document.getElementById('btn-logout'); if (btnLogout) btnLogout.addEventListener('click', () => AuthManager.logout());
+        if (AuthManager.isValid()) this.start(); else document.getElementById('auth-modal').classList.remove('hidden');
+    },
+    start() {
+        const creds = AuthManager.getCreds();
+        UIManager.showApp(creds.channel); UIManager.buildDynamicLists(); UIManager.init();
+        CommandRouter.init(); TwitchAPI.connect(creds);
     }
 };
 

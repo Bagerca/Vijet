@@ -2,6 +2,7 @@ window.AppEmotes = {
     container: document.getElementById('emotes-container'),
     mode: "bubble",
     enabled: true,
+    activeEmotesCount: 0, // Счетчик активных элементов на экране
 
     init: function() {
         if (window.AppConfig.emotesMode) this.mode = window.AppConfig.emotesMode;
@@ -34,19 +35,25 @@ window.AppEmotes = {
         let emoteIds = Object.keys(emotesData);
         if (emoteIds.length === 0) return;
 
-        let maxSpawn = window.AppConfig.emotesMaxPerMessage || 100;
-        let spawned = 0;
+        // Настройки оптимизации производительности рендеринга
+        const MAX_CONCURRENT_EMOTES = 60; // Максимальный лимит элементов на экране
+        const MAX_PER_EMOTE_TYPE = 8;    // Лимит дубликатов одного смайла на сообщение
+
         let delayIndex = 0;
 
         for (let id of emoteIds) {
             let count = emotesData[id].length; 
-            for (let i = 0; i < count; i++) {
-                if (spawned >= maxSpawn) break;
+            let allowedCount = Math.min(count, MAX_PER_EMOTE_TYPE);
+
+            for (let i = 0; i < allowedCount; i++) {
+                if (this.activeEmotesCount >= MAX_CONCURRENT_EMOTES) {
+                    break; // Прерываем создание элементов при превышении лимита
+                }
                 this.createEmoteDOM(id, delayIndex);
-                spawned++;
+                this.activeEmotesCount++;
                 delayIndex++;
             }
-            if (spawned >= maxSpawn) break;
+            if (this.activeEmotesCount >= MAX_CONCURRENT_EMOTES) break;
         }
     },
 
@@ -103,8 +110,13 @@ window.AppEmotes = {
         }
 
         this.container.appendChild(wrap);
+        
         wrap.addEventListener('animationend', (e) => {
-            if (e.target === wrap) wrap.remove();
+            if (e.target === wrap) {
+                wrap.remove();
+                // Уменьшаем счетчик активных элементов на экране
+                this.activeEmotesCount = Math.max(0, this.activeEmotesCount - 1);
+            }
         });
     }
 };

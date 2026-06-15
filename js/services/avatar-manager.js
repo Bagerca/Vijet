@@ -7,14 +7,24 @@ window.AvatarManager = {
         const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
         if (!lastClear || (now - parseInt(lastClear)) > ONE_WEEK) {
-            console.log("[AvatarManager] Плановая очистка старого кэша аватаров.");
-            localStorage.removeItem('uso_avatars');
+            this.clearCache();
             localStorage.setItem('uso_avatars_last_clear', now.toString());
-            this.cache = {};
         } else {
             const saved = localStorage.getItem('uso_avatars');
             this.cache = saved ? JSON.parse(saved) : {};
         }
+
+        // Подписка на события перезагрузки для очистки кэша
+        if (window.AppEvents) {
+            window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => this.clearCache());
+            window.AppEvents.listen('CORE_REBOOT_START', () => this.clearCache());
+        }
+    },
+
+    clearCache: function() {
+        console.log("[AvatarManager] Очистка кэша аватаров из памяти и localStorage.");
+        localStorage.removeItem('uso_avatars');
+        this.cache = {};
     },
 
     get: async function(username, fallbackColor) {
