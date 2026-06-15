@@ -9,7 +9,7 @@ window.AppCore = {
             ComfyJS.Init(window.AppConfig.channelName);
             this.setupEvents();
             
-            // НОВОЕ: Сигнализируем визуалу, что ядро успешно запустилось
+            // Сигнализируем визуалу, что ядро успешно запустилось
             setTimeout(() => {
                 window.AppEvents.emit('CORE_REBOOT_DONE');
             }, 1000);
@@ -48,11 +48,15 @@ window.AppCore = {
 
         if (isPing) cleanText = `<span class="chat-ping">@${window.AppConfig.channelName}</span> ${cleanText}`;
 
+        // Достаем кастомный стиль для теста
+        const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[userAlias.toLowerCase()]) || null;
+
         window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
             user: userAlias, color: color, avatarUrl: avatarUrl,
             time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             htmlText: cleanText, replyData: isReply ? this.generateFakeReply() : null,
-            isFirstTime: isFirstTime, isHighlighted: isHighlight, isMention: isPing
+            isFirstTime: isFirstTime, isHighlighted: isHighlight, isMention: isPing,
+            styleName: userStyle // Передаем стиль
         });
     },
 
@@ -104,7 +108,14 @@ window.AppCore = {
                 cleanText = cleanText.replace(new RegExp(`^@${replyUser}\\s*,?\\s*`, 'i'), '');
             }
 
-            window.AppEvents.emit('CHAT_RENDER_MESSAGE', { user, color: userColor, avatarUrl, time, htmlText: cleanText, replyData, isFirstTime, isHighlighted, isMention });
+            // Ищем стиль юзера в конфиге
+            const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[lowerUser]) || null;
+
+            window.AppEvents.emit('CHAT_RENDER_MESSAGE', { 
+                user, color: userColor, avatarUrl, time, htmlText: cleanText, 
+                replyData, isFirstTime, isHighlighted, isMention,
+                styleName: userStyle // Передаем стиль
+            });
         };
 
         ComfyJS.onReward = (user, reward, cost, message, extra) => {
@@ -172,9 +183,7 @@ window.AppCore = {
                 case "refresh":
                     if (hasPermission) {
                         if (argLow === "core") { 
-                            // НОВОЕ: Отправляем сигнал Визуалу о начале рестарта Ядра
                             window.AppEvents.emit('CORE_REBOOT_START');
-                            // Ждем 300мс, чтобы сигнал точно ушел, и только потом рубим страницу
                             setTimeout(() => {
                                 const coreUrl = new URL(window.location.href); 
                                 coreUrl.searchParams.set('nocache', Date.now()); 

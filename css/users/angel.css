@@ -1,12 +1,12 @@
 /* =========================================================================
-   КАСТОМНЫЙ СТИЛЬ: to_be_ang (РЕМАСТЕР: Божественный Свет)
+   КАСТОМНЫЙ СТИЛЬ: angel (РЕМАСТЕР: Божественный Свет)
    ========================================================================= */
 
 /* Изящный шрифт с засечками для ангельского стиля */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&display=swap');
 
 /* Внешние отступы: Даем место сверху для нимба (35px) и слева для вынесенной аватарки (35px) */
-.chat-block[data-user="to_be_ang"] {
+.chat-block[data-style="angel"] {
     margin: 35px 0 20px 35px; 
     
     /* ФИКС: Ограничиваем ширину, вычитая 35px левого отступа, чтобы реплаи не выталкивали бабл */
@@ -14,7 +14,7 @@
 }
 
 /* Защита для контейнера с реплаем, чтобы длинный текст аккуратно сокращался */
-.chat-block[data-user="to_be_ang"] .chat-meta {
+.chat-block[data-style="angel"] .chat-meta {
     max-width: 100% !important;
     overflow: hidden;
 }
@@ -22,7 +22,7 @@
 /* ==============================================
    БАЗОВЫЙ БАБЛ (ЖЕМЧУГ И ЛЕВИТАЦИЯ)
    ============================================== */
-.chat-block[data-user="to_be_ang"] .chat-bubble {
+.chat-block[data-style="angel"] .chat-bubble {
     /* Жемчужно-белый градиент с легким теплым оттенком */
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 248, 235, 0.9) 100%) !important;
     
@@ -53,7 +53,7 @@
 /* ==============================================
    ЛУЧ БОЖЕСТВЕННОГО СВЕТА (Анимация)
    ============================================== */
-.chat-block[data-user="to_be_ang"] .chat-bubble::after {
+.chat-block[data-style="angel"] .chat-bubble::after {
     content: '';
     position: absolute;
     top: 0; left: 0; bottom: 0;
@@ -76,7 +76,7 @@
 /* ==============================================
    ШАПКА (ИМЯ, ВРЕМЯ И ИСПРАВЛЕННЫЕ ОТСТУПЫ)
    ============================================== */
-.chat-block[data-user="to_be_ang"] .chat-header {
+.chat-block[data-style="angel"] .chat-header {
     border-bottom: 1px solid rgba(255, 215, 0, 0.3) !important;
     padding-bottom: 8px;
     margin-bottom: 12px;
@@ -95,7 +95,7 @@
    ============================================== */
 
 /* Полностью выносим аватарку наружу */
-.chat-block[data-user="to_be_ang"] .chat-avatar {
+.chat-block[data-style="angel"] .chat-avatar {
     position: absolute;
     top: -24px;  /* Висит выше верхней границы */
     left: -32px; /* Висит за левой границей бабла */
@@ -112,7 +112,7 @@
 }
 
 /* ЗОЛОТОЙ НИМБ */
-.chat-block[data-user="to_be_ang"] .chat-header::before {
+.chat-block[data-style="angel"] .chat-header::before {
     content: '';
     position: absolute;
     top: -36px;  /* Выше аватарки */
@@ -136,7 +136,7 @@
    ============================================== */
 
 /* ИМЯ ПОЛЬЗОВАТЕЛЯ */
-.chat-block[data-user="to_be_ang"] .chat-user {
+.chat-block[data-style="angel"] .chat-user {
     font-family: 'Cormorant Garamond', serif !important;
     font-size: 22px !important;
     font-weight: 700 !important;
@@ -152,8 +152,8 @@
 }
 
 /* ВРЕМЯ */
-.chat-block[data-user="to_be_ang"] .chat-header-right { margin-left: auto; }
-.chat-block[data-user="to_be_ang"] .chat-time {
+.chat-block[data-style="angel"] .chat-header-right { margin-left: auto; }
+.chat-block[data-style="angel"] .chat-time {
     font-family: 'Cormorant Garamond', serif !important;
     color: rgba(184, 134, 11, 0.6) !important; /* Приглушенное золото */
     font-size: 15px !important;
@@ -162,7 +162,7 @@
 }
 
 /* ТЕКСТ СООБЩЕНИЯ */
-.chat-block[data-user="to_be_ang"] .chat-text {
+.chat-block[data-style="angel"] .chat-text {
     font-family: 'Cormorant Garamond', serif !important;
     color: #4a5568 !important; 
     font-size: 20px !important; 
@@ -180,7 +180,7 @@
 /* ----------------------------------------------
    1. ОТВЕТ (REPLY) - "Небесное Эхо"
    ---------------------------------------------- */
-.chat-block[data-user="to_be_ang"] .chat-reply {
+.chat-block[data-style="angel"] .chat-reply {
     background: linear-gradient(90deg, rgba(255, 215, 0, 0.05), transparent) !important;
     border: none !important;
     border-left: 2px solid rgba(255, 215, 0, 0.4) !important;
@@ -189,9 +189,9 @@
     margin-bottom: 10px !important;
 }
 
-.chat-block[data-user="to_be_ang"] .chat-reply::before { display: none !important; }
-.chat-block[data-user="to_be_ang"] .reply-icon { display: none !important; }
-.chat-block[data-user="to_be_ang"] .chat-reply-user::before {
+.chat-block[data-style="angel"] .chat-reply::before { display: none !important; }
+.chat-block[data-style="angel"] .reply-icon { display: none !important; }
+.chat-block[data-style="angel"] .chat-reply-user::before {
     content: '';
     display: inline-block;
     width: 12px; height: 12px;
@@ -207,7 +207,7 @@
     100% { transform: scale(1.2) rotate(45deg); opacity: 1; filter: drop-shadow(0 0 5px #FFD700); }
 }
 
-.chat-block[data-user="to_be_ang"] .chat-reply-user {
+.chat-block[data-style="angel"] .chat-reply-user {
     color: #D4AF37 !important;
     font-family: 'Cormorant Garamond', serif !important;
     font-size: 14px !important;
@@ -215,7 +215,7 @@
     text-transform: capitalize;
 }
 
-.chat-block[data-user="to_be_ang"] .chat-reply-text {
+.chat-block[data-style="angel"] .chat-reply-text {
     color: rgba(74, 85, 104, 0.7) !important;
     font-family: 'Cormorant Garamond', serif !important;
     font-style: italic !important;
@@ -225,7 +225,7 @@
 /* ----------------------------------------------
    2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "Божественное Откровение"
    ---------------------------------------------- */
-.chat-block.is-highlighted[data-user="to_be_ang"] .chat-bubble {
+.chat-block.is-highlighted[data-style="angel"] .chat-bubble {
     border-color: #FFD700 !important;
     background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 248, 220, 0.95) 100%) !important;
     animation: revelationGlow 4s infinite alternate ease-in-out, angelicHover 4s infinite alternate ease-in-out !important;
@@ -236,7 +236,7 @@
     100% { box-shadow: 0 15px 50px rgba(255, 215, 0, 0.6), inset 0 0 40px rgba(255, 215, 0, 0.3); }
 }
 
-.chat-block.is-highlighted[data-user="to_be_ang"] .chat-text {
+.chat-block.is-highlighted[data-style="angel"] .chat-text {
     background: linear-gradient(90deg, #B8860B, #D4AF37);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -244,7 +244,7 @@
     font-weight: 700 !important;
 }
 
-.chat-block.is-highlighted[data-user="to_be_ang"] .chat-badge-highlight {
+.chat-block.is-highlighted[data-style="angel"] .chat-badge-highlight {
     background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(255, 248, 220, 0.9)) !important;
     color: #B8860B !important;
     border: 1px solid rgba(255, 215, 0, 0.5) !important;
@@ -254,20 +254,20 @@
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2) !important;
     letter-spacing: 2px !important;
 }
-.chat-block.is-highlighted[data-user="to_be_ang"] .badge-star { display: none !important; }
-.chat-block.is-highlighted[data-user="to_be_ang"] .chat-badge-highlight::before { content: 'BLESSED'; font-weight: 700; }
+.chat-block.is-highlighted[data-style="angel"] .badge-star { display: none !important; }
+.chat-block.is-highlighted[data-style="angel"] .chat-badge-highlight::before { content: 'BLESSED'; font-weight: 700; }
 
 /* ----------------------------------------------
    3. ПИНГ СТРИМЕРА (MENTION) - "Священный Призыв"
    ---------------------------------------------- */
-.chat-block.is-mention[data-user="to_be_ang"] .chat-bubble {
+.chat-block.is-mention[data-style="angel"] .chat-bubble {
     border-right: 3px solid #87CEFA !important;
     box-shadow: 8px 0 20px rgba(135, 206, 250, 0.3), 0 10px 25px rgba(255, 215, 0, 0.1) !important;
 }
 
-.chat-block.is-mention[data-user="to_be_ang"] .chat-ping-bell { display: none !important; }
+.chat-block.is-mention[data-style="angel"] .chat-ping-bell { display: none !important; }
 
-.chat-block.is-mention[data-user="to_be_ang"] .chat-ping {
+.chat-block.is-mention[data-style="angel"] .chat-ping {
     background: linear-gradient(90deg, rgba(135, 206, 250, 0.1), transparent) !important;
     color: #4682B4 !important;
     font-family: 'Cormorant Garamond', serif !important;
@@ -284,7 +284,7 @@
 /* ----------------------------------------------
    4. ЦЕНЗУРА (МАТ) - "Отпущение грехов"
    ---------------------------------------------- */
-.chat-block[data-user="to_be_ang"] .censured-badge {
+.chat-block[data-style="angel"] .censured-badge {
     background: #FFFAF0 !important;
     color: #D4AF37 !important;
     border: 1px solid #D4AF37 !important;
@@ -292,9 +292,9 @@
     font-size: 11px !important;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.3) !important;
 }
-.chat-block[data-user="to_be_ang"] .censured-badge::before { content: 'PURIFIED'; }
+.chat-block[data-style="angel"] .censured-badge::before { content: 'PURIFIED'; }
 
-.chat-block[data-user="to_be_ang"] .censured-message {
+.chat-block[data-style="angel"] .censured-message {
     background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%) !important;
     border: 1px solid #4a5568 !important;
     color: #FFD700 !important;
@@ -305,13 +305,13 @@
     box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 15px rgba(255, 215, 0, 0.2) !important;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.8) !important;
 }
-.chat-block[data-user="to_be_ang"] .censured-message::before { content: '[ ABSOLVED OF SIN ]'; }
+.chat-block[data-style="angel"] .censured-message::before { content: '[ ABSOLVED OF SIN ]'; }
 
 /* =========================================================================
    5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Глас Серафима"
    ========================================================================= */
 
-#tts-container[data-user="to_be_ang"] {
+#tts-container[data-style="angel"] {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 248, 235, 0.9) 100%) !important;
     border: 1px solid rgba(255, 215, 0, 0.4) !important;
     border-radius: 4px 30px 30px 30px !important;
@@ -326,7 +326,7 @@
     100% { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(255, 215, 0, 0.2), 0 10px 25px rgba(255, 255, 255, 1); }
 }
 
-#tts-container[data-user="to_be_ang"] .tts-icon {
+#tts-container[data-style="angel"] .tts-icon {
     font-size: 0 !important; 
     filter: none !important;
     width: 24px !important;
@@ -343,7 +343,7 @@
     100% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 25px 8px #FFD700, inset 0 0 15px #FFD700; }
 }
 
-#tts-container[data-user="to_be_ang"] .tts-title {
+#tts-container[data-style="angel"] .tts-title {
     font-family: 'Cormorant Garamond', serif !important;
     color: rgba(184, 134, 11, 0.6) !important;
     font-size: 14px !important;
@@ -351,9 +351,9 @@
     text-transform: capitalize !important;
     letter-spacing: 1px !important;
 }
-#tts-container[data-user="to_be_ang"] .tts-title::before { content: 'Глас: '; }
+#tts-container[data-style="angel"] .tts-title::before { content: 'Глас: '; }
 
-#tts-container[data-user="to_be_ang"] .tts-user {
+#tts-container[data-style="angel"] .tts-user {
     font-family: 'Cormorant Garamond', serif !important;
     background: linear-gradient(90deg, #D4AF37, #FFD700, #B8860B) !important;
     -webkit-background-clip: text !important;
@@ -363,13 +363,13 @@
     text-transform: capitalize !important;
 }
 
-#tts-container[data-user="to_be_ang"] .tts-bar {
+#tts-container[data-style="angel"] .tts-bar {
     background: linear-gradient(to top, rgba(255, 215, 0, 0.2), #FFD700) !important;
     border-radius: 10px !important;
     width: 4px !important;
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.3) !important;
 }
-#tts-container[data-user="to_be_ang"] .tts-bar.active-spike {
+#tts-container[data-style="angel"] .tts-bar.active-spike {
     background: linear-gradient(to top, rgba(255, 255, 255, 0.5), #fff) !important;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 10px #FFD700 !important;
 }

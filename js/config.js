@@ -4,9 +4,23 @@ window.AppConfig = {
     allowedUsers: ["bagercaa", "to_be_ang", "treebals"], 
     
     // ==========================================
+    // КАСТОМНЫЕ СТИЛИ ПОЛЬЗОВАТЕЛЕЙ (UI Баблы)
+    // Ключ: никнейм (маленькими буквами). Значение: ID стиля (используется в CSS).
+    // ==========================================
+    customChatStyles: {
+        "ksusha__sher": "neon_owner",
+        "bagercaa": "hollow_knight",
+        "kiriika1": "minecraft",
+        "kiriika11": "minecraft",
+        "to_be_ang": "angel",
+        "dragonsmaddison": "bendy",
+        "darkl1us": "tactical",
+        "tetlabot": "terminal",
+        "treebals": "terminal"
+    },
+
+    // ==========================================
     // СЛОВАРЬ ЗАПРЕТОК (Twitch TOS)
-    // Достаточно указать "корни" слов. Умный фильтр сам найдет их, 
-    // даже если напишут "п и д 0 р", "н.е_г-р", "x 0 x 0 л" и т.д.
     // ==========================================
     forbiddenWords: [
         "негр", "nigg", "нигг", "нигер",
@@ -40,7 +54,6 @@ window.AppConfig = {
 
     // ==========================================
     // НАГРАДЫ ЗА БАЛЛЫ КАНАЛА
-    // Впиши точные названия наград с Twitch
     // ==========================================
     rewards: {
         series: "Сериал", movie: "Фильм", video: "Видео", game: "Игры", music: "Музыка"
@@ -62,13 +75,13 @@ window.AppConfig = {
     // ВИДЖЕТЫ (Питомец, Эмодзи, Музыка, Чат)
     // ==========================================
     petEnabled: true,
-    petSleepTimeout: 120, // Секунды до сна в тишине
+    petSleepTimeout: 120,
 
     emotesEnabled: true,      
     emotesMaxPerMessage: 150, 
-    emotesMode: "bubble", // "bubble" или "fountain"    
+    emotesMode: "bubble",    
 
-    defaultVolume: 30, // Громкость плеера YouTube при старте
+    defaultVolume: 30,
     
     chatMsgLifetime: 15000,
     maxChatMessages: 12,
@@ -104,31 +117,21 @@ window.AppConfig = {
     ],
     
     tickerInterval: 60000, 
-    tickerSpeed: 120, // Скорость прокрутки (пикселей в секунду)
+    tickerSpeed: 120,
     
-    // Собранный микс сообщений
     tickerMessages: [
-        // Из базы
         "<span class='t-highlight'>МУЗЫКА</span> Пиши !play [ссылка] чтобы заказать трек в очередь. Заставим лису танцевать!",
         "<span class='t-highlight'>ПРАВИЛА</span> Уважайте друг друга. Токсики и политика моментально отправляются в бан-лист.",
         "<span class='t-highlight'>TELEGRAM</span> Анонсы, мемы и лайф-контент ищи здесь: <span style='color: #fff;'>t.me/pizdeckakoi_to</span>",
-        
-        // Из Категории 1
         "<span class='t-highlight'>ОЗВУЧКА</span> В чате работает бот-диктор (TTS). Закажи озвучку своего сообщения за баллы.",
-        
-        // Из Категории 2
         "<span class='t-highlight'>СОВЕТ</span> Спойлеры к играм караются временным мутом (таймаутом). Дайте мне насладиться сюжетом!",
         "<span class='t-highlight'>УЮТ</span> Главное правило стрима: чай должен быть горячим, а чат — добрым.",
         "<span class='t-highlight'>VIP</span> Модераторы и VIP-зрители имеют уникальный дизайн сообщений на экране.",
-        
-        // Из Категории 3 (Все)
         "<span class='t-highlight'>VK</span> Группа ВКонтакте: <span style='color: #fff;'>vk.com/club236843653</span> — Подписывайся, чтобы не теряться!",
         "<span class='t-highlight'>TIKTOK</span> Клипы, фейлы и смешные моменты ищи в TikTok: <span style='color: #fff;'>@_ksusha_sher_</span>",
         "<span class='t-highlight'>ПОДДЕРЖКА</span> Оформив платную подписку, ты получаешь уникальный бейдж и мою безграничную любовь 💜",
         "<span class='t-highlight'>СТРИК</span> Приходи на стримы чаще! Смотри трансляции подряд, чтобы набить стрик зрителя.",
         "<span class='t-highlight'>ЦЕЛЬ</span> Помоги добить полоску фолловеров внизу экрана. Каждый новый зритель важен!",
-        
-        // Из Категории 4
         "<span class='t-highlight'>СИСТЕМА</span> Анализ уровня токсичности чата... Уровень в норме. Продолжаем трансляцию.",
         "<span class='t-highlight'>ВНИМАНИЕ</span> Стример может тупить, не замечать очевидного и забывать, куда идти. Это фича, а не баг.",
         "<span class='t-highlight'>ОПРОС</span> Что лучше: пицца или суши? Пиши свой ответ в чат прямо сейчас!",

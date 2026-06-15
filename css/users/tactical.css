@@ -1,12 +1,11 @@
 /* ==========================================================
-   КАСТОМНЫЙ СТИЛЬ: darkl1us (РЕМАСТЕР: Advanced Tactical HUD)
+   КАСТОМНЫЙ СТИЛЬ: tactical (РЕМАСТЕР: Advanced Tactical HUD)
    ========================================================== */
 
-/* Подключаем строгие шрифты: Chakra Petch (техника/интерфейс) и Rajdhani (текст) */
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 /* Внешние отступы */
-.chat-block[data-user="darkl1us"] {
+.chat-block[data-style="tactical"] {
     margin: 15px 0 15px 0; 
     z-index: 40; 
 }
@@ -14,7 +13,7 @@
 /* ==============================================
    БАЗОВЫЙ БАБЛ (ТАКТИЧЕСКИЙ ПЛАНШЕТ)
    ============================================== */
-.chat-block[data-user="darkl1us"] .chat-bubble {
+.chat-block[data-style="tactical"] .chat-bubble {
     /* Глубокий графитовый / кевларовый фон */
     background: #0d110f !important;
     
@@ -50,7 +49,7 @@
 }
 
 /* Декоративные скосы (Sci-Fi Cut Corners) с помощью псевдоэлементов */
-.chat-block[data-user="darkl1us"] .chat-bubble::before {
+.chat-block[data-style="tactical"] .chat-bubble::before {
     content: '';
     position: absolute;
     top: -1px; right: -1px;
@@ -60,7 +59,7 @@
     transform: translate(15px, -15px) rotate(45deg);
     z-index: 10;
 }
-.chat-block[data-user="darkl1us"] .chat-bubble::after {
+.chat-block[data-style="tactical"] .chat-bubble::after {
     content: '';
     position: absolute;
     bottom: -1px; right: 20px;
@@ -72,7 +71,7 @@
 /* ==============================================
    ШАПКА (ТЕЛЕМЕТРИЯ)
    ============================================== */
-.chat-block[data-user="darkl1us"] .chat-header {
+.chat-block[data-style="tactical"] .chat-header {
     border-bottom: 1px solid rgba(85, 139, 110, 0.2) !important; 
     padding-bottom: 10px !important;
     margin-bottom: 12px !important;
@@ -82,7 +81,7 @@
 }
 
 /* АВАТАРКА (КАМЕРА ДРОНА / ПНВ) */
-.chat-block[data-user="darkl1us"] .chat-avatar {
+.chat-block[data-style="tactical"] .chat-avatar {
     width: 38px !important; 
     height: 38px !important;
     border-radius: 0 !important; 
@@ -102,7 +101,7 @@
 }
 
 /* ИМЯ ПОЛЬЗОВАТЕЛЯ (ПОЗЫВНОЙ) */
-.chat-block[data-user="darkl1us"] .chat-user {
+.chat-block[data-style="tactical"] .chat-user {
     font-family: 'Chakra Petch', sans-serif !important;
     color: #ffffff !important; 
     font-size: 18px !important;
@@ -114,7 +113,7 @@
     margin-right: 12px !important;
 }
 
-.chat-block[data-user="darkl1us"] .chat-user::before {
+.chat-block[data-style="tactical"] .chat-user::before {
     content: 'OP:';
     color: #558b6e;
     font-weight: 500;
@@ -122,7 +121,7 @@
 }
 
 /* ПРАВЫЙ БЛОК (СВЯЗЬ) */
-.chat-block[data-user="darkl1us"] .chat-header-right {
+.chat-block[data-style="tactical"] .chat-header-right {
     margin-left: auto !important;
     display: flex !important;
     align-items: center !important;
@@ -130,7 +129,7 @@
 }
 
 /* СТАТУС СОЕДИНЕНИЯ */
-.chat-block[data-user="darkl1us"] .chat-header-right::before {
+.chat-block[data-style="tactical"] .chat-header-right::before {
     content: 'UPLINK SECURE';
     font-family: 'JetBrains Mono', monospace;
     color: #558b6e;
@@ -143,7 +142,7 @@
 }
 
 /* ВРЕМЯ (С МИГАЮЩЕЙ ТОЧКОЙ) */
-.chat-block[data-user="darkl1us"] .chat-time {
+.chat-block[data-style="tactical"] .chat-time {
     font-family: 'JetBrains Mono', monospace !important;
     color: #8c9e93 !important; 
     font-size: 11px !important;
@@ -151,7 +150,7 @@
     display: flex;
     align-items: center;
 }
-.chat-block[data-user="darkl1us"] .chat-time::after {
+.chat-block[data-style="tactical"] .chat-time::after {
     content: '';
     display: block;
     width: 6px; height: 6px;
@@ -167,7 +166,7 @@
 /* ==============================================
    ТЕКСТ СООБЩЕНИЯ (ЧИСТЫЙ И ЧИТАЕМЫЙ)
    ============================================== */
-.chat-block[data-user="darkl1us"] .chat-text {
+.chat-block[data-style="tactical"] .chat-text {
     font-family: 'Rajdhani', sans-serif !important;
     color: #d1dcd4 !important; /* Идеально читаемый светло-серо-зеленый */
     font-size: 18px !important;
@@ -191,7 +190,7 @@
 /* ----------------------------------------------
    1. ОТВЕТ (REPLY) - "Перехват радиосвязи"
    ---------------------------------------------- */
-.chat-block[data-user="darkl1us"] .chat-reply {
+.chat-block[data-style="tactical"] .chat-reply {
     background: rgba(85, 139, 110, 0.08) !important;
     border: 1px solid rgba(85, 139, 110, 0.2) !important;
     border-radius: 0 !important;
@@ -201,19 +200,19 @@
 }
 
 /* Убираем дефолтную боковую палку */
-.chat-block[data-user="darkl1us"] .chat-reply::before { display: none !important; }
-.chat-block[data-user="darkl1us"] .reply-icon { display: none !important; }
+.chat-block[data-style="tactical"] .chat-reply::before { display: none !important; }
+.chat-block[data-style="tactical"] .reply-icon { display: none !important; }
 
-.chat-block[data-user="darkl1us"] .chat-reply-user {
+.chat-block[data-style="tactical"] .chat-reply-user {
     color: #558b6e !important;
     font-family: 'JetBrains Mono', monospace !important;
     font-size: 10px !important;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-.chat-block[data-user="darkl1us"] .chat-reply-user::before { content: '>> RECV_FROM: '; opacity: 0.6; }
+.chat-block[data-style="tactical"] .chat-reply-user::before { content: '>> RECV_FROM: '; opacity: 0.6; }
 
-.chat-block[data-user="darkl1us"] .chat-reply-text {
+.chat-block[data-style="tactical"] .chat-reply-text {
     color: rgba(209, 220, 212, 0.7) !important;
     font-family: 'Rajdhani', sans-serif !important;
     font-size: 14px !important;
@@ -225,26 +224,26 @@
    2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "CRITICAL THREAT"
    ---------------------------------------------- */
 /* Боевой красный режим */
-.chat-block.is-highlighted[data-user="darkl1us"] .chat-bubble {
+.chat-block.is-highlighted[data-style="tactical"] .chat-bubble {
     border-color: #7a1f1f !important; 
     border-left-color: #d93838 !important; 
     background: linear-gradient(135deg, #1a0f0f 0%, #120a0a 100%) !important;
     box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(217, 56, 56, 0.1) !important;
 }
 
-.chat-block.is-highlighted[data-user="darkl1us"] .chat-bubble::after { background: #d93838; box-shadow: 0 0 8px rgba(217, 56, 56, 0.6); }
+.chat-block.is-highlighted[data-style="tactical"] .chat-bubble::after { background: #d93838; box-shadow: 0 0 8px rgba(217, 56, 56, 0.6); }
 
 /* Аватарка переключается на красный тепловизор */
-.chat-block.is-highlighted[data-user="darkl1us"] .chat-avatar {
+.chat-block.is-highlighted[data-style="tactical"] .chat-avatar {
     border-color: #d93838 !important;
     filter: grayscale(100%) sepia(100%) hue-rotate(330deg) saturate(300%) contrast(1.2) brightness(0.9) !important;
 }
 
-.chat-block.is-highlighted[data-user="darkl1us"] .chat-user::before { color: #d93838; }
-.chat-block.is-highlighted[data-user="darkl1us"] .chat-header { border-bottom-color: rgba(217, 56, 56, 0.3) !important; }
+.chat-block.is-highlighted[data-style="tactical"] .chat-user::before { color: #d93838; }
+.chat-block.is-highlighted[data-style="tactical"] .chat-header { border-bottom-color: rgba(217, 56, 56, 0.3) !important; }
 
 /* Бейдж тревоги */
-.chat-block.is-highlighted[data-user="darkl1us"] .chat-badge-highlight {
+.chat-block.is-highlighted[data-style="tactical"] .chat-badge-highlight {
     background: #d93838 !important;
     color: #fff !important;
     border-radius: 0 !important;
@@ -254,21 +253,21 @@
     font-size: 10px !important;
     padding: 2px 8px !important;
 }
-.chat-block.is-highlighted[data-user="darkl1us"] .badge-star { display: none !important; }
-.chat-block.is-highlighted[data-user="darkl1us"] .chat-badge-highlight::before { content: 'DEFCON 1 // THREAT DETECTED'; }
+.chat-block.is-highlighted[data-style="tactical"] .badge-star { display: none !important; }
+.chat-block.is-highlighted[data-style="tactical"] .chat-badge-highlight::before { content: 'DEFCON 1 // THREAT DETECTED'; }
 
 /* ----------------------------------------------
    3. ПИНГ СТРИМЕРА (MENTION) - "Target Acquired"
    ---------------------------------------------- */
 /* Оранжевая рамка справа (целеуказатель) */
-.chat-block.is-mention[data-user="darkl1us"] .chat-bubble {
+.chat-block.is-mention[data-style="tactical"] .chat-bubble {
     border-right: 4px solid #e67e22 !important;
 }
 
-.chat-block.is-mention[data-user="darkl1us"] .chat-ping-bell { display: none !important; }
+.chat-block.is-mention[data-style="tactical"] .chat-ping-bell { display: none !important; }
 
 /* Прицел снайпера (Рамки по краям текста) */
-.chat-block.is-mention[data-user="darkl1us"] .chat-ping {
+.chat-block.is-mention[data-style="tactical"] .chat-ping {
     background: rgba(230, 126, 34, 0.1) !important;
     color: #e67e22 !important;
     border: 1px solid rgba(230, 126, 34, 0.5) !important;
@@ -279,12 +278,12 @@
     font-size: 13px !important;
     box-shadow: none !important;
 }
-.chat-block.is-mention[data-user="darkl1us"] .chat-ping::before { content: 'TARGET: '; opacity: 0.6; }
+.chat-block.is-mention[data-style="tactical"] .chat-ping::before { content: 'TARGET: '; opacity: 0.6; }
 
 /* ----------------------------------------------
    4. ЦЕНЗУРА (МАТ) - "CLASSIFIED"
    ---------------------------------------------- */
-.chat-block[data-user="darkl1us"] .censured-badge {
+.chat-block[data-style="tactical"] .censured-badge {
     background: #111 !important;
     color: #fff !important;
     border-radius: 0 !important;
@@ -294,10 +293,10 @@
     letter-spacing: 1px !important;
     padding: 2px 6px !important;
 }
-.chat-block[data-user="darkl1us"] .censured-badge::before { content: 'REDACTED'; }
+.chat-block[data-style="tactical"] .censured-badge::before { content: 'REDACTED'; }
 
 /* Черный блок маркера, как в документах ФБР */
-.chat-block[data-user="darkl1us"] .censured-message {
+.chat-block[data-style="tactical"] .censured-message {
     background: #000000 !important;
     color: #333333 !important; /* Текст почти не видно */
     border: none !important;
@@ -310,13 +309,13 @@
     text-shadow: none !important;
     box-shadow: inset 0 0 0 1px #222 !important;
 }
-.chat-block[data-user="darkl1us"] .censured-message::before { content: '[ CLASSIFIED MATERIAL ]'; color: #888; font-weight: 400; margin-right: 8px; }
+.chat-block[data-style="tactical"] .censured-message::before { content: '[ CLASSIFIED MATERIAL ]'; color: #888; font-weight: 400; margin-right: 8px; }
 
 /* =========================================================================
    5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Военная рация (Comms Link)"
    ========================================================================= */
 
-#tts-container[data-user="darkl1us"] {
+#tts-container[data-style="tactical"] {
     background: #0d110f !important;
     background-image: 
         linear-gradient(rgba(85, 139, 110, 0.05) 1px, transparent 1px),
@@ -331,7 +330,7 @@
 }
 
 /* Радар (Заменяем эмодзи) */
-#tts-container[data-user="darkl1us"] .tts-icon {
+#tts-container[data-style="tactical"] .tts-icon {
     font-size: 0 !important;
     width: 28px !important; 
     height: 28px !important;
@@ -344,7 +343,7 @@
     filter: none !important;
 }
 
-#tts-container[data-user="darkl1us"] .tts-icon::after {
+#tts-container[data-style="tactical"] .tts-icon::after {
     content: ''; 
     position: absolute; 
     top: 50%; left: 50%; 
@@ -356,16 +355,16 @@
 @keyframes radarSweepFast { 100% { transform: rotate(360deg); } }
 
 /* Название ивента */
-#tts-container[data-user="darkl1us"] .tts-title {
+#tts-container[data-style="tactical"] .tts-title {
     font-family: 'JetBrains Mono', monospace !important;
     color: #558b6e !important;
     letter-spacing: 1px !important;
     font-size: 9px !important;
 }
-#tts-container[data-user="darkl1us"] .tts-title::before { content: 'COMMS_LINK // '; }
+#tts-container[data-style="tactical"] .tts-title::before { content: 'COMMS_LINK // '; }
 
 /* Имя пользователя */
-#tts-container[data-user="darkl1us"] .tts-user {
+#tts-container[data-style="tactical"] .tts-user {
     font-family: 'Chakra Petch', sans-serif !important;
     color: #ffffff !important;
     letter-spacing: 1px !important;
@@ -374,14 +373,14 @@
 }
 
 /* Осциллограф радиочастот */
-#tts-container[data-user="darkl1us"] .tts-bar {
+#tts-container[data-style="tactical"] .tts-bar {
     background: rgba(85, 139, 110, 0.3) !important;
     border-radius: 0 !important;
     width: 3px !important;
     margin-left: 2px !important;
     box-shadow: none !important;
 }
-#tts-container[data-user="darkl1us"] .tts-bar.active-spike {
+#tts-container[data-style="tactical"] .tts-bar.active-spike {
     background: #558b6e !important;
     box-shadow: 0 0 5px #558b6e !important;
 }

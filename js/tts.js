@@ -52,6 +52,12 @@ window.AppTTS = {
         // Устанавливаем юзера
         this.container.setAttribute('data-user', user.toLowerCase());
         
+        // НОВОЕ: Ищем стиль и вешаем его на контейнер
+        const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[user.toLowerCase()]) || null;
+        if (userStyle) {
+            this.container.setAttribute('data-style', userStyle);
+        }
+        
         // Сбрасываем классы ухода
         this.container.classList.remove('hidden', 'tts-out');
         
@@ -74,6 +80,7 @@ window.AppTTS = {
         setTimeout(() => {
             this.container.classList.add('hidden');
             this.container.removeAttribute('data-user');
+            this.container.removeAttribute('data-style'); // Очищаем стиль
         }, 500);
     }
 };

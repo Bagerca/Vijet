@@ -1,21 +1,19 @@
 /* ==========================================================
-   КАСТОМНЫЙ СТИЛЬ: kiriika1 (РЕМАСТЕР: Minecraft Grass Block)
+   КАСТОМНЫЙ СТИЛЬ: minecraft (РЕМАСТЕР: Minecraft Grass Block)
    ========================================================== */
 
 /* Подключаем идеальный пиксельный шрифт */
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap');
 
 /* Внешние отступы (обнулены боковые) */
-.chat-block[data-user="kiriika1"], 
-.chat-block[data-user="kiriika11"] {
+.chat-block[data-style="minecraft"] {
     margin: 15px 0 15px 0; 
 }
 
 /* ==============================================
    БЛОК ЗЕМЛИ (DIRT) И ГЕОМЕТРИЯ
    ============================================== */
-.chat-block[data-user="kiriika1"] .chat-bubble,
-.chat-block[data-user="kiriika11"] .chat-bubble {
+.chat-block[data-style="minecraft"] .chat-bubble {
     /* Базовый цвет земли */
     background-color: #744d32 !important;
     
@@ -52,8 +50,7 @@
 /* ==============================================
    ТРАВА (СВИСАЮЩИЕ ПИКСЕЛИ)
    ============================================== */
-.chat-block[data-user="kiriika1"] .chat-bubble::before,
-.chat-block[data-user="kiriika11"] .chat-bubble::before {
+.chat-block[data-style="minecraft"] .chat-bubble::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
@@ -72,8 +69,7 @@
 /* ==============================================
    ШАПКА (ВЕРХНИЙ СЛОЙ)
    ============================================== */
-.chat-block[data-user="kiriika1"] .chat-header,
-.chat-block[data-user="kiriika11"] .chat-header {
+.chat-block[data-style="minecraft"] .chat-header {
     border-bottom: none !important;
     margin-bottom: 12px;
     position: relative;
@@ -82,8 +78,7 @@
 }
 
 /* АВАТАРКА (Стилизована под "Рамку" / Item Frame) */
-.chat-block[data-user="kiriika1"] .chat-avatar,
-.chat-block[data-user="kiriika11"] .chat-avatar {
+.chat-block[data-style="minecraft"] .chat-avatar {
     width: 36px !important;
     height: 36px !important;
     border-radius: 0 !important;
@@ -105,8 +100,7 @@
    ============================================== */
 
 /* ИМЯ ПОЛЬЗОВАТЕЛЯ */
-.chat-block[data-user="kiriika1"] .chat-user,
-.chat-block[data-user="kiriika11"] .chat-user {
+.chat-block[data-style="minecraft"] .chat-user {
     font-family: 'Pixelify Sans', sans-serif !important;
     color: #FFAA00 !important; /* Цвет золота из Майна */
     font-size: 22px !important;
@@ -116,13 +110,8 @@
 }
 
 /* ВРЕМЯ */
-.chat-block[data-user="kiriika1"] .chat-header-right,
-.chat-block[data-user="kiriika11"] .chat-header-right {
-    margin-left: auto;
-}
-
-.chat-block[data-user="kiriika1"] .chat-time,
-.chat-block[data-user="kiriika11"] .chat-time {
+.chat-block[data-style="minecraft"] .chat-header-right { margin-left: auto; }
+.chat-block[data-style="minecraft"] .chat-time {
     font-family: 'Pixelify Sans', sans-serif !important;
     color: #AAAAAA !important; /* Светло-серый, как камень */
     text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
@@ -130,8 +119,7 @@
 }
 
 /* ТЕКСТ СООБЩЕНИЯ */
-.chat-block[data-user="kiriika1"] .chat-text,
-.chat-block[data-user="kiriika11"] .chat-text {
+.chat-block[data-style="minecraft"] .chat-text {
     font-family: 'Pixelify Sans', sans-serif !important;
     color: #FFFFFF !important;
     font-size: 20px !important;
@@ -150,8 +138,7 @@
 /* ----------------------------------------------
    1. ОТВЕТ (REPLY) - "Дубовая Табличка (Oak Sign)"
    ---------------------------------------------- */
-.chat-block[data-user="kiriika1"] .chat-reply,
-.chat-block[data-user="kiriika11"] .chat-reply {
+.chat-block[data-style="minecraft"] .chat-reply {
     background: #b8945f !important; /* Цвет дубовых досок */
     border: 3px solid #5e4225 !important; /* Темная рамка дерева */
     border-radius: 0 !important;
@@ -163,23 +150,17 @@
 }
 
 /* Убиваем розовую полоску и иконку стрелки */
-.chat-block[data-user="kiriika1"] .chat-reply::before,
-.chat-block[data-user="kiriika11"] .chat-reply::before,
-.chat-block[data-user="kiriika1"] .reply-icon,
-.chat-block[data-user="kiriika11"] .reply-icon { 
-    display: none !important; 
-}
+.chat-block[data-style="minecraft"] .chat-reply::before,
+.chat-block[data-style="minecraft"] .reply-icon { display: none !important; }
 
 /* Имя и текст на табличке черные, как в игре */
-.chat-block[data-user="kiriika1"] .chat-reply-user,
-.chat-block[data-user="kiriika11"] .chat-reply-user {
+.chat-block[data-style="minecraft"] .chat-reply-user {
     color: #000000 !important;
     font-family: 'Pixelify Sans', sans-serif !important;
     font-size: 14px !important;
     text-shadow: none !important;
 }
-.chat-block[data-user="kiriika1"] .chat-reply-text,
-.chat-block[data-user="kiriika11"] .chat-reply-text {
+.chat-block[data-style="minecraft"] .chat-reply-text {
     color: #222222 !important;
     font-family: 'Pixelify Sans', sans-serif !important;
     font-size: 14px !important;
@@ -190,20 +171,17 @@
    2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "Зачарованный Алмазный Блок"
    ---------------------------------------------- */
 /* Меняем рамку на алмазную */
-.chat-block.is-highlighted[data-user="kiriika1"] .chat-bubble,
-.chat-block.is-highlighted[data-user="kiriika11"] .chat-bubble {
+.chat-block.is-highlighted[data-style="minecraft"] .chat-bubble {
     border-color: #55FFFF !important; /* Diamond Blue */
 }
 
 /* Аватарка тоже алмазная */
-.chat-block.is-highlighted[data-user="kiriika1"] .chat-avatar,
-.chat-block.is-highlighted[data-user="kiriika11"] .chat-avatar {
+.chat-block.is-highlighted[data-style="minecraft"] .chat-avatar {
     border-color: #55FFFF !important;
 }
 
 /* Эффект Зачарования (Переливающийся фиолетовый блик) */
-.chat-block.is-highlighted[data-user="kiriika1"] .chat-bubble::after,
-.chat-block.is-highlighted[data-user="kiriika11"] .chat-bubble::after {
+.chat-block.is-highlighted[data-style="minecraft"] .chat-bubble::after {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -221,8 +199,7 @@
 }
 
 /* Бейдж в стиле меню Майнкрафта */
-.chat-block.is-highlighted[data-user="kiriika1"] .chat-badge-highlight,
-.chat-block.is-highlighted[data-user="kiriika11"] .chat-badge-highlight {
+.chat-block.is-highlighted[data-style="minecraft"] .chat-badge-highlight {
     background: #55FFFF !important;
     color: #000000 !important;
     border: 2px solid #00AAAA !important;
@@ -231,26 +208,21 @@
     font-size: 12px !important;
     box-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important;
 }
-.chat-block.is-highlighted[data-user="kiriika1"] .badge-star,
-.chat-block.is-highlighted[data-user="kiriika11"] .badge-star { display: none !important; }
-.chat-block.is-highlighted[data-user="kiriika1"] .chat-badge-highlight::before,
-.chat-block.is-highlighted[data-user="kiriika11"] .chat-badge-highlight::before { content: 'ENCHANTED'; font-weight: bold; }
+.chat-block.is-highlighted[data-style="minecraft"] .badge-star { display: none !important; }
+.chat-block.is-highlighted[data-style="minecraft"] .chat-badge-highlight::before { content: 'ENCHANTED'; font-weight: bold; }
 
 /* ----------------------------------------------
    3. ПИНГ СТРИМЕРА (MENTION) - "Редстоун Сигнал"
    ---------------------------------------------- */
-.chat-block.is-mention[data-user="kiriika1"] .chat-bubble,
-.chat-block.is-mention[data-user="kiriika11"] .chat-bubble {
+.chat-block.is-mention[data-style="minecraft"] .chat-bubble {
     border-right: 6px solid #FF5555 !important; /* Цвет редстоуна */
     box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5), inset -10px 0 20px rgba(255, 85, 85, 0.3) !important;
 }
 
-.chat-block.is-mention[data-user="kiriika1"] .chat-ping-bell,
-.chat-block.is-mention[data-user="kiriika11"] .chat-ping-bell { display: none !important; }
+.chat-block.is-mention[data-style="minecraft"] .chat-ping-bell { display: none !important; }
 
 /* Пинг как кнопка из игры */
-.chat-block.is-mention[data-user="kiriika1"] .chat-ping,
-.chat-block.is-mention[data-user="kiriika11"] .chat-ping {
+.chat-block.is-mention[data-style="minecraft"] .chat-ping {
     background: #FF5555 !important;
     color: #FFFFFF !important;
     font-family: 'Pixelify Sans', sans-serif !important;
@@ -270,8 +242,7 @@
 /* ----------------------------------------------
    4. ЦЕНЗУРА (МАТ) - "Missing Texture (Отсутствующая текстура)"
    ---------------------------------------------- */
-.chat-block[data-user="kiriika1"] .censured-badge,
-.chat-block[data-user="kiriika11"] .censured-badge {
+.chat-block[data-style="minecraft"] .censured-badge {
     background: #F72DF8 !important; /* Маджента */
     color: #FFFFFF !important;
     border: 2px solid #000000 !important;
@@ -280,11 +251,9 @@
     box-shadow: 2px 2px 0 rgba(0,0,0,0.8) !important;
     text-shadow: 2px 2px 0 #000 !important;
 }
-.chat-block[data-user="kiriika1"] .censured-badge::before,
-.chat-block[data-user="kiriika11"] .censured-badge::before { content: 'ERROR'; }
+.chat-block[data-style="minecraft"] .censured-badge::before { content: 'ERROR'; }
 
-.chat-block[data-user="kiriika1"] .censured-message,
-.chat-block[data-user="kiriika11"] .censured-message {
+.chat-block[data-style="minecraft"] .censured-message {
     /* Легендарная шахматная доска из сломанных текстур GMod / Minecraft */
     background: repeating-conic-gradient(#F72DF8 0% 25%, #000000 0% 50%) 50% / 16px 16px !important;
     border: 4px solid #000000 !important;
@@ -302,8 +271,7 @@
    5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Нотный Блок (Note Block)"
    ========================================================================= */
 
-#tts-container[data-user="kiriika1"],
-#tts-container[data-user="kiriika11"] {
+#tts-container[data-style="minecraft"] {
     background-color: #744d32 !important; /* Цвет грязи/дерева */
     border: 4px solid #3c2617 !important;
     border-radius: 0 !important;
@@ -313,13 +281,11 @@
 }
 
 /* Иконка Нотного блока */
-#tts-container[data-user="kiriika1"] .tts-icon,
-#tts-container[data-user="kiriika11"] .tts-icon {
+#tts-container[data-style="minecraft"] .tts-icon {
     font-size: 0 !important; 
     filter: none !important;
 }
-#tts-container[data-user="kiriika1"] .tts-icon::before,
-#tts-container[data-user="kiriika11"] .tts-icon::before {
+#tts-container[data-style="minecraft"] .tts-icon::before {
     content: '🎵'; /* Нота */
     font-size: 24px;
     text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
@@ -333,8 +299,7 @@
 }
 
 /* Название ивента */
-#tts-container[data-user="kiriika1"] .tts-title,
-#tts-container[data-user="kiriika11"] .tts-title {
+#tts-container[data-style="minecraft"] .tts-title {
     font-family: 'Pixelify Sans', sans-serif !important;
     color: #AAAAAA !important;
     font-size: 12px !important;
@@ -342,8 +307,7 @@
 }
 
 /* Имя пользователя */
-#tts-container[data-user="kiriika1"] .tts-user,
-#tts-container[data-user="kiriika11"] .tts-user {
+#tts-container[data-style="minecraft"] .tts-user {
     font-family: 'Pixelify Sans', sans-serif !important;
     color: #FFAA00 !important; /* Золотой */
     font-size: 18px !important;
@@ -351,16 +315,14 @@
 }
 
 /* Эквалайзер стилизован под XP BAR (Полоса опыта) */
-#tts-container[data-user="kiriika1"] .tts-bar,
-#tts-container[data-user="kiriika11"] .tts-bar {
+#tts-container[data-style="minecraft"] .tts-bar {
     background: #55FF55 !important; /* Ядовито-зеленый XP */
     border: 2px solid #00AA00 !important; /* Темная зеленая рамка */
     border-radius: 0 !important;
     width: 10px !important;
     box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8) !important;
 }
-#tts-container[data-user="kiriika1"] .tts-bar.active-spike,
-#tts-container[data-user="kiriika11"] .tts-bar.active-spike {
+#tts-container[data-style="minecraft"] .tts-bar.active-spike {
     background: #AAFFAA !important; /* Светлая вспышка */
     border-color: #55FF55 !important;
 }

@@ -1,11 +1,11 @@
 /* ==========================================================
-   КАСТОМНЫЙ СТИЛЬ: ksusha__sher (РЕМАСТЕР: Владелец Канала / Neon Premium)
+   КАСТОМНЫЙ СТИЛЬ: neon_owner (РЕМАСТЕР: Владелец Канала / Neon Premium)
    ========================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap');
 
 /* Внешние отступы (обнулены боковые) */
-.chat-block[data-user="ksusha__sher"] {
+.chat-block[data-style="neon_owner"] {
     margin: 20px 0 20px 0; 
     z-index: 50; 
 }
@@ -13,7 +13,7 @@
 /* ==============================================
    БАЗОВЫЙ БАБЛ (ТЕМНОЕ СТЕКЛО + ГРАДИЕНТНАЯ РАМКА)
    ============================================== */
-.chat-block[data-user="ksusha__sher"] .chat-bubble {
+.chat-block[data-style="neon_owner"] .chat-bubble {
     box-sizing: border-box !important;
     width: 100% !important;
     
@@ -43,7 +43,7 @@
 }
 
 /* ВНУТРЕННЕЕ СВЕЧЕНИЕ (Мягкие неоновые углы под стеклом) */
-.chat-block[data-user="ksusha__sher"] .chat-bubble::before {
+.chat-block[data-style="neon_owner"] .chat-bubble::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -60,7 +60,7 @@
 /* ==============================================
    ШАПКА (ИДЕАЛЬНОЕ ВЫРАВНИВАНИЕ)
    ============================================== */
-.chat-block[data-user="ksusha__sher"] .chat-header {
+.chat-block[data-style="neon_owner"] .chat-header {
     display: flex !important;
     align-items: center !important;
     border-bottom: 1px solid rgba(255,255,255,0.05) !important; 
@@ -71,7 +71,7 @@
 }
 
 /* АВАТАРКА */
-.chat-block[data-user="ksusha__sher"] .chat-avatar {
+.chat-block[data-style="neon_owner"] .chat-avatar {
     width: 38px !important; 
     height: 38px !important;
     border-radius: 10px !important;
@@ -88,7 +88,7 @@
 }
 
 /* ИМЯ ПОЛЬЗОВАТЕЛЯ */
-.chat-block[data-user="ksusha__sher"] .chat-user {
+.chat-block[data-style="neon_owner"] .chat-user {
     font-family: 'Outfit', sans-serif !important;
     font-size: 19px !important;
     font-weight: 800 !important;
@@ -105,7 +105,7 @@
 }
 
 /* ПРАВЫЙ БЛОК (ТОЛЬКО БЕЙДЖ, БЕЗ ВРЕМЕНИ) */
-.chat-block[data-user="ksusha__sher"] .chat-header-right {
+.chat-block[data-style="neon_owner"] .chat-header-right {
     margin-left: auto !important;
     display: flex !important;
     align-items: center !important;
@@ -113,7 +113,7 @@
 }
 
 /* БЕЙДЖ "OWNER" */
-.chat-block[data-user="ksusha__sher"] .chat-header-right::before {
+.chat-block[data-style="neon_owner"] .chat-header-right::before {
     content: 'OWNER';
     font-family: 'Outfit', sans-serif;
     background: #FF4477;
@@ -131,14 +131,14 @@
 }
 
 /* ПОЛНОСТЬЮ ВЫРЕЗАЕМ ВРЕМЯ ИМЕННО ИЗ ЭТОГО БАБЛА */
-.chat-block[data-user="ksusha__sher"] .chat-time {
+.chat-block[data-style="neon_owner"] .chat-time {
     display: none !important;
 }
 
 /* ==============================================
    ТЕКСТ СООБЩЕНИЯ
    ============================================== */
-.chat-block[data-user="ksusha__sher"] .chat-text {
+.chat-block[data-style="neon_owner"] .chat-text {
     font-family: 'Outfit', sans-serif !important;
     color: #ffffff !important;
     font-size: 16px !important;
@@ -172,7 +172,7 @@
 /* ----------------------------------------------
    1. ОТВЕТ (REPLY) - "Связанные данные (Linked Data)"
    ---------------------------------------------- */
-.chat-block[data-user="ksusha__sher"] .chat-reply {
+.chat-block[data-style="neon_owner"] .chat-reply {
     background: rgba(10, 5, 15, 0.6) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
     border-left: 3px solid #00FF7F !important; /* Неоново-зеленый коннект */
@@ -182,16 +182,16 @@
     backdrop-filter: blur(10px) !important;
 }
 
-.chat-block[data-user="ksusha__sher"] .chat-reply::before { display: none !important; }
+.chat-block[data-style="neon_owner"] .chat-reply::before { display: none !important; }
 
 /* Перекрашиваем стрелочку в зеленый неон */
-.chat-block[data-user="ksusha__sher"] .reply-icon { 
+.chat-block[data-style="neon_owner"] .reply-icon { 
     color: #00FF7F !important; 
     filter: drop-shadow(0 0 5px rgba(0, 255, 127, 0.6)) !important;
     opacity: 1 !important;
 }
 
-.chat-block[data-user="ksusha__sher"] .chat-reply-user {
+.chat-block[data-style="neon_owner"] .chat-reply-user {
     color: #00FF7F !important;
     font-family: 'Outfit', sans-serif !important;
     font-size: 12px !important;
@@ -199,7 +199,7 @@
     text-shadow: 0 0 8px rgba(0, 255, 127, 0.4) !important;
 }
 
-.chat-block[data-user="ksusha__sher"] .chat-reply-text {
+.chat-block[data-style="neon_owner"] .chat-reply-text {
     color: rgba(255, 255, 255, 0.6) !important;
     font-family: 'Outfit', sans-serif !important;
     font-size: 14px !important;
@@ -209,7 +209,7 @@
    2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "SYSTEM OVERRIDE"
    ---------------------------------------------- */
 /* Ускоряем вращение рамки и усиливаем свечение */
-.chat-block.is-highlighted[data-user="ksusha__sher"] .chat-bubble {
+.chat-block.is-highlighted[data-style="neon_owner"] .chat-bubble {
     animation: ownerNeonBorder 1.5s linear infinite !important; /* Быстрее! */
     box-shadow: 
         0 0 40px rgba(255, 68, 119, 0.3),
@@ -217,12 +217,12 @@
         0 15px 30px rgba(0, 0, 0, 0.8) !important;
 }
 
-.chat-block.is-highlighted[data-user="ksusha__sher"] .chat-text {
+.chat-block.is-highlighted[data-style="neon_owner"] .chat-text {
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Премиальный бейдж приоритета */
-.chat-block.is-highlighted[data-user="ksusha__sher"] .chat-badge-highlight {
+.chat-block.is-highlighted[data-style="neon_owner"] .chat-badge-highlight {
     background: linear-gradient(90deg, rgba(255, 68, 119, 0.2), rgba(0, 255, 127, 0.2)) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: #ffffff !important;
@@ -232,23 +232,23 @@
     box-shadow: 0 0 15px rgba(0, 255, 127, 0.2) !important;
     letter-spacing: 2px !important;
 }
-.chat-block.is-highlighted[data-user="ksusha__sher"] .badge-star { 
+.chat-block.is-highlighted[data-style="neon_owner"] .badge-star { 
     color: #00FF7F !important;
     filter: drop-shadow(0 0 5px #00FF7F) !important;
 }
-.chat-block.is-highlighted[data-user="ksusha__sher"] .chat-badge-highlight::before { content: 'PRIORITY'; font-weight: 900; }
+.chat-block.is-highlighted[data-style="neon_owner"] .chat-badge-highlight::before { content: 'PRIORITY'; font-weight: 900; }
 
 /* ----------------------------------------------
    3. ПИНГ СТРИМЕРА (MENTION) - "Direct Comms"
    ---------------------------------------------- */
-.chat-block.is-mention[data-user="ksusha__sher"] .chat-bubble {
+.chat-block.is-mention[data-style="neon_owner"] .chat-bubble {
     border-right: 4px solid #FF4477 !important;
 }
 
-.chat-block.is-mention[data-user="ksusha__sher"] .chat-ping-bell { display: none !important; }
+.chat-block.is-mention[data-style="neon_owner"] .chat-ping-bell { display: none !important; }
 
 /* Неоновая светящаяся таблетка */
-.chat-block.is-mention[data-user="ksusha__sher"] .chat-ping {
+.chat-block.is-mention[data-style="neon_owner"] .chat-ping {
     background: linear-gradient(90deg, #FF4477, #FF0050) !important;
     color: #ffffff !important;
     font-family: 'Outfit', sans-serif !important;
@@ -263,7 +263,7 @@
 /* ----------------------------------------------
    4. ЦЕНЗУРА (МАТ) - "ACCESS DENIED / ЗАСЕКРЕЧЕНО"
    ---------------------------------------------- */
-.chat-block[data-user="ksusha__sher"] .censured-badge {
+.chat-block[data-style="neon_owner"] .censured-badge {
     background: #000000 !important;
     color: #FF4477 !important;
     border: 1px solid #FF4477 !important;
@@ -272,9 +272,9 @@
     border-radius: 4px !important;
     box-shadow: 0 0 10px rgba(255, 68, 119, 0.3) !important;
 }
-.chat-block[data-user="ksusha__sher"] .censured-badge::before { content: 'RESTRICTED'; }
+.chat-block[data-style="neon_owner"] .censured-badge::before { content: 'RESTRICTED'; }
 
-.chat-block[data-user="ksusha__sher"] .censured-message {
+.chat-block[data-style="neon_owner"] .censured-message {
     background: repeating-linear-gradient(
         -45deg,
         rgba(10, 5, 15, 0.9),
@@ -291,14 +291,14 @@
     letter-spacing: 4px !important;
     box-shadow: inset 0 0 20px rgba(0,0,0,0.8) !important;
 }
-.chat-block[data-user="ksusha__sher"] .censured-message::before { content: '[ ИНФОРМАЦИЯ ЗАСЕКРЕЧЕНА ]'; color: #FF4477; text-shadow: 0 0 8px rgba(255, 68, 119, 0.5); }
+.chat-block[data-style="neon_owner"] .censured-message::before { content: '[ ИНФОРМАЦИЯ ЗАСЕКРЕЧЕНА ]'; color: #FF4477; text-shadow: 0 0 8px rgba(255, 68, 119, 0.5); }
 
 /* =========================================================================
    5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Holo-Voice Module"
    ========================================================================= */
 
 /* Контейнер повторяет дизайн главного бабла (стекло + градиент) */
-#tts-container[data-user="ksusha__sher"] {
+#tts-container[data-style="neon_owner"] {
     background-image: 
         linear-gradient(135deg, rgba(20, 15, 25, 0.95), rgba(10, 5, 15, 0.98)),
         linear-gradient(60deg, #FF4477, #00FF7F, #FF4477, #FF0050) !important;
@@ -321,7 +321,7 @@
 }
 
 /* Голографическое неоновое кольцо вместо микрофона */
-#tts-container[data-user="ksusha__sher"] .tts-icon {
+#tts-container[data-style="neon_owner"] .tts-icon {
     font-size: 0 !important; 
     filter: none !important;
     width: 20px !important;
@@ -340,16 +340,16 @@
 }
 
 /* Название ивента */
-#tts-container[data-user="ksusha__sher"] .tts-title {
+#tts-container[data-style="neon_owner"] .tts-title {
     font-family: 'Outfit', sans-serif !important;
     color: rgba(255, 255, 255, 0.4) !important;
     font-size: 10px !important;
     letter-spacing: 2px !important;
 }
-#tts-container[data-user="ksusha__sher"] .tts-title::before { content: 'SYSTEM.AUDIO // '; }
+#tts-container[data-style="neon_owner"] .tts-title::before { content: 'SYSTEM.AUDIO // '; }
 
 /* Имя пользователя (Фирменный градиент Владельца) */
-#tts-container[data-user="ksusha__sher"] .tts-user {
+#tts-container[data-style="neon_owner"] .tts-user {
     font-family: 'Outfit', sans-serif !important;
     background: linear-gradient(90deg, #FF4477 0%, #00FF7F 100%) !important;
     -webkit-background-clip: text !important;
@@ -361,13 +361,13 @@
 }
 
 /* Эквалайзер (Градиентные неоновые столбцы) */
-#tts-container[data-user="ksusha__sher"] .tts-bar {
+#tts-container[data-style="neon_owner"] .tts-bar {
     background: linear-gradient(to top, rgba(255, 68, 119, 0.4), #FF4477) !important;
     border-radius: 4px !important;
     width: 5px !important;
     box-shadow: 0 0 8px rgba(255, 68, 119, 0.3) !important;
 }
-#tts-container[data-user="ksusha__sher"] .tts-bar.active-spike {
+#tts-container[data-style="neon_owner"] .tts-bar.active-spike {
     background: linear-gradient(to top, #00FF7F, #fff) !important; /* На пике становится зеленым/белым */
     box-shadow: 0 0 15px rgba(0, 255, 127, 0.8), 0 0 5px #fff !important;
 }

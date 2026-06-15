@@ -92,8 +92,15 @@
         const myStyles = [
             "css/base.css", "css/blur.css", "css/pet.css", "css/tts.css", "css/emotes.css",
             "css/chat.css", 
-            "css/users/bagercaa.css", "css/users/kiriika1.css", "css/users/to_be_ang.css", 
-            "css/users/dragonsmaddison.css", "css/users/tetlabot.css", "css/users/ksusha__sher.css", "css/users/darkl1us.css", 
+            /* ОБНОВЛЕННЫЕ ИМЕНА ФАЙЛОВ КАСТОМОК */
+            "css/users/hollow_knight.css", 
+            "css/users/minecraft.css", 
+            "css/users/angel.css", 
+            "css/users/bendy.css", 
+            "css/users/terminal.css", 
+            "css/users/neon_owner.css", 
+            "css/users/tactical.css", 
+            
             "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
             "css/mediainfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
@@ -244,7 +251,6 @@
                 if (!loader) {
                     loader = document.createElement('div');
                     loader.id = 'uso-core-loader';
-                    // Темная плашка справа внизу (в том же углу, что и общий рефреш)
                     loader.style.cssText = `
                         position: fixed; bottom: 40px; right: 40px; z-index: 999999;
                         display: flex; align-items: center; gap: 12px; padding: 12px 24px;
@@ -272,7 +278,6 @@
                     loader.style.transform = "translateY(0) scale(1)";
                 });
                 
-                // Защита: если ядро почему-то не вернулось, скрываем лоадер через 5 секунд
                 clearTimeout(coreLoaderTimeout);
                 coreLoaderTimeout = setTimeout(() => triggerCoreRefreshUI('done'), 5000);
                 
@@ -287,12 +292,10 @@
             }
         };
 
-        // Подписываемся на события
         window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => triggerRefreshUI());
         window.AppEvents.listen('CORE_REBOOT_START', () => triggerCoreRefreshUI('start'));
         window.AppEvents.listen('CORE_REBOOT_DONE', () => triggerCoreRefreshUI('done'));
 
-        // --- УПРАВЛЕНИЕ СКРЫТИЕМ ВИДЖЕТОВ ЧЕРЕЗ КОМАНДУ (!widget [name] on/off) ---
         window.AppEvents.listen('WIDGET_TOGGLE', (data) => {
             const elId = widgetMap[data.widget];
             if (elId) {
@@ -308,7 +311,6 @@
             }
         });
 
-        // --- УПРАВЛЕНИЕ ГЛОБАЛЬНЫМИ ТЕМАМИ ---
         const applyTheme = (themeName) => {
             document.body.classList.remove('theme-circus'); 
             document.body.classList.remove('theme-noir'); 

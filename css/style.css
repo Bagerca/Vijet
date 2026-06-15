@@ -12,13 +12,15 @@
 @import url('emotes.css');
 
 @import url('chat.css');
-@import url('users/bagercaa.css');
-@import url('users/kiriika1.css');
-@import url('users/to_be_ang.css');
-@import url('users/dragonsmaddison.css');
-@import url('users/darkl1us.css');
-@import url('users/tetlabot.css');
-@import url('users/ksusha__sher.css');
+
+/* ОБНОВЛЕННЫЕ КАСТОМКИ */
+@import url('users/hollow_knight.css');
+@import url('users/minecraft.css');
+@import url('users/angel.css');
+@import url('users/bendy.css');
+@import url('users/tactical.css');
+@import url('users/terminal.css');
+@import url('users/neon_owner.css');
 
 @import url('webcam.css');
 @import url('youtube.css');
@@ -36,4 +38,6 @@
 @import url('ending.css');
 
 /* Модификаторы (Режимы OBS и сцен). Должны загружаться ПОСЛЕДНИМИ! */
+@import url('theme-circus.css');
+@import url('theme-noir.css');
 @import url('modes.css');

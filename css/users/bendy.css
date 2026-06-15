@@ -1,12 +1,12 @@
 /* ==========================================================
-   КАСТОМНЫЙ СТИЛЬ: dragonsmaddison (РЕМАСТЕР: Bendy / Joey Drew Studios)
+   КАСТОМНЫЙ СТИЛЬ: bendy (РЕМАСТЕР: Bendy / Joey Drew Studios)
    ========================================================== */
 
 /* Подключаем винтажные шрифты: Постерный для ника и печатную машинку для текста */
 @import url('https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&display=swap');
 
 /* Внешние отступы (обнулены боковые) */
-.chat-block[data-user="dragonsmaddison"] {
+.chat-block[data-style="bendy"] {
     margin: 15px 0 20px 0; 
     z-index: 30;
 }
@@ -14,7 +14,7 @@
 /* ==============================================
    БАЗОВЫЙ БАБЛ (СТАРАЯ БУМАГА, ЧЕРНИЛА, ПЛЕНКА)
    ============================================== */
-.chat-block[data-user="dragonsmaddison"] .chat-bubble {
+.chat-block[data-style="bendy"] .chat-bubble {
     /* Фон старой бумаги: радиальный градиент от светлой сепии к темной */
     background: radial-gradient(circle at center, #dfca96 0%, #b89c5f 100%) !important;
     
@@ -42,7 +42,7 @@
    ЧЕРНИЛЬНЫЕ ПЯТНА И ШУМ КИНОПЛЕНКИ
    ============================================== */
 /* Чернильные подтеки в углах */
-.chat-block[data-user="dragonsmaddison"] .chat-bubble::before {
+.chat-block[data-style="bendy"] .chat-bubble::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -55,7 +55,7 @@
 }
 
 /* Эффект шума старой пленки / пыли (накладывается поверх) */
-.chat-block[data-user="dragonsmaddison"] .chat-bubble::after {
+.chat-block[data-style="bendy"] .chat-bubble::after {
     content: '';
     position: absolute;
     top: -50%; left: -50%; right: -50%; bottom: -50%;
@@ -68,7 +68,7 @@
 /* ==============================================
    ШАПКА (СТАТУС-БАР) И АВАТАРКА
    ============================================== */
-.chat-block[data-user="dragonsmaddison"] .chat-header {
+.chat-block[data-style="bendy"] .chat-header {
     /* Разделитель в виде пунктирной линии (как перфорация пленки) */
     border-bottom: 2px dashed rgba(19, 16, 12, 0.4) !important;
     padding-bottom: 8px;
@@ -79,7 +79,7 @@
 }
 
 /* АВАТАРКА (Стиль: Кадр из мультика 30-х) */
-.chat-block[data-user="dragonsmaddison"] .chat-avatar {
+.chat-block[data-style="bendy"] .chat-avatar {
     width: 38px !important;
     height: 38px !important;
     
@@ -96,7 +96,7 @@
 }
 
 /* ИМЯ ПОЛЬЗОВАТЕЛЯ (Винтажный постер) */
-.chat-block[data-user="dragonsmaddison"] .chat-user {
+.chat-block[data-style="bendy"] .chat-user {
     font-family: 'Rye', serif !important;
     color: #13100c !important;
     font-size: 22px !important;
@@ -108,8 +108,8 @@
 }
 
 /* ВРЕМЯ */
-.chat-block[data-user="dragonsmaddison"] .chat-header-right { margin-left: auto; }
-.chat-block[data-user="dragonsmaddison"] .chat-time {
+.chat-block[data-style="bendy"] .chat-header-right { margin-left: auto; }
+.chat-block[data-style="bendy"] .chat-time {
     font-family: 'Special Elite', monospace !important;
     color: #4a3e2e !important;
     font-size: 14px !important;
@@ -119,7 +119,7 @@
 /* ==============================================
    ТЕКСТ СООБЩЕНИЯ (ПЕЧАТНАЯ МАШИНКА)
    ============================================== */
-.chat-block[data-user="dragonsmaddison"] .chat-text {
+.chat-block[data-style="bendy"] .chat-text {
     font-family: 'Special Elite', monospace !important;
     color: #13100c !important; /* Цвет густых чернил */
     font-size: 17px !important; /* Чуть крупнее для читаемости */
@@ -156,7 +156,7 @@
 /* ----------------------------------------------
    1. ОТВЕТ (REPLY) - "Сценарий / Заметка"
    ---------------------------------------------- */
-.chat-block[data-user="dragonsmaddison"] .chat-reply {
+.chat-block[data-style="bendy"] .chat-reply {
     background: #eadebc !important; /* Чуть светлее сепия, как свежая бумажка */
     border: 1px solid #13100c !important;
     border-radius: 2px !important;
@@ -169,11 +169,11 @@
 }
 
 /* Убираем дефолтную боковую палку */
-.chat-block[data-user="dragonsmaddison"] .chat-reply::before { display: none !important; }
+.chat-block[data-style="bendy"] .chat-reply::before { display: none !important; }
 
 /* Кастомная иконка ответа (Винтажная стрелочка) */
-.chat-block[data-user="dragonsmaddison"] .reply-icon { display: none !important; }
-.chat-block[data-user="dragonsmaddison"] .chat-reply-user::before {
+.chat-block[data-style="bendy"] .reply-icon { display: none !important; }
+.chat-block[data-style="bendy"] .chat-reply-user::before {
     content: '↳ ';
     font-family: 'Special Elite', monospace;
     color: #13100c;
@@ -181,14 +181,14 @@
     font-weight: bold;
 }
 
-.chat-block[data-user="dragonsmaddison"] .chat-reply-user {
+.chat-block[data-style="bendy"] .chat-reply-user {
     color: #13100c !important;
     font-family: 'Rye', serif !important;
     font-size: 12px !important;
     letter-spacing: 1px;
 }
 
-.chat-block[data-user="dragonsmaddison"] .chat-reply-text {
+.chat-block[data-style="bendy"] .chat-reply-text {
     color: #4a3e2e !important;
     font-family: 'Special Elite', monospace !important;
     font-size: 14px !important;
@@ -199,7 +199,7 @@
    2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "Чернильный Демон (Ink Demon)"
    ---------------------------------------------- */
 /* Инверсия: бабл полностью затапливается чернилами */
-.chat-block.is-highlighted[data-user="dragonsmaddison"] .chat-bubble {
+.chat-block.is-highlighted[data-style="bendy"] .chat-bubble {
     background: radial-gradient(circle at center, #1a1612 0%, #0d0b09 100%) !important;
     border-color: #dfca96 !important;
     box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9), 6px 6px 0px rgba(0, 0, 0, 1) !important;
@@ -213,18 +213,18 @@
 }
 
 /* Текст и имена становятся золотыми/сепией на черном фоне */
-.chat-block.is-highlighted[data-user="dragonsmaddison"] .chat-text,
-.chat-block.is-highlighted[data-user="dragonsmaddison"] .chat-user,
-.chat-block.is-highlighted[data-user="dragonsmaddison"] .chat-time {
+.chat-block.is-highlighted[data-style="bendy"] .chat-text,
+.chat-block.is-highlighted[data-style="bendy"] .chat-user,
+.chat-block.is-highlighted[data-style="bendy"] .chat-time {
     color: #dfca96 !important;
 }
 
-.chat-block.is-highlighted[data-user="dragonsmaddison"] .chat-user {
+.chat-block.is-highlighted[data-style="bendy"] .chat-user {
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 1), 0 0 8px rgba(223, 202, 150, 0.5) !important;
 }
 
 /* Аватарка инвертируется (демон) */
-.chat-block.is-highlighted[data-user="dragonsmaddison"] .chat-avatar {
+.chat-block.is-highlighted[data-style="bendy"] .chat-avatar {
     border-color: #dfca96 !important;
     background: #13100c !important;
     filter: invert(100%) grayscale(100%) sepia(80%) hue-rotate(5deg) contrast(1.5) !important;
@@ -232,7 +232,7 @@
 }
 
 /* Бейдж: MASTERPIECE */
-.chat-block.is-highlighted[data-user="dragonsmaddison"] .chat-badge-highlight {
+.chat-block.is-highlighted[data-style="bendy"] .chat-badge-highlight {
     background: #dfca96 !important;
     color: #13100c !important;
     border: 2px solid #13100c !important;
@@ -243,21 +243,21 @@
     box-shadow: 2px 2px 0 #13100c !important;
     letter-spacing: 2px !important;
 }
-.chat-block.is-highlighted[data-user="dragonsmaddison"] .badge-star { display: none !important; }
-.chat-block.is-highlighted[data-user="dragonsmaddison"] .chat-badge-highlight::before { content: 'MASTERPIECE'; }
+.chat-block.is-highlighted[data-style="bendy"] .badge-star { display: none !important; }
+.chat-block.is-highlighted[data-style="bendy"] .chat-badge-highlight::before { content: 'MASTERPIECE'; }
 
 /* ----------------------------------------------
    3. ПИНГ СТРИМЕРА (MENTION) - "Director's Call"
    ---------------------------------------------- */
 /* Красные старые чернила */
-.chat-block.is-mention[data-user="dragonsmaddison"] .chat-bubble {
+.chat-block.is-mention[data-style="bendy"] .chat-bubble {
     border-right: 6px solid #8a1c1c !important;
 }
 
-.chat-block.is-mention[data-user="dragonsmaddison"] .chat-ping-bell { display: none !important; }
+.chat-block.is-mention[data-style="bendy"] .chat-ping-bell { display: none !important; }
 
 /* Винтажный штамп "ВНИМАНИЕ" */
-.chat-block.is-mention[data-user="dragonsmaddison"] .chat-ping {
+.chat-block.is-mention[data-style="bendy"] .chat-ping {
     background: transparent !important;
     color: #8a1c1c !important;
     font-family: 'Rye', serif !important;
@@ -271,12 +271,12 @@
     display: inline-block;
     transform: rotate(-2deg);
 }
-.chat-block.is-mention[data-user="dragonsmaddison"] .chat-ping::before { content: '☞ '; font-family: sans-serif; }
+.chat-block.is-mention[data-style="bendy"] .chat-ping::before { content: '☞ '; font-family: sans-serif; }
 
 /* ----------------------------------------------
    4. ЦЕНЗУРА (МАТ) - "Брак / Вычеркнуто"
    ---------------------------------------------- */
-.chat-block[data-user="dragonsmaddison"] .censured-badge {
+.chat-block[data-style="bendy"] .censured-badge {
     background: #13100c !important;
     color: #dfca96 !important;
     border: 1px solid #13100c !important;
@@ -285,9 +285,9 @@
     font-size: 12px !important;
     font-weight: bold !important;
 }
-.chat-block[data-user="dragonsmaddison"] .censured-badge::before { content: 'SCRAPPED'; }
+.chat-block[data-style="bendy"] .censured-badge::before { content: 'SCRAPPED'; }
 
-.chat-block[data-user="dragonsmaddison"] .censured-message {
+.chat-block[data-style="bendy"] .censured-message {
     /* Грубая черная замазка (штрихи чернилами) */
     background: repeating-linear-gradient(45deg, #13100c, #13100c 5px, #dfca96 5px, #dfca96 10px) !important;
     border: 3px solid #13100c !important;
@@ -300,13 +300,13 @@
     padding: 10px !important;
     box-shadow: 4px 4px 0 rgba(0,0,0,0.8) !important;
 }
-.chat-block[data-user="dragonsmaddison"] .censured-message::before { content: 'CENSORED'; }
+.chat-block[data-style="bendy"] .censured-message::before { content: 'CENSORED'; }
 
 /* =========================================================================
    5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Старый Граммофон"
    ========================================================================= */
 
-#tts-container[data-user="dragonsmaddison"] {
+#tts-container[data-style="bendy"] {
     background: radial-gradient(circle at center, #dfca96 0%, #b89c5f 100%) !important;
     border: 3px solid #13100c !important;
     border-radius: 6px !important;
@@ -318,7 +318,7 @@
 }
 
 /* Иконка - Вращающаяся виниловая пластинка! */
-#tts-container[data-user="dragonsmaddison"] .tts-icon {
+#tts-container[data-style="bendy"] .tts-icon {
     font-size: 0 !important; 
     filter: none !important;
     width: 36px !important;
@@ -343,7 +343,7 @@
 }
 
 /* Золотой центр пластинки (Лейбл Joey Drew) */
-#tts-container[data-user="dragonsmaddison"] .tts-icon::after {
+#tts-container[data-style="bendy"] .tts-icon::after {
     content: '';
     position: absolute;
     top: 50%; left: 50%;
@@ -355,7 +355,7 @@
 }
 
 /* Дырочка по центру */
-#tts-container[data-user="dragonsmaddison"] .tts-icon::before {
+#tts-container[data-style="bendy"] .tts-icon::before {
     content: '';
     position: absolute;
     top: 50%; left: 50%;
@@ -371,17 +371,17 @@
 }
 
 /* Название ивента */
-#tts-container[data-user="dragonsmaddison"] .tts-title {
+#tts-container[data-style="bendy"] .tts-title {
     font-family: 'Special Elite', monospace !important;
     color: #4a3e2e !important;
     font-size: 11px !important;
     font-weight: bold !important;
     text-transform: uppercase;
 }
-#tts-container[data-user="dragonsmaddison"] .tts-title::before { content: 'AUDIO LOG: '; }
+#tts-container[data-style="bendy"] .tts-title::before { content: 'AUDIO LOG: '; }
 
 /* Имя пользователя */
-#tts-container[data-user="dragonsmaddison"] .tts-user {
+#tts-container[data-style="bendy"] .tts-user {
     font-family: 'Rye', serif !important;
     color: #13100c !important;
     font-size: 20px !important;
@@ -389,13 +389,13 @@
 }
 
 /* Эквалайзер (Винтажные латунные пластины / струны пианино) */
-#tts-container[data-user="dragonsmaddison"] .tts-bar {
+#tts-container[data-style="bendy"] .tts-bar {
     background: #13100c !important; /* Чернила */
     border-radius: 0 !important;
     width: 6px !important;
     box-shadow: 1px 1px 0 #dfca96 !important;
 }
-#tts-container[data-user="dragonsmaddison"] .tts-bar.active-spike {
+#tts-container[data-style="bendy"] .tts-bar.active-spike {
     background: #8a1c1c !important; /* На пике становится винтажно-красным */
     box-shadow: 2px 2px 0 #13100c !important;
 }
