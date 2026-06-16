@@ -9,7 +9,6 @@ const TwitchAPI = {
         ComfyJS.onConnected = () => { 
             window.UIBuilder.setLiveStatus('connected'); 
             window.ToastService.show("⚡ СВЯЗЬ УСТАНОВЛЕНА"); 
-            // ФИКС: При автозагрузке передаем false (синхронизация только локальная)
             setTimeout(() => window.SyncEngine.requestSync(false), 1500);
         };
         ComfyJS.onDisconnected = () => window.UIBuilder.setLiveStatus('error');
@@ -29,6 +28,7 @@ const TwitchAPI = {
         if (!commandStr) return;
         const client = ComfyJS.GetClient();
         
+        // НОВОЕ: Если передан customChannel, шлем сообщение в него (для локальных тестов)
         const targetChannel = customChannel || this.channel;
 
         if (client && client.readyState() === "OPEN") {

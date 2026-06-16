@@ -1,22 +1,29 @@
-/* ================= ОЧЕРЕДЬ МУЗЫКИ ================= */
+/* ================= ОЧЕРЕДЬ МУЗЫКИ (С ПОДДЕРЖКОЙ SAFE MODE) ================= */
 window.AppQueueCore = {
     items: [],
     isPlaying: false,
+    isAutoPlay: true, // По умолчанию автовоспроизведение включено
 
     init: function() {
         const saved = localStorage.getItem('uso_queue');
         if (saved) { try { this.items = JSON.parse(saved); } catch(e) { this.items = []; } }
 
         window.AppEvents.listen('QUEUE_ADD', d => this.add(d.url, d.user));
+        
         window.AppEvents.listen('QUEUE_CMD', d => {
             if (d.cmd === 'next') this.next();
             if (d.cmd === 'clear') this.clear();
+            if (d.cmd === 'autoplay_off') this.isAutoPlay = false;
+            if (d.cmd === 'autoplay_on') { 
+                this.isAutoPlay = true; 
+                if (!this.isPlaying && this.items.length > 0) this.next(); 
+            }
         });
 
         window.AppEvents.listen('YT_ENDED', () => this.next());
         
         window.AppEvents.listen('YT_CORE_READY', () => {
-            if (this.items.length > 0 && !this.isPlaying) {
+            if (this.items.length > 0 && !this.isPlaying && this.isAutoPlay) {
                 console.log("🔄 [QUEUE] Восстанавливаем треки из памяти...");
                 this.next();
             }
@@ -29,17 +36,14 @@ window.AppQueueCore = {
         if (!url) return null;
         let str = url.trim();
         
-        // Поиск плейлиста
         const listMatch = str.match(/[?&]list=([^#&?]+)/);
         if (listMatch) return { type: 'playlist', id: listMatch[1] };
         
-        // Поиск стандартного видео
         let cleanUrl = str.replace(/.*?http/, 'http');
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = cleanUrl.match(regExp);
         if (match && match[2].length === 11) return { type: 'video', id: match[2] };
         
-        // Если скинули просто 11-значный ID
         if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return { type: 'video', id: str };
         
         return null;
@@ -50,12 +54,17 @@ window.AppQueueCore = {
         const ytData = this.extractData(url);
         
         if (ytData) {
-            console.log(`✅ [QUEUE] Распознан формат: ${ytData.type}, ID: ${ytData.id}`);
             this.items.push({ type: ytData.type, id: ytData.id, user: user });
             this.save();
             window.AppEvents.emit('TICKER_MUSIC', { data: ytData, user: user });
             
-            if (!this.isPlaying) this.next();
+            // Если плеер свободен И включено автовоспроизведение -> играем сразу.
+            // Иначе трек просто ждет в очереди.
+            if (!this.isPlaying && this.isAutoPlay) {
+                this.next();
+            } else if (!this.isAutoPlay && !this.isPlaying) {
+                console.log("🛡️ [SAFE MODE] Трек добавлен в очередь, но автовоспроизведение отключено. Ждем команды модератора.");
+            }
         } else {
             console.error(`❌ [QUEUE] Ошибка: Не удалось распознать ссылку "${url}"`);
         }
@@ -63,6 +72,7 @@ window.AppQueueCore = {
 
     next: function() {
         if (this.items.length > 0) {
+            // Если очередь не пуста, мы берем трек даже при Safe Mode (потому что next вызывается вручную модером или по окончании трека)
             this.isPlaying = true;
             const nextItem = this.items.shift();
             this.save();
@@ -77,7 +87,6 @@ window.AppQueueCore = {
     },
 
     clear: function() {
-        console.log("🧹 [QUEUE] Очередь очищена!");
         this.items = [];
         this.save();
         this.next(); 
@@ -89,11 +98,7 @@ window.AppQueueCore = {
     },
 
     broadcastState: function() {
-        window.AppEvents.emit('QUEUE_STATE', { 
-            count: this.items.length, 
-            items: this.items 
-        });
-        // Сигнализируем ядру об изменении очереди для панели
+        window.AppEvents.emit('QUEUE_STATE', { count: this.items.length, items: this.items });
         if (window.AppCoreState) window.AppCoreState.broadcastFullState('local');
     }
 };

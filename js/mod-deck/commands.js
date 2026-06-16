@@ -6,7 +6,7 @@ const CommandRegistry = {
         const toggle = document.getElementById('toggle-test-chat');
         let targetChannel = null;
         
-        if (toggle && toggle.checked) {
+        if (toggle && !toggle.checked) {
             targetChannel = window.AuthManager.getCreds().user; 
         }
         
@@ -102,6 +102,12 @@ const CommandRegistry = {
             else if (wId === 'blur') CommandRegistry.send(`!blur ${state}`);
             else if (wId === 'deaths') CommandRegistry.send(`!death ${e.target.checked ? 'show' : 'hide'}`);
             else CommandRegistry.send(`!widget ${wId} ${state}`);
+        });
+
+        // Тумблер для Safe Mode
+        document.getElementById('toggle-safe-mode')?.addEventListener('change', (e) => {
+            const isSafe = e.target.checked;
+            CommandRegistry.send(`!queue autoplay ${isSafe ? 'off' : 'on'}`);
         });
 
         const vol = document.getElementById('input-vol');

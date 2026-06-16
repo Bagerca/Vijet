@@ -1,9 +1,10 @@
-/* ================= YOUTUBE CORE ПЛЕЕР ================= */
+/* ================= YOUTUBE CORE ПЛЕЕР (С УМНЫМ САЙДЧЕЙНОМ) ================= */
 window.AppPlayerCore = {
     yt: null,
     isReady: false,
     currentVol: window.AppConfig.defaultVolume,
-    isDucking: false, // Флаг сайдчейна (приглушения)
+    isDucking: false, 
+    restoreVolTimeout: null, // Таймер для умного возврата громкости (Debounce)
     progressInterval: null,
     currentItem: null,
     currentVisualId: null,
@@ -13,20 +14,32 @@ window.AppPlayerCore = {
         window.AppEvents.listen('YT_CORE_HIDE', () => this.hide());
         window.AppEvents.listen('PLAYER_VOL', d => this.setVolume(d.vol));
         
-        // === АУДИО САЙДЧЕЙН (Audio Ducking) ===
+        // === УМНЫЙ АУДИО САЙДЧЕЙН (Smart Audio Ducking) ===
         window.AppEvents.listen('AUDIO_DUCK_START', () => {
             this.isDucking = true;
+            // Если был запущен таймер возврата громкости - отменяем его
+            if (this.restoreVolTimeout) {
+                clearTimeout(this.restoreVolTimeout);
+                this.restoreVolTimeout = null;
+            }
+            
             if (this.isReady && this.yt) {
-                // Приглушаем до 15% от ТЕКУЩЕЙ громкости, минимум 1%
+                // Мягко приглушаем до 15% от текущей громкости
                 this.yt.setVolume(Math.max(1, this.currentVol * 0.15));
             }
         });
+
         window.AppEvents.listen('AUDIO_DUCK_STOP', () => {
-            this.isDucking = false;
-            if (this.isReady && this.yt) {
-                // Возвращаем исходную громкость
-                this.yt.setVolume(this.currentVol);
-            }
+            // Вместо мгновенного возврата, ждем 2 секунды. 
+            // Если за это время придет новый AUDIO_DUCK_START, таймер отменится.
+            if (this.restoreVolTimeout) clearTimeout(this.restoreVolTimeout);
+            
+            this.restoreVolTimeout = setTimeout(() => {
+                this.isDucking = false;
+                if (this.isReady && this.yt) {
+                    this.yt.setVolume(this.currentVol);
+                }
+            }, 2000); // 2000ms = 2 секунды тишины перед возвратом громкости
         });
 
         window.AppEvents.listen('QUEUE_CMD', d => {
@@ -120,7 +133,7 @@ window.AppPlayerCore = {
             this.currentVol = Math.max(0, Math.min(100, parseInt(vol) || window.AppConfig.defaultVolume));
             this.yt.unMute();
             
-            // Если сейчас идет сайдчейн (говорят алерты), сохраняем новую громкость, но не применяем её к плееру
+            // Защита: применяем громкость к плееру, только если сейчас нет сайдчейна
             if (!this.isDucking) {
                 this.yt.setVolume(this.currentVol);
             }
@@ -142,13 +155,11 @@ window.AppPlayerCore = {
             }
             
             this.startProgress();
-            // Отправляем базовое состояние танца в СТЕК питомца
             window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: true });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'playing' });
             
         } else if (event.data === 2) { // PAUSED
             this.stopProgress();
-            // Удаляем танец из стека
             window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: false });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'paused' });
             

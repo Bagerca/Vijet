@@ -44,6 +44,9 @@ const DeckState = {
     },
     updateDeaths: function(count) {
         if (window.UIBuilder) window.UIBuilder.syncDeaths(count);
+    },
+    updateQueueAutoPlay: function(isAutoPlay) {
+        if (window.UIBuilder) window.UIBuilder.syncSafeMode(isAutoPlay);
     }
 };
 

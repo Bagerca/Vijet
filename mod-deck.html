@@ -24,8 +24,8 @@
                 <input type="text" id="auth-channel" placeholder="Например: ksusha__sher">
             </div>
             <div class="input-group">
-                <label>Ваш Никнейм</label>
-                <input type="text" id="auth-user" placeholder="Например: mod_name">
+                <label>Ваш Никнейм (Бот/Модер)</label>
+                <input type="text" id="auth-user" placeholder="Например: my_bot_account">
             </div>
             <div class="input-group">
                 <label>Чат-токен (Bot Token)</label>
@@ -117,7 +117,7 @@
                             <span class="card-title">Мастер Виджетов</span>
                         </div>
                         <div class="widget-grid" id="widget-master-grid">
-                            <!-- Генерируется из UIBuilder -->
+                            <!-- Генерируется из JS -->
                         </div>
                     </section>
                 </div>
@@ -128,6 +128,15 @@
                         <div class="card-header">
                             <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></div>
                             <span class="card-title">Музыка и Озвучка</span>
+                        </div>
+
+                        <!-- Безопасный режим (Safe Mode) -->
+                        <div class="toggle-row mb-2">
+                            <span class="toggle-label text-green" style="display: flex; align-items: center; gap: 6px;" title="Если включено, треки добавляются в очередь, но не играют без подтверждения (кнопки PLAY / Скип)">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                Безопасный режим (Media Safe Mode)
+                            </span>
+                            <label class="switch"><input type="checkbox" id="toggle-safe-mode"><span class="slider"></span></label>
                         </div>
                         
                         <label class="input-label">Плеер YouTube:</label>
@@ -331,7 +340,6 @@
 
     <div id="toast" class="toast hidden">Успешно!</div>
     
-    <!-- Скрипты -->
     <script src="js/event-bus.js"></script>
     <script src="js/mod-deck/state.js"></script>
     <script src="js/mod-deck/ui.js"></script>

@@ -111,6 +111,11 @@ const UIBuilder = {
         }
     },
 
+    syncSafeMode: function(isAutoPlay) {
+        const el = document.getElementById('toggle-safe-mode');
+        if (el) el.checked = !isAutoPlay;
+    },
+
     renderQueue: function(items) {
         const container = document.getElementById('deck-queue-list');
         if (!container) return;
