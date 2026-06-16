@@ -92,5 +92,13 @@ window.GamesDatabase = {
     "lego batman": {
         title: "Лего Фильм: Бэтмен", cover: "img/covers/lego_batman.jpg", themeColor: "#FFE81F", type: "series",
         tags: ["Мультфильм", "Комедия"], details: { "Студия": "Warner Bros.", "Год": "2017" }
+    },
+    "tomodachi life": { 
+        title: "Tomodachi Life: Living the Dream", 
+        cover: "img/covers/tomodachi_life.png", 
+        themeColor: "#FF8C00", 
+        type: "game",
+        tags: ["Симулятор жизни", "Nintendo"], 
+        details: { "Разработчик": "Nintendo", "Год": "2026", "Платформа": "Nintendo Switch" }
     }
 };
