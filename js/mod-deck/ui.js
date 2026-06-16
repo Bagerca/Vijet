@@ -19,7 +19,6 @@ const ToastService = {
 };
 
 const UIBuilder = {
-    // ВЕРНУЛИ ВСЕ 12 ТУМБЛЕРОВ НА МЕСТО
     widgetsConfig: [
         { id: 'chat', label: 'Чат' }, { id: 'media', label: 'Сейчас играем' }, { id: 'goal', label: 'Цель фолловеров' }, { id: 'alerts', label: 'Алерты' },
         { id: 'socials', label: 'Соцсети' }, { id: 'ticker', label: 'Бегущая строка' }, { id: 'pet', label: 'Питомец (Лиса)' }, { id: 'emotes', label: 'Смайлы чата' },
@@ -160,7 +159,7 @@ const UIBuilder = {
 
             const chatList = document.getElementById('dynamic-chat-styles');
             if (chatList) {
-                let baseOptions = `<div class="optgroup">Обычный чат</div><div data-value="testfirst">Дефолт (Впервые)</div><div data-value="testhighlight">Дефолт (За баллы)</div><div data-value="testmention">Дефолт (Пинг)</div>`;
+                let baseOptions = `<div class="optgroup">Обычный чат</div><div data-value="testchat">Дефолт (Обычный)</div>`;
                 if (window.AppConfig && window.AppConfig.customChatStyles) {
                     baseOptions += `<div class="optgroup">Кастомные стили (VIP)</div>`;
                     for (const [login, styleId] of Object.entries(window.AppConfig.customChatStyles)) {

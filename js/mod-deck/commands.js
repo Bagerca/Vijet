@@ -2,12 +2,10 @@
 
 const CommandRegistry = {
     
-    // ГЛОБАЛЬНАЯ ОБЕРТКА ОТПРАВКИ: Автоматически проверяет тумблер для всех команд
     send: function(cmdString) {
         const toggle = document.getElementById('toggle-test-chat');
         let targetChannel = null;
         
-        // Если тумблер включен, отправляем команду в канал текущего авторизованного модератора
         if (toggle && toggle.checked) {
             targetChannel = window.AuthManager.getCreds().user; 
         }
@@ -63,8 +61,7 @@ const CommandRegistry = {
             const flags = Array.from(document.querySelectorAll('.mod-pill.active')).map(p => p.getAttribute('data-mod')).join(" ");
             
             let cmd = `!${bc}`; 
-            // Принудительно отключаем кастомный стиль для тестовых "базовых" баблов, чтобы они выглядели как задумано
-            if (bc === 'testfirst' || bc === 'testhighlight' || bc === 'testmention') {
+            if (bc === 'testchat') {
                 cmd += ` -defaultstyle`;
             }
             if (flags) cmd += ` ${flags}`; 
@@ -84,7 +81,6 @@ const CommandRegistry = {
         const attachClick = (selector) => {
             document.querySelector(selector).addEventListener('click', (e) => {
                 const btn = e.target.closest('.action-btn'); if (!btn) return;
-                // Анимация клика (кроме кнопки Sync)
                 if (!btn.classList.contains('btn-sync')) { 
                     btn.style.transform = 'scale(0.92)'; 
                     setTimeout(() => btn.style.transform = '', 150); 
@@ -97,7 +93,6 @@ const CommandRegistry = {
         attachClick('.header-right');
         attachClick('.system-status-bar');
 
-        // Обработка тумблеров
         document.addEventListener('change', (e) => {
             if (!e.target.classList.contains('widget-toggle')) return;
             const wId = e.target.getAttribute('data-widget');
@@ -109,7 +104,6 @@ const CommandRegistry = {
             else CommandRegistry.send(`!widget ${wId} ${state}`);
         });
 
-        // Обработка ползунка громкости
         const vol = document.getElementById('input-vol');
         if (vol) { 
             vol.addEventListener('input', (e) => { 
@@ -119,7 +113,6 @@ const CommandRegistry = {
             vol.addEventListener('change', (e) => CommandRegistry.send(`!vol ${e.target.value}`)); 
         }
 
-        // Обработка нажатия Enter в инпутах
         document.querySelectorAll('.smart-input input, .counter-input').forEach(i => { 
             i.addEventListener('keypress', (e) => { 
                 if (e.key === 'Enter') { 

@@ -27,12 +27,10 @@ window.AppChat = {
     renderMessage: function(data) {
         if (!this.templates.message) return;
 
-        // 1. Клонируем закэшированный шаблон
         const msgFragment = this.templates.message.content.cloneNode(true);
         const blockNode = msgFragment.querySelector('.chat-block');
         const metaNode = msgFragment.querySelector('.chat-meta');
 
-        // 2. Настраиваем переменные и Data-атрибуты (Стейт-менеджмент)
         blockNode.setAttribute('data-user', data.user.toLowerCase());
         if (data.styleName) blockNode.setAttribute('data-style', data.styleName);
         blockNode.style.setProperty('--user-color', data.color);
@@ -42,7 +40,6 @@ window.AppChat = {
         blockNode.setAttribute('data-first', data.isFirstTime ? 'true' : 'false');
         blockNode.setAttribute('data-role', data.role || 'viewer');
 
-        // 3. Значки Twitch (Бейджи)
         const badgesContainer = msgFragment.querySelector('.chat-badges');
         if (data.badges) {
             let bHtml = '';
@@ -57,16 +54,33 @@ window.AppChat = {
             badgesContainer.style.display = 'none';
         }
 
-        // 4. Быстрое заполнение контента
         msgFragment.querySelector('.chat-user').textContent = data.user;
         msgFragment.querySelector('.chat-user').style.color = data.color;
         msgFragment.querySelector('.chat-time').textContent = data.time;
         msgFragment.querySelector('.chat-avatar').src = data.avatarUrl;
         msgFragment.querySelector('.chat-text').innerHTML = data.htmlText;
 
-        // 5. Опциональные элементы
         let hasMeta = false;
 
+        // ФИКС МЕТЫ 1: Сначала собираем и добавляем БЕЙДЖИ
+        const badgesWrapper = document.createElement('div');
+        badgesWrapper.style.cssText = "display: flex; gap: 8px; flex-wrap: wrap; width: 100%;";
+        
+        if (data.isFirstTime) {
+            hasMeta = true;
+            badgesWrapper.appendChild(this.templates.badgeFirst.content.cloneNode(true));
+        }
+
+        if (data.isHighlighted) {
+            hasMeta = true;
+            badgesWrapper.appendChild(this.templates.badgeHigh.content.cloneNode(true));
+        }
+
+        if (badgesWrapper.childNodes.length > 0) {
+            metaNode.appendChild(badgesWrapper);
+        }
+
+        // ФИКС МЕТЫ 2: Затем добавляем РЕПЛАЙ (он будет аккуратно под бейджами)
         if (data.replyData) {
             hasMeta = true;
             const replyFrag = this.templates.reply.content.cloneNode(true);
@@ -76,26 +90,12 @@ window.AppChat = {
             metaNode.appendChild(replyFrag);
         }
 
-        if (data.isFirstTime) {
-            hasMeta = true;
-            metaNode.appendChild(this.templates.badgeFirst.content.cloneNode(true));
-        }
-
-        if (data.isHighlighted) {
-            hasMeta = true;
-            metaNode.appendChild(this.templates.badgeHigh.content.cloneNode(true));
-        }
-
         if (hasMeta) metaNode.style.display = 'flex';
 
-        // 6. Рендер в DOM
         this.container.appendChild(msgFragment);
         this.activeMessageCount++;
         const addedNode = this.container.lastElementChild;
 
-        // 7. Жизненный цикл (Локальный хук после рендера)
-        // ВАЖНО: Используем нативный CustomEvent вместо EventBus, 
-        // так как DOM-узлы нельзя клонировать и передавать в другие вкладки!
         window.dispatchEvent(new CustomEvent('CHAT_NODE_RENDERED', {
             detail: {
                 node: addedNode,
@@ -104,7 +104,6 @@ window.AppChat = {
             }
         }));
 
-        // 8. Очистка старых сообщений
         const maxMsgs = window.AppConfig.maxChatMessages || 12;
         if (this.activeMessageCount > maxMsgs) {
             const oldestMsg = this.container.querySelector('.chat-block:not(.chat-out)');
