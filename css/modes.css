@@ -143,3 +143,26 @@ body.scene-chatting .social-dot {
 body.scene-chatting .social-handle {
     font-size: 32px;
 }
+
+/* 5. Идеальное позиционирование TTS (Сцена Chatting) */
+body.scene-chatting #tts-container {
+    top: 100px;
+    /* Чат (680) + правый отступ (40) + зазор (20) = 740px. Выезжает слева от чата */
+    right: 740px; 
+    bottom: auto;
+    left: auto;
+    transform-origin: right center;
+}
+
+/* Меняем анимацию: на сцене чатинга виджет выезжает горизонтально прямо "из-под" чата */
+body.scene-chatting .tts-in { animation: ttsSlideFromChat 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+body.scene-chatting .tts-out { animation: ttsSlideToChat 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
+
+@keyframes ttsSlideFromChat { 
+    0% { opacity: 0; transform: translateX(60px) scale(0.9); } 
+    100% { opacity: 1; transform: translateX(0) scale(1); } 
+}
+@keyframes ttsSlideToChat { 
+    0% { opacity: 1; transform: translateX(0) scale(1); } 
+    100% { opacity: 0; transform: translateX(60px) scale(0.9); } 
+}

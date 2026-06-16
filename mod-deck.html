@@ -56,7 +56,21 @@
             <div class="system-status-bar">
                 <div class="status-pill" id="health-core"><span class="h-dot"></span> ЯДРО</div>
                 <div class="status-pill" id="health-visual"><span class="h-dot"></span> ВИЗУАЛ</div>
-                <button class="btn-icon btn-sync action-btn" data-action="force_sync" title="Принудительная синхронизация">🔄</button>
+                
+                <!-- Глобальный переключатель тестового чата (Песочница) -->
+                <div class="status-pill test-sandbox-pill" title="Включено (ЭФИР): команды идут на стрим. Выключено (ТЕСТ): отправка в личный канал бота для тестов без вывода на трансляцию.">
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-test-chat" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span id="sandbox-label">ЭФИР</span>
+                </div>
+
+                <button class="btn-icon btn-sync action-btn" data-action="force_sync" title="Принудительная синхронизация">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                </button>
             </div>
             <div id="twitch-video-container" class="twitch-video"></div>
             <div class="chat-header-mini">ЧАТ ТРАНСЛЯЦИИ</div>
@@ -273,14 +287,6 @@
                             <span class="card-title">Тесты и Диагностика</span>
                         </div>
                         
-                        <div class="toggle-row mb-2" style="border-color: rgba(255, 68, 119, 0.4);">
-                            <span class="toggle-label text-pink" style="display: flex; align-items: center; gap: 6px;">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                Отправлять тесты в МОЙ чат
-                            </span>
-                            <label class="switch switch-pink"><input type="checkbox" id="toggle-test-chat" checked><span class="slider"></span></label>
-                        </div>
-    
                         <label class="input-label">Эмуляция Алертов:</label>
                         <div class="smart-input">
                             <div class="custom-select" id="custom-test-alert" data-value="alert sub">
@@ -324,7 +330,8 @@
                             <div class="mod-pill" data-mod="-ping">Пинг</div>
                             <div class="mod-pill" data-mod="-first">Новичок</div>
                             <div class="mod-pill" data-mod="-tts">TTS</div>
-                            <div class="mod-pill" data-mod="запретка">Цензура</div>
+                            <div class="mod-pill" data-mod="Обычный текст и тут запретка">Цензура слова</div>
+                            <div class="mod-pill" data-mod="запретка">Цензура всего</div>
                         </div>
     
                         <label class="input-label mt-2">Текст сообщения:</label>

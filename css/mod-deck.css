@@ -64,14 +64,88 @@ body { background: var(--bg-main); color: var(--text); height: 100vh; overflow: 
 .channel-name { font-size: 13px; font-weight: 700; color: var(--text-muted); }
 
 /* Health Check Bar */
-.system-status-bar { display: flex; align-items: center; gap: 8px; padding: 0 20px 15px 20px; border-bottom: 1px solid var(--border); }
+.system-status-bar { display: flex; align-items: center; gap: 6px; padding: 0 20px 15px 20px; border-bottom: 1px solid var(--border); }
 .status-pill { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.03); padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; transition: 0.3s; border: 1px solid transparent; }
 .status-pill.status-ok { background: rgba(0, 255, 127, 0.1); color: var(--c-green); border-color: rgba(0, 255, 127, 0.2); }
 .status-pill.status-error { background: rgba(255, 68, 119, 0.1); color: var(--c-pink); border-color: rgba(255, 68, 119, 0.2); }
 .h-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); transition: 0.3s; }
 .status-pill.status-ok .h-dot { background: var(--c-green); box-shadow: 0 0 5px var(--c-green); }
 .status-pill.status-error .h-dot { background: var(--c-pink); box-shadow: 0 0 5px var(--c-pink); }
-.btn-sync { padding: 4px; height: auto; font-size: 12px; margin-left: auto; }
+
+/* Глобальный переключатель тестового чата (Песочница) */
+.status-pill.test-sandbox-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    background: rgba(255, 68, 119, 0.05);
+    border: 1px solid rgba(255, 68, 119, 0.2);
+    color: var(--c-pink);
+    margin-left: auto;
+}
+
+.status-pill.test-sandbox-pill .switch {
+    width: 30px;
+    height: 16px;
+}
+
+.status-pill.test-sandbox-pill .slider {
+    border-radius: 16px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 68, 119, 0.3);
+}
+
+.status-pill.test-sandbox-pill .slider:before {
+    height: 10px;
+    width: 10px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-muted);
+}
+
+.status-pill.test-sandbox-pill input:checked + .slider {
+    background-color: var(--c-pink);
+    border-color: var(--c-pink);
+    box-shadow: 0 0 8px var(--c-pink-glow);
+}
+
+.status-pill.test-sandbox-pill input:checked + .slider:before {
+    transform: translateX(14px);
+    background-color: #fff;
+}
+
+.status-pill.test-sandbox-pill span {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Обновленная кнопка синхронизации */
+.btn-sync {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.3s, transform 0.3s ease, background 0.3s;
+}
+.btn-sync:hover {
+    color: var(--c-green);
+    transform: rotate(180deg);
+    background: rgba(255, 255, 255, 0.05);
+}
+.btn-sync svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
 
 .twitch-video { width: 100%; aspect-ratio: 16/9; background: #000; border-bottom: 1px solid var(--border);}
 .chat-header-mini { padding: 10px 20px; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; background: var(--bg-card); border-bottom: 1px solid var(--border);}

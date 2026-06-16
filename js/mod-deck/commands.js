@@ -127,6 +127,14 @@ const CommandRegistry = {
                 } 
             }); 
         });
+
+        // Слушатель для изменения глобального тумблера Тест/Эфир
+        document.getElementById('toggle-test-chat')?.addEventListener('change', (e) => {
+            const label = document.getElementById('sandbox-label');
+            if (label) {
+                label.innerText = e.target.checked ? "ЭФИР" : "ТЕСТ";
+            }
+        });
     }
 };
 

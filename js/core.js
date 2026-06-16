@@ -1,4 +1,4 @@
-/* ================= CORE (ЯДРО СИСТЕМЫ) V2.0 ================= */
+/* ================= CORE (ЯДРО СИСТЕМЫ) V2.1 (FIXED REWARDS) ================= */
 
 // --- 1. СИСТЕМА ЛОГИРОВАНИЯ ---
 window.AppLogger = {
@@ -7,7 +7,6 @@ window.AppLogger = {
     warn: (msg, data = '') => console.warn(`%c[CORE ⚠️] ${msg}`, 'color: #FEE101;', data),
     error: (msg, err = '') => {
         console.error(`%c[CORE ❌] ${msg}`, 'color: #FF0050;', err);
-        // Транслируем ошибку, чтобы Mod Deck мог показать её в Toast
         if (window.AppEvents) window.AppEvents.emit('CORE_ERROR', { msg, err: err?.message || err });
     }
 };
@@ -27,7 +26,6 @@ window.AppCoreState = {
     volume: window.AppConfig.defaultVolume || 30,
     deathsCount: parseInt(localStorage.getItem('uso_deaths') || '0', 10),
 
-    // Единый метод для обновления стейта и автоматической рассылки
     update: function(updates) {
         let changed = false;
         for (const [key, value] of Object.entries(updates)) {
@@ -68,8 +66,6 @@ window.AppCommands = {
     registry: {},
     cooldowns: {},
 
-    // Регистрация новой команды
-    // aliases: ['play', 'sr'], reqPerm: true/false, cd: время в мс, handler: функция
     register: function(aliases, requiresPermission, cooldownMs, handler) {
         aliases.forEach(alias => {
             this.registry[alias.toLowerCase()] = { requiresPermission, cooldownMs, handler };
@@ -103,7 +99,6 @@ window.AppCommands = {
         return true;
     }
 };
-
 
 // --- 4. ОСНОВНОЕ ЯДРО ---
 window.AppCore = {
@@ -218,11 +213,9 @@ window.AppCore = {
         });
     },
 
-    // --- РЕГИСТРАЦИЯ ВСЕХ КОМАНД ---
     registerAllCommands: function() {
         const c = window.AppCommands;
 
-        // Системные
         c.register(['uso_sync_req'], true, 0, () => AppCoreState.broadcastFullState('remote'));
         
         c.register(['refresh'], true, 0, (user, arg, argLow) => {
@@ -253,7 +246,6 @@ window.AppCore = {
             }
         });
 
-        // Управление виджетами
         c.register(['widget', 'виджет'], true, 0, (user, arg, argLow) => {
             let parts = argLow.split(' '); 
             if (parts.length >= 2) window.AppEvents.emit('WIDGET_TOGGLE', { widget: parts[0], state: parts[1] });
@@ -263,7 +255,6 @@ window.AppCore = {
         c.register(['cam'], true, 0, (u, a, argLow) => window.AppEvents.emit('MEDIA_CAM', { state: argLow }));
         c.register(['mic'], true, 0, (u, a, argLow) => window.AppEvents.emit('MEDIA_MIC', { state: argLow }));
 
-        // Оформление
         c.register(['протокол', 'protocol'], true, 0, (user, arg, argLow) => {
             if (argLow === "цирк" || argLow === "circus") { window.AppEvents.emit('THEME_CHANGE', { theme: 'circus' }); window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 5000 }); } 
             else if (argLow === "нуар" || argLow === "noir") { window.AppEvents.emit('THEME_CHANGE', { theme: 'noir' }); window.AppEvents.emit('PET_EMOTION', { emotion: 'listen', duration: 5000 }); } 
@@ -291,13 +282,11 @@ window.AppCore = {
             if (arg !== "" && AppCoreState.widgets.shoutout) window.AppEvents.emit('SHOUTOUT_ADD', { user: arg });
         });
 
-        // Медиа плеер
         c.register(['play', 'sr'], false, 0, (user, arg) => { if (arg !== "") window.AppEvents.emit('QUEUE_ADD', { user, url: arg }); });
         c.register(['skip'], true, 0, (u, a, argLow) => window.AppEvents.emit('QUEUE_CMD', { cmd: argLow === "all" ? 'skip_all' : 'skip_track' }));
         c.register(['clear'], true, 0, () => window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' }));
         c.register(['vol'], true, 0, (u, arg) => { if (arg !== "") window.AppEvents.emit('PLAYER_VOL', { vol: arg }); });
 
-        // TTS
         c.register(['tts'], true, 0, (user, arg, argLow) => {
             if (arg !== "") {
                 if (argLow === "stop" || argLow === "skip") window.AppEvents.emit('TTS_CMD', { stop: true }); 
@@ -305,7 +294,6 @@ window.AppCore = {
             }
         });
 
-        // Питомец и Эмоции
         c.register(['emotes', 'смайлы'], true, 0, (u, a, argLow) => window.AppEvents.emit('EMOTES_CMD', { cmd: argLow }));
         c.register(['fox', 'лиса', 'лис'], true, 0, (u, a, argLow) => {
             const states = ['idle', 'sleep', 'alert', 'hype', 'love', 'scared', 'angry', 'greet', 'bye', 'jam', 'listen', 'nom'];
@@ -316,7 +304,6 @@ window.AppCore = {
             else if (argLow === "танцуй" || argLow === "вайб") window.AppEvents.emit('PET_EMOTION', { emotion: 'jam', duration: 5000 });
         });
 
-        // Смерти
         c.register(['death', 'deaths', 'смерть'], true, 0, (u, a, argLow) => {
             if (!["off", "hide", "-", "sub", "reset", "clear"].includes(argLow) && !argLow.startsWith("set")) {
                 window.AppEvents.emit('PET_EMOTION', { emotion: 'scared', duration: 3000 });
@@ -324,7 +311,6 @@ window.AppCore = {
             window.AppEvents.emit('DEATHS_CMD', { cmd: argLow });
         });
 
-        // Колесо
         c.register(['wheel', 'рулетка'], true, 0, (u, arg, argLow) => {
             if (argLow === "show" || argLow === "on") window.AppEvents.emit('WHEEL_TOGGLE', { state: true });
             else if (argLow === "hide" || argLow === "off") window.AppEvents.emit('WHEEL_TOGGLE', { state: false });
@@ -334,7 +320,6 @@ window.AppCore = {
             else if (argLow.startsWith("remove ")) window.AppEvents.emit('WHEEL_CMD', { cmd: 'remove', val: arg.substring(7) });
         });
 
-        // Тесты
         c.register(['alert'], true, 0, (u, a, argLow) => {
             if (AppCoreState.widgets.alerts) { 
                 window.AppEvents.emit('PET_EMOTION', { emotion: 'love', duration: 5000 }); 
@@ -371,6 +356,47 @@ window.AppCore = {
         });
     },
 
+    // --- ОБРАБОТЧИКИ НАГРАД (ВЫНЕСЕНО В ОТДЕЛЬНУЮ ФУНКЦИЮ) ---
+    handleRewardById: function(user, rewardId, message) {
+        AppLogger.info(`🎁 Обработка награды от ${user}: ${rewardId} | Текст: ${message}`);
+        
+        window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
+
+        const cfg = window.AppConfig;
+
+        if (rewardId === cfg.wheelRewardId) { 
+            window.AppEvents.emit('WHEEL_ADD', { text: message }); 
+            window.AppEvents.emit('WHEEL_TOGGLE', { state: true }); 
+            window.AppEvents.emit('TICKER_REWARD', { user, reward: "Рулетка", message });
+        }
+        else if (rewardId === cfg.ttsRewardId && AppCoreState.widgets.tts) {
+            window.AppEvents.emit('TTS_ADD', { user, text: message });
+            window.AppEvents.emit('TICKER_REWARD', { user, reward: "Озвучка", message });
+        }
+        else if (rewardId === cfg.queueRewardId) {
+            window.AppEvents.emit('QUEUE_ADD', { user, url: message });
+        }
+        else if (rewardId === cfg.feedRewardId) {
+            window.AppEvents.emit('PET_EMOTION', { emotion: 'nom', duration: 6000 });
+            window.AppEvents.emit('TICKER_REWARD', { user, reward: "Покормил лису", message });
+        }
+        else if (cfg.rewards && AppCoreState.widgets.alerts) {
+            let matchedCategory = null;
+            let type = null;
+
+            if (rewardId === cfg.rewards.series) { type = 'reward_series'; matchedCategory = "Сериал"; }
+            else if (rewardId === cfg.rewards.movie) { type = 'reward_movie'; matchedCategory = "Фильм"; }
+            else if (rewardId === cfg.rewards.video) { type = 'reward_video'; matchedCategory = "Видео"; }
+            else if (rewardId === cfg.rewards.game) { type = 'reward_game'; matchedCategory = "Игра"; }
+            else if (rewardId === cfg.rewards.music) { type = 'reward_music'; matchedCategory = "Музыка"; }
+
+            if (type) {
+                window.AppEvents.emit('ALERT_ADD', { user, type: type, msg: message });
+                window.AppEvents.emit('TICKER_REWARD', { user, reward: matchedCategory, message });
+            }
+        }
+    },
+
     // --- ОБРАБОТЧИКИ TWITCH СОБЫТИЙ ---
     setupEvents: function() {
         ComfyJS.onCommand = async (user, command, message, flags, extra) => {
@@ -378,6 +404,10 @@ window.AppCore = {
         };
 
         ComfyJS.onChat = async (user, message, flags, self, extra) => {
+            if (extra.customRewardId) {
+                this.handleRewardById(user, extra.customRewardId, message);
+            }
+
             const userColor = extra.userColor || '#FF4477'; 
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             const lowerUser = user.toLowerCase();
@@ -440,25 +470,6 @@ window.AppCore = {
                 replyData, isFirstTime, isHighlighted, isMention,
                 styleName: userStyle, role: role, badges: extra.userBadges
             });
-        };
-
-        ComfyJS.onReward = (user, reward, cost, message, extra) => {
-            window.AppEvents.emit('TICKER_REWARD', { user, reward, message });
-            window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
-
-            if (reward === window.AppConfig.wheelRewardName) { window.AppEvents.emit('WHEEL_ADD', { text: message }); window.AppEvents.emit('WHEEL_TOGGLE', { state: true }); }
-            if (reward === window.AppConfig.ttsRewardName && AppCoreState.widgets.tts) window.AppEvents.emit('TTS_ADD', { user, text: message });
-            if (reward === window.AppConfig.rewardName) window.AppEvents.emit('QUEUE_ADD', { user, url: message });
-            if (reward === window.AppConfig.feedRewardName) window.AppEvents.emit('PET_EMOTION', { emotion: 'nom', duration: 6000 });
-
-            const rewards = window.AppConfig.rewards;
-            if (rewards && AppCoreState.widgets.alerts) {
-                if (reward === rewards.series) window.AppEvents.emit('ALERT_ADD', { user, type: 'reward_series', msg: message });
-                else if (reward === rewards.movie) window.AppEvents.emit('ALERT_ADD', { user, type: 'reward_movie', msg: message });
-                else if (reward === rewards.video) window.AppEvents.emit('ALERT_ADD', { user, type: 'reward_video', msg: message });
-                else if (reward === rewards.game) window.AppEvents.emit('ALERT_ADD', { user, type: 'reward_game', msg: message });
-                else if (reward === rewards.music) window.AppEvents.emit('ALERT_ADD', { user, type: 'reward_music', msg: message });
-            }
         };
 
         const triggerLove = () => window.AppEvents.emit('PET_EMOTION', { emotion: 'love', duration: 5000 });

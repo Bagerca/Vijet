@@ -87,7 +87,7 @@ const SyncEngine = {
         if (window.AppEvents) {
             window.AppEvents.emit('SYSTEM_STATE_REQUEST'); // Локальный запрос
         }
-        TwitchAPI.send('!uso_sync_req'); // Запрос через чат для удаленных модеров
+        CommandRegistry.send('!uso_sync_req'); // Запрос с учетом глобальной маршрутизации
     },
 
     ping: function(system) {
@@ -262,59 +262,70 @@ const UIBuilder = {
 
 /* ================= COMMAND PATTERN (ROUTER) ================= */
 const CommandRegistry = {
+    send: function(cmdString) {
+        const toggle = document.getElementById('toggle-test-chat');
+        let targetChannel = null;
+        
+        if (toggle && !toggle.checked) {
+            targetChannel = AuthManager.getCreds().user; 
+        }
+        
+        TwitchAPI.send(cmdString, targetChannel);
+    },
+
     commands: {
         // Управление Эфиром
-        'refresh_visual': () => TwitchAPI.send('!refresh'),
-        'refresh_core': () => TwitchAPI.send('!refresh core'),
-        'set_death': () => { const v = UIBuilder.getVal('input-death-val'); if(v!=="") { TwitchAPI.send(`!death set ${v}`); UIBuilder.clear('input-death-val'); } },
-        'add_death': () => TwitchAPI.send('!death'),
-        'sub_death': () => TwitchAPI.send('!death sub'),
+        'refresh_visual': () => CommandRegistry.send('!refresh'),
+        'refresh_core': () => CommandRegistry.send('!refresh core'),
+        'set_death': () => { const v = UIBuilder.getVal('input-death-val'); if(v!=="") { CommandRegistry.send(`!death set ${v}`); UIBuilder.clear('input-death-val'); } },
+        'add_death': () => CommandRegistry.send('!death'),
+        'sub_death': () => CommandRegistry.send('!death sub'),
         'force_sync': () => { SyncEngine.requestSync(); ToastService.show("Запрос отправлен"); },
         
         // Музыка
-        'play': () => { const v = UIBuilder.getVal('input-play'); if(v) { TwitchAPI.send(`!play ${v}`); UIBuilder.clear('input-play'); } },
-        'skip_track': () => TwitchAPI.send('!skip'),
-        'skip_all': () => TwitchAPI.send('!skip all'),
-        'clear_queue': () => TwitchAPI.send('!clear'),
-        'tts': () => { const v = UIBuilder.getVal('input-tts'); if(v) { TwitchAPI.send(`!tts ${v}`); UIBuilder.clear('input-tts'); } },
-        'tts_stop': () => TwitchAPI.send('!tts stop'),
+        'play': () => { const v = UIBuilder.getVal('input-play'); if(v) { CommandRegistry.send(`!play ${v}`); UIBuilder.clear('input-play'); } },
+        'skip_track': () => CommandRegistry.send('!skip'),
+        'skip_all': () => CommandRegistry.send('!skip all'),
+        'clear_queue': () => CommandRegistry.send('!clear'),
+        'tts': () => { const v = UIBuilder.getVal('input-tts'); if(v) { CommandRegistry.send(`!tts ${v}`); UIBuilder.clear('input-tts'); } },
+        'tts_stop': () => CommandRegistry.send('!tts stop'),
         
         // Интерактив (Лиса и Эмоции)
-        'fox_sleep': () => TwitchAPI.send('!fox sleep'),
-        'fox_scared': () => TwitchAPI.send('!fox scared'),
-        'fox_angry': () => TwitchAPI.send('!fox angry'),
-        'fox_love': () => TwitchAPI.send('!fox love'),
-        'fox_jam': () => TwitchAPI.send('!fox jam'),
-        'fox_nom': () => TwitchAPI.send('!fox nom'),
-        'emotes_bubble': () => TwitchAPI.send('!emotes a'),
-        'emotes_fountain': () => TwitchAPI.send('!emotes b'),
-        'spawn_emotes': () => TwitchAPI.send(`Kappa LUL PogChamp Kreygasm ${Math.floor(Math.random() * 1000)}`),
+        'fox_sleep': () => CommandRegistry.send('!fox sleep'),
+        'fox_scared': () => CommandRegistry.send('!fox scared'),
+        'fox_angry': () => CommandRegistry.send('!fox angry'),
+        'fox_love': () => CommandRegistry.send('!fox love'),
+        'fox_jam': () => CommandRegistry.send('!fox jam'),
+        'fox_nom': () => CommandRegistry.send('!fox nom'),
+        'emotes_bubble': () => CommandRegistry.send('!emotes a'),
+        'emotes_fountain': () => CommandRegistry.send('!emotes b'),
+        'spawn_emotes': () => CommandRegistry.send(`Kappa LUL PogChamp Kreygasm ${Math.floor(Math.random() * 1000)}`),
         
         // Рулетка
-        'wheel_show': () => TwitchAPI.send('!wheel show'),
-        'wheel_hide': () => TwitchAPI.send('!wheel hide'),
-        'wheel_clear': () => TwitchAPI.send('!wheel clear'),
-        'wheel_spin': () => TwitchAPI.send('!wheel spin'),
-        'add_wheel_custom': () => { const v = UIBuilder.getVal('input-wheel'); if(v) { TwitchAPI.send(`!wheel add ${v}`); UIBuilder.clear('input-wheel'); } },
-        'add_wheel_db': () => { const v = UIBuilder.getSel('custom-wheel-db'); if(v && window.GamesDatabase[v]) { TwitchAPI.send(`!wheel add ${window.GamesDatabase[v].title}`); } },
+        'wheel_show': () => CommandRegistry.send('!wheel show'),
+        'wheel_hide': () => CommandRegistry.send('!wheel hide'),
+        'wheel_clear': () => CommandRegistry.send('!wheel clear'),
+        'wheel_spin': () => CommandRegistry.send('!wheel spin'),
+        'add_wheel_custom': () => { const v = UIBuilder.getVal('input-wheel'); if(v) { CommandRegistry.send(`!wheel add ${v}`); UIBuilder.clear('input-wheel'); } },
+        'add_wheel_db': () => { const v = UIBuilder.getSel('custom-wheel-db'); if(v && window.GamesDatabase[v]) { CommandRegistry.send(`!wheel add ${window.GamesDatabase[v].title}`); } },
         
         // Оформление
-        'send_ticker': () => { const v = UIBuilder.getVal('input-live-ticker'); if(v) { TwitchAPI.send(`!testticker ${v}`); UIBuilder.clear('input-live-ticker'); } },
-        'setgame': () => { const v = UIBuilder.getSel('custom-game-select'); TwitchAPI.send(v === "off" ? "!game off" : `!game ${v}`); },
-        'setmedia_yt': () => { const v = UIBuilder.getVal('input-media-yt'); if(v) { TwitchAPI.send(`!media yt ${v}`); UIBuilder.clear('input-media-yt'); } },
-        'settheme': () => { const v = UIBuilder.getSel('custom-theme-select'); TwitchAPI.send(`!протокол ${v}`); },
-        'so': () => { const v = UIBuilder.getVal('input-so'); if(v) { TwitchAPI.send(`!so ${v}`); UIBuilder.clear('input-so'); } },
-        'stream_marker': () => { TwitchAPI.send('/marker Epic Moment'); ToastService.show("🎬 Маркер установлен"); },
+        'send_ticker': () => { const v = UIBuilder.getVal('input-live-ticker'); if(v) { CommandRegistry.send(`!testticker ${v}`); UIBuilder.clear('input-live-ticker'); } },
+        'setgame': () => { const v = UIBuilder.getSel('custom-game-select'); CommandRegistry.send(v === "off" ? "!game off" : `!game ${v}`); },
+        'setmedia_yt': () => { const v = UIBuilder.getVal('input-media-yt'); if(v) { CommandRegistry.send(`!media yt ${v}`); UIBuilder.clear('input-media-yt'); } },
+        'settheme': () => { const v = UIBuilder.getSel('custom-theme-select'); CommandRegistry.send(`!протокол ${v}`); },
+        'so': () => { const v = UIBuilder.getVal('input-so'); if(v) { CommandRegistry.send(`!so ${v}`); UIBuilder.clear('input-so'); } },
+        'stream_marker': () => { CommandRegistry.send('/marker Epic Moment'); ToastService.show("🎬 Маркер установлен"); },
         
         // Тесты
-        'testalert': () => { const v = UIBuilder.getSel('custom-test-alert'); TwitchAPI.send(`!${v}`); },
-        'testfollow': () => { TwitchAPI.send('!alert follow'); setTimeout(() => TwitchAPI.send('!testgoal'), 800); },
+        'testalert': () => { const v = UIBuilder.getSel('custom-test-alert'); CommandRegistry.send(`!${v}`); },
+        'testfollow': () => { CommandRegistry.send('!alert follow'); setTimeout(() => CommandRegistry.send('!testgoal'), 800); },
         'testchat': () => {
             const bc = UIBuilder.getSel('custom-test-chat'); 
             const m = UIBuilder.getVal('test-chat-msg'); 
             const flags = Array.from(document.querySelectorAll('.mod-pill.active')).map(p => p.getAttribute('data-mod')).join(" ");
             let cmd = `!${bc}`; if (flags) cmd += ` ${flags}`; if (m) cmd += ` ${m}`;
-            TwitchAPI.send(cmd); UIBuilder.clear('test-chat-msg');
+            CommandRegistry.send(cmd); UIBuilder.clear('test-chat-msg');
         }
     },
 
@@ -327,7 +338,9 @@ const CommandRegistry = {
         // Клик по кнопкам-действиям
         document.querySelector('.control-panel').addEventListener('click', (e) => {
             const btn = e.target.closest('.action-btn'); if (!btn) return;
-            btn.style.transform = 'scale(0.92)'; setTimeout(() => btn.style.transform = '', 150);
+            if (!btn.classList.contains('btn-sync')) {
+                btn.style.transform = 'scale(0.92)'; setTimeout(() => btn.style.transform = '', 150);
+            }
             this.execute(btn.getAttribute('data-action'));
         });
         document.querySelector('.header-right').addEventListener('click', (e) => {
@@ -345,11 +358,11 @@ const CommandRegistry = {
             const wId = e.target.getAttribute('data-widget');
             const state = e.target.checked ? 'on' : 'off';
             
-            // Отправляем команду в ядро (оно само обновит state и разошлет всем панелям)
-            if (wId === 'cam') TwitchAPI.send(`!cam ${state}`);
-            else if (wId === 'blur') TwitchAPI.send(`!blur ${state}`);
-            else if (wId === 'deaths') TwitchAPI.send(`!death ${e.target.checked ? 'show' : 'hide'}`);
-            else TwitchAPI.send(`!widget ${wId} ${state}`);
+            // Отправляем команду в ядро
+            if (wId === 'cam') CommandRegistry.send(`!cam ${state}`);
+            else if (wId === 'blur') CommandRegistry.send(`!blur ${state}`);
+            else if (wId === 'deaths') CommandRegistry.send(`!death ${e.target.checked ? 'show' : 'hide'}`);
+            else CommandRegistry.send(`!widget ${wId} ${state}`);
         });
 
         // Ползунок громкости
@@ -359,7 +372,7 @@ const CommandRegistry = {
                 document.getElementById('vol-label').innerText = e.target.value + '%'; 
                 vol.style.setProperty('--slider-fill', e.target.value + '%'); 
             }); 
-            vol.addEventListener('change', (e) => TwitchAPI.send(`!vol ${e.target.value}`)); 
+            vol.addEventListener('change', (e) => CommandRegistry.send(`!vol ${e.target.value}`)); 
         }
 
         // Enter в инпутах
@@ -367,6 +380,14 @@ const CommandRegistry = {
             i.addEventListener('keypress', (e) => { 
                 if (e.key === 'Enter') { const b = e.currentTarget.parentElement.querySelector('.action-btn'); if (b) b.click(); } 
             }); 
+        });
+
+        // Слушатель для изменения глобального тумблера Тест/Эфир
+        document.getElementById('toggle-test-chat')?.addEventListener('change', (e) => {
+            const label = document.getElementById('sandbox-label');
+            if (label) {
+                label.innerText = e.target.checked ? "ЭФИР" : "ТЕСТ";
+            }
         });
     }
 };
@@ -389,8 +410,7 @@ const TwitchAPI = {
 
         // Перехват системных сообщений от бота
         ComfyJS.onMessage = (user, message, flags, self, extra) => {
-            if (self) return; // Игнорируем свои же сообщения
-            // Если парсер узнал системное сообщение, прячем его из UI, но применяем данные
+            if (self) return;
             if (SyncEngine.parseChatSync(message)) {
                 console.log("[TWITCH] Служебное сообщение перехвачено и скрыто.");
             }
@@ -399,11 +419,14 @@ const TwitchAPI = {
         this.embedIframes(creds.channel);
     },
 
-    send: function(commandStr) {
+    send: function(commandStr, customChannel = null) {
         if (!commandStr) return;
         const client = ComfyJS.GetClient();
+        
+        const targetChannel = customChannel || this.channel;
+
         if (client && client.readyState() === "OPEN") {
-            ComfyJS.Say(commandStr, this.channel); 
+            ComfyJS.Say(commandStr, targetChannel); 
             ToastService.show("✔️ Отправлено");
         } else {
             ToastService.show("❌ ОШИБКА: НЕТ СВЯЗИ", true); 

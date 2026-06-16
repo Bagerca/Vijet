@@ -2,6 +2,7 @@
 
 window.AppChat = {
     container: document.getElementById('chat-messages'),
+    wrapper: document.getElementById('chat-container'), // Ссылка на родительский контейнер для прокрутки
     
     // --- Система пула ---
     pool: [],       // Склад свободных (скрытых) сообщений
@@ -25,7 +26,7 @@ window.AppChat = {
     init: function() {
         if (!this.templates.message) return;
 
-        // 1. ИНИЦИАЛИЗАЦИЯ ПУЛА (Создаем DOM-узлы заранее)
+        // Инициализация пула (создаем DOM-узлы заранее)
         const maxMsgs = window.AppConfig.maxChatMessages || 12;
         this.poolSize = maxMsgs + 10; // Лимит + буфер
         
@@ -33,7 +34,6 @@ window.AppChat = {
             const frag = this.templates.message.content.cloneNode(true);
             const block = frag.querySelector('.chat-block');
             
-            // Кэшируем ссылки на внутренние элементы, чтобы не делать тяжелый querySelector при каждом сообщении
             block.ui = {
                 meta: block.querySelector('.chat-meta'),
                 avatar: block.querySelector('.chat-avatar'),
@@ -55,7 +55,7 @@ window.AppChat = {
 
     // Очистка узла перед возвратом в работу
     cleanElement: function(el) {
-        el.className = 'chat-block'; // Сброс классов (убирает анимацию ухода)
+        el.className = 'chat-block'; 
         el.removeAttribute('data-style');
         el.setAttribute('data-msg-type', 'normal');
         el.setAttribute('data-role', 'viewer');
@@ -74,32 +74,29 @@ window.AppChat = {
     },
 
     renderMessage: function(data) {
-        // 1. ДОСТАЕМ ЭЛЕМЕНТ ИЗ ПУЛА
         let el;
         if (this.pool.length > 0) {
             el = this.pool.pop();
         } else {
-            // Аварийный режим: если пул пуст (жесточайший спам), 
-            // моментально крадем самое старое сообщение с экрана
             el = this.active.shift();
             if (el && el.parentNode) el.remove();
         }
 
         if (!el) return;
 
-        // 2. ОБНУЛЯЕМ ЕГО СОСТОЯНИЕ
+        // Обнуляем состояние
         this.cleanElement(el);
 
-        // 3. ЗАПОЛНЯЕМ НОВЫМИ ДАННЫМИ
+        // Заполняем новыми данными
         el.setAttribute('data-user', data.user.toLowerCase());
-        if (data.styleName) el.setAttribute('data-style', data.styleName);
+        el.setAttribute('data-style', data.styleName || 'default');
         el.style.setProperty('--user-color', data.color);
         el.setAttribute('data-msg-type', data.isHighlighted ? 'highlight' : 'normal');
         el.setAttribute('data-mention', data.isMention ? 'true' : 'false');
         el.setAttribute('data-first', data.isFirstTime ? 'true' : 'false');
         el.setAttribute('data-role', data.role || 'viewer');
 
-        // Значки Twitch
+        // Значки Twitch (Стабильные встроенные SVG с градиентным оформлением)
         if (data.badges) {
             let bHtml = '';
             if (data.badges.broadcaster) bHtml += `<div class="tw-badge tb-broadcaster"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3.83L19.5 19h-15L12 5.83zM11 10v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg></div>`;
@@ -149,28 +146,29 @@ window.AppChat = {
 
         if (hasMeta) el.ui.meta.style.display = 'flex';
 
-        // 4. ДОБАВЛЯЕМ В КОНЕЦ ЧАТА И РЕГИСТРИРУЕМ
+        // Добавляем в конец чата и регистрируем
         this.container.appendChild(el);
         this.active.push(el);
 
-        // Отправляем эвент для других скриптов, если им нужно что-то сделать с узлом
+        // ИЗМЕНЕНО: АВТО-ПРОКРУТКА ВНИЗ
+        // Каждый раз, когда добавляется новое сообщение, мы прокручиваем чат в самый конец.
+        if (this.wrapper) {
+            this.wrapper.scrollTop = this.wrapper.scrollHeight;
+        }
+
         window.dispatchEvent(new CustomEvent('CHAT_NODE_RENDERED', {
             detail: { node: el, styleName: data.styleName, text: data.htmlText }
         }));
 
-        // 5. ПРОВЕРЯЕМ ЛИМИТ ЧАТА (Выгоняем старые сообщения)
+        // Проверяем лимит чата
         const maxMsgs = window.AppConfig.maxChatMessages || 12;
         if (this.active.length > maxMsgs) {
             const oldestMsg = this.active.shift();
             
             if (oldestMsg) {
-                // Запускаем CSS анимацию исчезновения
                 oldestMsg.classList.add('chat-out');
-                
-                // Ждем, пока анимация пройдет (400ms как в chat.css)
                 setTimeout(() => { 
                     if (oldestMsg.parentNode) oldestMsg.remove(); 
-                    // ВОЗВРАЩАЕМ ЭЛЕМЕНТ В ПУЛ ДЛЯ СЛЕДУЮЩИХ СООБЩЕНИЙ
                     this.pool.unshift(oldestMsg); 
                 }, 400); 
             }

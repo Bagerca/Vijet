@@ -7,7 +7,9 @@
 #chat-container { 
     position: absolute; bottom: 140px; left: 20px; 
     width: 380px; height: 450px; 
-    display: flex; flex-direction: column; justify-content: flex-end; 
+    display: flex; flex-direction: column; 
+    justify-content: flex-start; /* ИЗМЕНЕНО: Начинаем выводить сообщения сверху вниз */
+    overflow-y: hidden; /* ИЗМЕНЕНО: Скрываем системный ползунок прокрутки */
     padding: 0 20px 20px 20px; box-sizing: border-box; 
     -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) calc(100% - 30px), transparent 100%); 
     mask-image: linear-gradient(to top, rgba(0,0,0,1) calc(100% - 30px), transparent 100%);

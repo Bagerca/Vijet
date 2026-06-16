@@ -26,18 +26,40 @@
 .chat-block[data-style="default"] .chat-text { font-size: 15px; font-weight: 600; line-height: 1.5; margin-top: -2px; }
 .chat-block[data-style="default"] .chat-emote { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15)); }
 
+/* ================= ЗНАЧКИ TWITCH (Элегантный Glass-стиль) ================= */
+.chat-block[data-style="default"] .chat-badges { gap: 6px; }
+.chat-block[data-style="default"] .tw-badge {
+    width: 18px; 
+    height: 18px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+.chat-block[data-style="default"] .tw-badge svg { 
+    width: 11px; 
+    height: 11px; 
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+}
+/* Перекрашиваем значки в мягкие градиенты под стать теме */
+.chat-block[data-style="default"] .tb-broadcaster { background: linear-gradient(135deg, #FF4477, #FF0050); }
+.chat-block[data-style="default"] .tb-mod { background: linear-gradient(135deg, #55efc4, #00b894); color: #0a3d2e; }
+.chat-block[data-style="default"] .tb-vip { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+.chat-block[data-style="default"] .tb-sub { background: linear-gradient(135deg, #ffeaa7, #fdcb6e); color: #5c4204; }
+
+/* ================= СЛУЖЕБНЫЕ МЕТКИ (Впервые, За баллы) ================= */
 .chat-block[data-style="default"] .chat-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 .chat-block[data-style="default"] .chat-badge-first { background: linear-gradient(90deg, #FF4477, #FF0050); color: #ffffff; }
 .chat-block[data-style="default"] .chat-badge-highlight { background: linear-gradient(90deg, #6c5ce7, #a29bfe); color: #ffffff; }
 .chat-block[data-style="default"] .badge-sparkle { width: 12px; height: 12px; color: #fff; animation: themeSpin 4s linear infinite; }
 .chat-block[data-style="default"] .badge-star { width: 12px; height: 12px; color: #fdcb6e; animation: themePulse 2s infinite alternate; filter: drop-shadow(0 0 4px #fdcb6e); }
 
-/* ФИКС: Убрали margin-bottom у реплая, так как теперь отступами рулит .chat-meta (gap) */
+/* ================= ОТВЕТЫ (REPLY) ================= */
 .chat-block[data-style="default"] .chat-reply { display: flex; flex-direction: column; position: relative; z-index: 2; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.8); border-left: 4px solid var(--reply-color, #FF4477); border-radius: 12px 12px 12px 4px; padding: 8px 12px 8px 14px; width: fit-content; max-width: 90%; box-sizing: border-box; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); margin-bottom: 0; }
 .chat-block[data-style="default"] .chat-reply-user { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--reply-color, #FF4477); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
 .chat-block[data-style="default"] .reply-icon { width: 12px; height: 12px; fill: currentColor; }
 .chat-block[data-style="default"] .chat-reply-text { font-size: 13px; color: #2c2c2e; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ================= МОДИФИКАТОРЫ ================= */
 .chat-block[data-first="true"][data-style="default"] { 
     --c-border: 1px solid rgba(255, 68, 119, 0.3); 
     --c-shadow: 0 12px 30px rgba(255, 68, 119, 0.15), 0 2px 10px rgba(0, 0, 0, 0.05); 
