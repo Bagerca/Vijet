@@ -20,10 +20,18 @@ const SyncEngine = {
         setInterval(() => this.checkHealth(), 5000);
     },
 
-    requestSync: function() {
+    requestSync: function(isManual = false) {
         console.log("[SYNC 📤] Запрос актуальных данных...");
-        if (window.AppEvents) window.AppEvents.emit('SYSTEM_STATE_REQUEST'); 
-        if (window.TwitchAPI) window.TwitchAPI.send('!uso_sync_req'); 
+        
+        // 1. Всегда пробуем запросить локально (невидимо, без чата)
+        if (window.AppEvents) {
+            window.AppEvents.emit('SYSTEM_STATE_REQUEST'); 
+        }
+        
+        // 2. В чат пишем ТОЛЬКО если модер нажал кнопку 🔄 вручную
+        if (isManual && window.TwitchAPI) {
+            window.TwitchAPI.send('!uso_sync_req'); 
+        }
     },
 
     ping: function(system) {

@@ -1,11 +1,10 @@
 const CommandRegistry = {
-    // Вспомогательная функция: проверяем, включен ли тумблер "Свой чат"
     getTargetChannel: function() {
         const toggle = document.getElementById('toggle-test-chat');
         if (toggle && toggle.checked) {
-            return window.AuthManager.getCreds().user; // Возвращаем логин модератора
+            return window.AuthManager.getCreds().user; 
         }
-        return null; // Вернет null -> TwitchAPI отправит в чат стримера
+        return null; 
     },
 
     commands: {
@@ -14,7 +13,9 @@ const CommandRegistry = {
         'set_death': () => { const v = window.UIBuilder.getVal('input-death-val'); if(v!=="") { window.TwitchAPI.send(`!death set ${v}`); window.UIBuilder.clear('input-death-val'); } },
         'add_death': () => window.TwitchAPI.send('!death'),
         'sub_death': () => window.TwitchAPI.send('!death sub'),
-        'force_sync': () => { window.SyncEngine.requestSync(); window.ToastService.show("Запрос отправлен"); },
+        
+        // ФИКС: Кнопка 🔄 передает true (разрешает отправку в чат)
+        'force_sync': () => { window.SyncEngine.requestSync(true); window.ToastService.show("Запрос отправлен"); },
         
         'play': () => { const v = window.UIBuilder.getVal('input-play'); if(v) { window.TwitchAPI.send(`!play ${v}`); window.UIBuilder.clear('input-play'); } },
         'skip_track': () => window.TwitchAPI.send('!skip'),
@@ -40,14 +41,13 @@ const CommandRegistry = {
         'add_wheel_custom': () => { const v = window.UIBuilder.getVal('input-wheel'); if(v) { window.TwitchAPI.send(`!wheel add ${v}`); window.UIBuilder.clear('input-wheel'); } },
         'add_wheel_db': () => { const v = window.UIBuilder.getSel('custom-wheel-db'); if(v && window.GamesDatabase[v]) { window.TwitchAPI.send(`!wheel add ${window.GamesDatabase[v].title}`); } },
         
+        'send_ticker': function() { const v = window.UIBuilder.getVal('input-live-ticker'); if(v) { window.TwitchAPI.send(`!testticker ${v}`, this.getTargetChannel()); window.UIBuilder.clear('input-live-ticker'); } },
         'setgame': () => { const v = window.UIBuilder.getSel('custom-game-select'); window.TwitchAPI.send(v === "off" ? "!game off" : `!game ${v}`); },
         'setmedia_yt': () => { const v = window.UIBuilder.getVal('input-media-yt'); if(v) { window.TwitchAPI.send(`!media yt ${v}`); window.UIBuilder.clear('input-media-yt'); } },
         'settheme': () => { const v = window.UIBuilder.getSel('custom-theme-select'); window.TwitchAPI.send(`!протокол ${v}`); },
         'so': () => { const v = window.UIBuilder.getVal('input-so'); if(v) { window.TwitchAPI.send(`!so ${v}`); window.UIBuilder.clear('input-so'); } },
         'stream_marker': () => { window.TwitchAPI.send('/marker Epic Moment'); window.ToastService.show("🎬 Маркер установлен"); },
         
-        // --- БЛОК ТЕСТОВ (ОТПРАВЛЯЮТСЯ В ВЫБРАННЫЙ ЧАТ) ---
-        'send_ticker': function() { const v = window.UIBuilder.getVal('input-live-ticker'); if(v) { window.TwitchAPI.send(`!testticker ${v}`, this.getTargetChannel()); window.UIBuilder.clear('input-live-ticker'); } },
         'testalert': function() { const v = window.UIBuilder.getSel('custom-test-alert'); window.TwitchAPI.send(`!${v}`, this.getTargetChannel()); },
         'testfollow': function() { window.TwitchAPI.send('!alert follow', this.getTargetChannel()); setTimeout(() => window.TwitchAPI.send('!testgoal', this.getTargetChannel()), 800); },
         'testchat': function() {
@@ -56,12 +56,9 @@ const CommandRegistry = {
             const flags = Array.from(document.querySelectorAll('.mod-pill.active')).map(p => p.getAttribute('data-mod')).join(" ");
             
             let cmd = `!${bc}`; 
-            
-            // ФИКС: Заставляем Ядро ИГНОРИРОВАТЬ твою VIP роль при тесте Дефолта
             if (bc === 'testfirst' || bc === 'testhighlight' || bc === 'testmention') {
                 cmd += ` -defaultstyle`;
             }
-            
             if (flags) cmd += ` ${flags}`; 
             if (m) cmd += ` ${m}`;
             

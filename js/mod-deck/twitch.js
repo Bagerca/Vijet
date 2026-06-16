@@ -9,7 +9,8 @@ const TwitchAPI = {
         ComfyJS.onConnected = () => { 
             window.UIBuilder.setLiveStatus('connected'); 
             window.ToastService.show("⚡ СВЯЗЬ УСТАНОВЛЕНА"); 
-            setTimeout(() => window.SyncEngine.requestSync(), 1500);
+            // ФИКС: При автозагрузке передаем false (синхронизация только локальная)
+            setTimeout(() => window.SyncEngine.requestSync(false), 1500);
         };
         ComfyJS.onDisconnected = () => window.UIBuilder.setLiveStatus('error');
         ComfyJS.onReconnect = () => window.UIBuilder.setLiveStatus('connecting');
@@ -28,7 +29,6 @@ const TwitchAPI = {
         if (!commandStr) return;
         const client = ComfyJS.GetClient();
         
-        // Выбор чата для отправки (Основа или Мой чат)
         const targetChannel = customChannel || this.channel;
 
         if (client && client.readyState() === "OPEN") {
