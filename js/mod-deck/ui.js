@@ -1,3 +1,5 @@
+/* ================= mod-deck/ui.js ================= */
+
 const ToastService = {
     show: (msg, isError = false) => {
         const toast = document.getElementById('toast');
@@ -17,10 +19,11 @@ const ToastService = {
 };
 
 const UIBuilder = {
+    // ВЕРНУЛИ ВСЕ 12 ТУМБЛЕРОВ НА МЕСТО
     widgetsConfig: [
         { id: 'chat', label: 'Чат' }, { id: 'media', label: 'Сейчас играем' }, { id: 'goal', label: 'Цель фолловеров' }, { id: 'alerts', label: 'Алерты' },
         { id: 'socials', label: 'Соцсети' }, { id: 'ticker', label: 'Бегущая строка' }, { id: 'pet', label: 'Питомец (Лиса)' }, { id: 'emotes', label: 'Смайлы чата' },
-        { id: 'music', label: 'Плеер YouTube' }, { id: 'tts', label: 'TTS Эквалайзер' }, { id: 'particles', label: 'Фон. частицы' }, { id: 'shoutout', label: 'Shoutout' }
+        { id: 'music', label: 'Плеер YouTube' }, { id: 'tts', label: 'TTS Озвучка' }, { id: 'particles', label: 'Фон. частицы' }, { id: 'shoutout', label: 'Shoutout' }
     ],
 
     init: function() {
@@ -47,6 +50,66 @@ const UIBuilder = {
                 toggle.checked = widgetsMap[wId];
             }
         });
+    },
+
+    syncTheme: function(theme) {
+        const cs = document.getElementById('custom-theme-select');
+        if (!cs) return;
+        cs.setAttribute('data-value', theme);
+        const sel = cs.querySelector('.select-selected');
+        const items = cs.querySelectorAll('.select-items div[data-value]');
+        items.forEach(opt => {
+            if (opt.getAttribute('data-value') === theme) {
+                sel.innerHTML = opt.innerHTML;
+            }
+        });
+    },
+
+    syncMedia: function(media) {
+        const gameCs = document.getElementById('custom-game-select');
+        const ytInput = document.getElementById('input-media-yt');
+        
+        if (gameCs) {
+            gameCs.setAttribute('data-value', 'off');
+            gameCs.querySelector('.select-selected').innerHTML = '❌ Скрыть плашку';
+        }
+        if (ytInput) ytInput.value = '';
+
+        if (!media) return;
+
+        if (media.type === 'game' || media.type === 'series') {
+            if (gameCs) {
+                gameCs.setAttribute('data-value', media.query);
+                const items = gameCs.querySelectorAll('.select-items div[data-value]');
+                let found = false;
+                items.forEach(opt => {
+                    if (opt.getAttribute('data-value') === media.query) {
+                        gameCs.querySelector('.select-selected').innerHTML = opt.innerHTML;
+                        found = true;
+                    }
+                });
+                if (!found) gameCs.querySelector('.select-selected').innerHTML = `<span>${media.query}</span>`;
+            }
+        } else if (media.type === 'yt') {
+            if (ytInput) ytInput.value = media.query;
+        }
+    },
+
+    syncVolume: function(vol) {
+        const volInput = document.getElementById('input-vol');
+        const volLabel = document.getElementById('vol-label');
+        if (volInput && volLabel) {
+            volInput.value = vol;
+            volLabel.innerText = vol + '%';
+            volInput.style.setProperty('--slider-fill', vol + '%');
+        }
+    },
+
+    syncDeaths: function(count) {
+        const deathInput = document.getElementById('input-death-val');
+        if (deathInput) {
+            deathInput.placeholder = `Сейчас: ${count}`;
+        }
     },
 
     renderQueue: function(items) {
@@ -131,8 +194,6 @@ const UIBuilder = {
                 
                 document.querySelectorAll('.select-items').forEach(el => el.classList.add('select-hide'));
                 document.querySelectorAll('.select-selected').forEach(el => el.classList.remove('select-arrow-active'));
-                
-                // ФИКС СЛОЕВ: Сбрасываем все z-index
                 document.querySelectorAll('.custom-select').forEach(el => el.style.zIndex = "10");
                 
                 if (isOpening) { 

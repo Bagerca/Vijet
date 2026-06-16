@@ -99,6 +99,6 @@ window.GamesDatabase = {
         themeColor: "#FF8C00", 
         type: "game",
         tags: ["Симулятор жизни", "Nintendo"], 
-        details: { "Разработчик": "Nintendo", "Год": "2026", "Платформа": "Nintendo Switch" }
+        details: { "Разработчик": "Nintendo", "Год": "2026", "Платформа": "PC" }
     }
 };

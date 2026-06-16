@@ -1,3 +1,5 @@
+/* ================= mod-deck/state.js ================= */
+
 const AuthManager = {
     getCreds: () => ({
         channel: localStorage.getItem('uso_mod_channel') || '',
@@ -30,6 +32,18 @@ const DeckState = {
     updateHealth: function(system, isAlive) {
         this.health[system] = isAlive;
         if (window.UIBuilder) window.UIBuilder.updateHealthStatus(system, isAlive);
+    },
+    updateTheme: function(theme) {
+        if (window.UIBuilder) window.UIBuilder.syncTheme(theme);
+    },
+    updateMedia: function(media) {
+        if (window.UIBuilder) window.UIBuilder.syncMedia(media);
+    },
+    updateVolume: function(vol) {
+        if (window.UIBuilder) window.UIBuilder.syncVolume(vol);
+    },
+    updateDeaths: function(count) {
+        if (window.UIBuilder) window.UIBuilder.syncDeaths(count);
     }
 };
 

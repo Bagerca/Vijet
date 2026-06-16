@@ -4,12 +4,24 @@ window.AppCoreState = {
     widgets: {
         chat: true, media: true, goal: true, alerts: true,
         socials: true, ticker: true, pet: true, emotes: true,
-        music: true, tts: true, particles: true, cam: true, blur: false, deaths: true
+        music: true, tts: true, particles: true, cam: true, 
+        blur: false, shoutout: true,
+        deaths: (parseInt(localStorage.getItem('uso_deaths') || '0', 10) > 0),
+        wheel: false
     },
+    theme: localStorage.getItem('uso_current_theme') || 'default',
+    media: JSON.parse(localStorage.getItem('uso_current_media') || 'null'),
+    volume: window.AppConfig.defaultVolume || 30,
+    deathsCount: parseInt(localStorage.getItem('uso_deaths') || '0', 10),
+
     broadcastFullState: function(target = 'local') {
         const payload = {
             widgets: this.widgets,
-            queue: window.AppQueueCore ? window.AppQueueCore.items : []
+            queue: window.AppQueueCore ? window.AppQueueCore.items : [],
+            theme: this.theme,
+            media: this.media,
+            volume: this.volume,
+            deaths: this.deathsCount
         };
         
         if (target === 'local') {
@@ -29,17 +41,13 @@ window.AppCore = {
 
     init: function() {
         if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
-            // ФИКС ЧАТОВ: Заставляем Ядро слушать и чат стримера, и чаты всех модеров!
             let channelsToJoin = [window.AppConfig.channelName];
             if (window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.length > 0) {
                 channelsToJoin = channelsToJoin.concat(window.AppConfig.allowedUsers);
             }
-            // Убираем дубликаты
             channelsToJoin = [...new Set(channelsToJoin.map(c => c.toLowerCase()))];
             
             console.log(`[CORE] Подключение к чатам: ${channelsToJoin.join(', ')}...`);
-            
-            // Инициализация ComfyJS сразу на массив каналов
             ComfyJS.Init(window.AppConfig.channelName, "", channelsToJoin);
             
             this.setupEvents();
@@ -58,16 +66,48 @@ window.AppCore = {
             });
             window.AppEvents.listen('MEDIA_CAM', (d) => { window.AppCoreState.widgets['cam'] = (d.state === 'on'); window.AppCoreState.broadcastFullState('local'); });
             window.AppEvents.listen('BLUR_TOGGLE', (d) => { window.AppCoreState.widgets['blur'] = (d.state === 'on'); window.AppCoreState.broadcastFullState('local'); });
+            window.AppEvents.listen('WHEEL_TOGGLE', (d) => { window.AppCoreState.widgets['wheel'] = d.state; window.AppCoreState.broadcastFullState('local'); });
+            
             window.AppEvents.listen('DEATHS_CMD', (d) => {
                 if (d.cmd === 'show' || d.cmd === 'on') window.AppCoreState.widgets['deaths'] = true;
-                if (d.cmd === 'hide' || d.cmd === 'off') window.AppCoreState.widgets['deaths'] = false;
+                else if (d.cmd === 'hide' || d.cmd === 'off') window.AppCoreState.widgets['deaths'] = false;
+                
+                else if (d.cmd === '-' || d.cmd === 'sub') {
+                    window.AppCoreState.deathsCount = Math.max(0, window.AppCoreState.deathsCount - 1);
+                    if (window.AppCoreState.deathsCount === 0) window.AppCoreState.widgets['deaths'] = false;
+                }
+                else if (d.cmd === 'reset' || d.cmd === 'clear') {
+                    window.AppCoreState.deathsCount = 0;
+                    window.AppCoreState.widgets['deaths'] = false;
+                }
+                else if (d.cmd.startsWith('set ')) {
+                    window.AppCoreState.deathsCount = parseInt(d.cmd.replace('set ', '')) || 0;
+                    window.AppCoreState.widgets['deaths'] = window.AppCoreState.deathsCount > 0;
+                }
+                else {
+                    window.AppCoreState.deathsCount++;
+                    window.AppCoreState.widgets['deaths'] = true; 
+                }
+                window.AppCoreState.broadcastFullState('local');
+            });
+
+            window.AppEvents.listen('PLAYER_VOL', (d) => {
+                window.AppCoreState.volume = parseInt(d.vol) || 0;
+                window.AppCoreState.broadcastFullState('local');
+            });
+
+            window.AppEvents.listen('THEME_CHANGE', (d) => {
+                window.AppCoreState.theme = d.theme;
+                window.AppCoreState.broadcastFullState('local');
+            });
+
+            window.AppEvents.listen('MEDIA_SET', (d) => {
+                if (d.type === 'off' || d.query === 'off' || d.query === 'clear') window.AppCoreState.media = null;
+                else window.AppCoreState.media = { type: d.type, query: d.query };
                 window.AppCoreState.broadcastFullState('local');
             });
             
-            setTimeout(() => {
-                window.AppEvents.emit('CORE_REBOOT_DONE');
-            }, 1000);
-            
+            setTimeout(() => window.AppEvents.emit('CORE_REBOOT_DONE'), 1000);
         } else {
             console.warn("[CORE ❌] Имя канала не настроено в config.js!");
         }
@@ -78,12 +118,7 @@ window.AppCore = {
     },
 
     handleTestCommand: function(userAlias, color, avatarUrl, defaultText, arg) {
-        let isHighlight = false;
-        let isReply = false;
-        let isPing = false;
-        let isTts = false;
-        let isFirstTime = false;
-        let forceDefaultStyle = false; // ФИКС: Флаг принудительного дефолтного стиля
+        let isHighlight = false, isReply = false, isPing = false, isTts = false, isFirstTime = false, forceDefaultStyle = false; 
         let finalMessage = arg;
 
         let role = "viewer";
@@ -95,25 +130,20 @@ window.AppCore = {
         if (finalMessage.includes("-ping")) { isPing = true; finalMessage = finalMessage.replace("-ping", "").trim(); }
         if (finalMessage.includes("-tts")) { isTts = true; finalMessage = finalMessage.replace("-tts", "").trim(); }
         if (finalMessage.includes("-first")) { isFirstTime = true; finalMessage = finalMessage.replace("-first", "").trim(); }
-        
-        // ФИКС: Если пришел флаг, вырезаем его и запоминаем
-        if (finalMessage.includes("-defaultstyle")) { 
-            forceDefaultStyle = true; 
-            finalMessage = finalMessage.replace("-defaultstyle", "").trim(); 
-        }
+        if (finalMessage.includes("-defaultstyle")) { forceDefaultStyle = true; finalMessage = finalMessage.replace("-defaultstyle", "").trim(); }
 
         if (finalMessage === "") finalMessage = defaultText;
 
         let { text: cleanText, hasForbidden } = window.ChatFilter.processText(finalMessage, window.AppConfig.forbiddenWords);
 
-        if (isTts) {
+        // УМНЫЙ РУБИЛЬНИК: Проверяем включен ли TTS
+        if (isTts && window.AppCoreState.widgets['tts']) {
             let cleanTtsText = cleanText.replace(/<[^>]+>/g, ''); 
             window.AppEvents.emit('TTS_ADD', { user: userAlias, text: cleanTtsText });
         }
 
         if (isPing) cleanText = `<span class="chat-ping">@${window.AppConfig.channelName}</span> ${cleanText}`;
 
-        // ФИКС: Применяем стиль, ТОЛЬКО если не запрошен принудительный дефолт
         const userStyle = forceDefaultStyle ? null : ((window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[userAlias.toLowerCase()]) || null);
 
         window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
@@ -121,23 +151,19 @@ window.AppCore = {
             time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             htmlText: cleanText, replyData: isReply ? this.generateFakeReply() : null,
             isFirstTime: isFirstTime, isHighlighted: isHighlight, isMention: isPing,
-            styleName: userStyle,
-            role: role,
+            styleName: userStyle, role: role,
             badges: role === 'mod' ? { moderator: "1" } : (role === 'broadcaster' ? { broadcaster: "1" } : null)
         });
     },
 
     setupEvents: function() {
-        // Мы добавляем "channel" в аргументы, чтобы понимать, откуда пришло сообщение
         ComfyJS.onChat = async (user, message, flags, self, extra) => {
             const userColor = extra.userColor || '#FF4477'; 
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             const lowerUser = user.toLowerCase();
             
             const isFirstTime = extra.userState && (extra.userState['first-msg'] === true || extra.userState['first-msg'] === '1');
-            const isTwitchHighlight = flags.highlighted;
-            const isCustomReward = !!extra.customRewardId;
-            const isHighlighted = isTwitchHighlight || isCustomReward;
+            const isHighlighted = flags.highlighted || !!extra.customRewardId;
 
             let parsedMessage = window.ChatFilter.parseEmotes(message, extra.messageEmotes);
             let { text: cleanText, hasForbidden } = window.ChatFilter.processText(parsedMessage, window.AppConfig.forbiddenWords);
@@ -155,15 +181,22 @@ window.AppCore = {
                     this.greetedUsers.add(lowerUser); setPet('love', 5);
                 } 
                 if (isMention) setPet('alert', 4);
-                if (extra.messageEmotes) { setPet('hype', 1); window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes); }
+                // УМНЫЙ РУБИЛЬНИК: Проверяем включены ли смайлы
+                if (extra.messageEmotes && window.AppCoreState.widgets['emotes']) { 
+                    setPet('hype', 1); 
+                    window.AppEvents.emit('EMOTES_SPAWN', extra.messageEmotes); 
+                }
             }
             if (petEmotion) window.AppEvents.emit('PET_EMOTION', { emotion: petEmotion, duration: 4000 });
 
             if (isMention && !hasForbidden) cleanText = cleanText.replace(mentionRegex, `<span class="chat-ping">$&</span>`);
 
-            if (isTwitchHighlight && !hasForbidden) {
+            if (flags.highlighted && !hasForbidden) {
                 window.AppEvents.emit('TICKER_REWARD', { user, reward: "Выделенное сообщение", message: cleanText });
-                window.AppEvents.emit('TTS_ADD', { user: user, text: cleanText.replace(/<[^>]+>/g, '') });
+                // УМНЫЙ РУБИЛЬНИК: Проверяем включен ли TTS
+                if (window.AppCoreState.widgets['tts']) {
+                    window.AppEvents.emit('TTS_ADD', { user: user, text: cleanText.replace(/<[^>]+>/g, '') });
+                }
             }
             
             const avatarUrl = await window.AvatarManager.get(user, userColor);
@@ -187,9 +220,7 @@ window.AppCore = {
             window.AppEvents.emit('CHAT_RENDER_MESSAGE', { 
                 user, color: userColor, avatarUrl, time, htmlText: cleanText, 
                 replyData, isFirstTime, isHighlighted, isMention,
-                styleName: userStyle,
-                role: role,
-                badges: extra.userBadges
+                styleName: userStyle, role: role, badges: extra.userBadges
             });
         };
 
@@ -198,12 +229,18 @@ window.AppCore = {
             window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 3000 });
 
             if (reward === window.AppConfig.wheelRewardName) { window.AppEvents.emit('WHEEL_ADD', { text: message }); window.AppEvents.emit('WHEEL_TOGGLE', { state: true }); }
-            if (reward === window.AppConfig.ttsRewardName) window.AppEvents.emit('TTS_ADD', { user, text: message });
+            
+            // УМНЫЙ РУБИЛЬНИК: TTS
+            if (reward === window.AppConfig.ttsRewardName && window.AppCoreState.widgets['tts']) {
+                window.AppEvents.emit('TTS_ADD', { user, text: message });
+            }
+
             if (reward === window.AppConfig.rewardName) window.AppEvents.emit('QUEUE_ADD', { user, url: message });
             if (reward === window.AppConfig.feedRewardName) window.AppEvents.emit('PET_EMOTION', { emotion: 'nom', duration: 6000 });
 
+            // УМНЫЙ РУБИЛЬНИК: Алерты
             const rewards = window.AppConfig.rewards;
-            if (rewards) {
+            if (rewards && window.AppCoreState.widgets['alerts']) {
                 if (reward === rewards.series) window.AppEvents.emit('ALERT_ADD', { user, type: 'reward_series', msg: message });
                 else if (reward === rewards.movie) window.AppEvents.emit('ALERT_ADD', { user, type: 'reward_movie', msg: message });
                 else if (reward === rewards.video) window.AppEvents.emit('ALERT_ADD', { user, type: 'reward_video', msg: message });
@@ -213,24 +250,18 @@ window.AppCore = {
         };
 
         const triggerLove = () => window.AppEvents.emit('PET_EMOTION', { emotion: 'love', duration: 5000 });
-        ComfyJS.onSub = (user, message) => { window.AppEvents.emit('ALERT_ADD', { user, type: 'sub', msg: message }); triggerLove(); };
-        ComfyJS.onResub = (user, message, sMonths, cMonths) => { window.AppEvents.emit('ALERT_ADD', { user, type: 'resub', msg: message, val: cMonths }); triggerLove(); };
-        ComfyJS.onSubGift = (gifter, streak, recUser) => { window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `для ${recUser}` }); triggerLove(); };
-        ComfyJS.onSubMysteryGift = (gifter, numb) => { window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `подарил ${numb} саб.!` }); triggerLove(); };
+        
+        // УМНЫЙ РУБИЛЬНИК: Базовые алерты
+        ComfyJS.onSub = (user, message) => { if(window.AppCoreState.widgets['alerts']) window.AppEvents.emit('ALERT_ADD', { user, type: 'sub', msg: message }); triggerLove(); };
+        ComfyJS.onResub = (user, message, sMonths, cMonths) => { if(window.AppCoreState.widgets['alerts']) window.AppEvents.emit('ALERT_ADD', { user, type: 'resub', msg: message, val: cMonths }); triggerLove(); };
+        ComfyJS.onSubGift = (gifter, streak, recUser) => { if(window.AppCoreState.widgets['alerts']) window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `для ${recUser}` }); triggerLove(); };
+        ComfyJS.onSubMysteryGift = (gifter, numb) => { if(window.AppCoreState.widgets['alerts']) window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `подарил ${numb} саб.!` }); triggerLove(); };
 
         ComfyJS.onCommand = async (user, command, message, flags, extra) => {
-            const isMod = flags.broadcaster || flags.mod;
-            const isAllowedUser = window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(user.toLowerCase());
-            const hasPermission = isMod || isAllowedUser;
-            
-            const arg = message.trim();
-            const argLow = arg.toLowerCase(); 
-            const cmdKey = command.toLowerCase();
+            const hasPermission = flags.broadcaster || flags.mod || (window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(user.toLowerCase()));
+            const arg = message.trim(); const argLow = arg.toLowerCase(); const cmdKey = command.toLowerCase();
 
-            if (hasPermission && cmdKey === "uso_sync_req") {
-                window.AppCoreState.broadcastFullState('remote');
-                return;
-            }
+            if (hasPermission && cmdKey === "uso_sync_req") { window.AppCoreState.broadcastFullState('remote'); return; }
 
             const heavyCommands = ['media', 'game', 'игра', 'so', 'shoutout'];
             if (heavyCommands.includes(cmdKey)) {
@@ -240,17 +271,12 @@ window.AppCore = {
             }
 
             let testAvatar = "https://ui-avatars.com/api/?name=Test&background=FF4477&color=fff";
-            if (hasPermission && cmdKey.startsWith('test')) {
-                testAvatar = await window.AvatarManager.get(user, '#FF4477');
-            }
+            if (hasPermission && cmdKey.startsWith('test')) testAvatar = await window.AvatarManager.get(user, '#FF4477');
 
             switch (cmdKey) {
                 case "widget":
                 case "виджет":
-                    if (hasPermission) {
-                        let parts = argLow.split(' ');
-                        if (parts.length >= 2) window.AppEvents.emit('WIDGET_TOGGLE', { widget: parts[0], state: parts[1] });
-                    }
+                    if (hasPermission) { let parts = argLow.split(' '); if (parts.length >= 2) window.AppEvents.emit('WIDGET_TOGGLE', { widget: parts[0], state: parts[1] }); }
                     break;
                 case "протокол":
                 case "protocol":
@@ -262,36 +288,42 @@ window.AppCore = {
                     break;
                 case "refresh":
                     if (hasPermission) {
+                        window.AppEvents.emit('THEME_CHANGE', { theme: 'default' });
+                        window.AppEvents.emit('MEDIA_SET', { type: 'off' });
+                        window.AppEvents.emit('DEATHS_CMD', { cmd: 'reset' });
+                        window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' });
+                        window.AppEvents.emit('TTS_CMD', { stop: true });
+                        window.AppEvents.emit('WHEEL_TOGGLE', { state: false });
+                        window.AppEvents.emit('BLUR_TOGGLE', { state: 'off' });
+
+                        localStorage.setItem('uso_current_theme', 'default');
+                        localStorage.removeItem('uso_current_media');
+                        localStorage.setItem('uso_deaths', '0');
+                        localStorage.removeItem('uso_queue');
+
                         if (argLow === "core") { 
-                            window.AppEvents.emit('CORE_REBOOT_START');
-                            setTimeout(() => {
+                            window.AppEvents.emit('CORE_REBOOT_START'); 
+                            window.AppEvents.emit('FORCE_RELOAD_VISUAL'); 
+                            setTimeout(() => { 
                                 const coreUrl = new URL(window.location.href); 
                                 coreUrl.searchParams.set('nocache', Date.now()); 
                                 window.location.href = coreUrl.toString(); 
-                            }, 300);
+                            }, 500); 
                         } 
-                        else {
-                            window.AppEvents.emit('FORCE_RELOAD_VISUAL');
+                        else { 
+                            window.AppEvents.emit('FORCE_RELOAD_VISUAL'); 
+                            setTimeout(() => window.AppCoreState.broadcastFullState('local'), 800);
                         }
                     }
                     break;
 
-                // Базовые тесты дефолтного чата (сюда мы прокидываем флаг из панели)
                 case "testfirst": if (hasPermission) this.handleTestCommand(user, "#FF4477", testAvatar, "Привет, я впервые на этом крутом стриме!", "-first " + arg); break;
                 case "testmention": if (hasPermission) this.handleTestCommand(user, "#00E5FF", testAvatar, "Зацени это!", "-ping " + arg); break;
                 case "testhighlight": if (hasPermission) this.handleTestCommand(user, "#FFD700", testAvatar, "Это очень важное сообщение за баллы!", "-hl " + arg); break;
-
                 case "testuser": 
-                    if (hasPermission) {
-                        let parts = arg.split(' ');
-                        let targetUser = parts[0] || user;
-                        let restArgs = parts.slice(1).join(' ');
-                        let targetAvatar = await window.AvatarManager.get(targetUser, "#FF4477");
-                        this.handleTestCommand(targetUser, "#FF4477", targetAvatar, "Проверка кастомного стиля на связи!", restArgs);
-                    } 
+                    if (hasPermission) { let parts = arg.split(' '); let targetUser = parts[0] || user; let restArgs = parts.slice(1).join(' '); let targetAvatar = await window.AvatarManager.get(targetUser, "#FF4477"); this.handleTestCommand(targetUser, "#FF4477", targetAvatar, "Проверка кастомного стиля на связи!", restArgs); } 
                     break;
-
-                case "testtts": if (hasPermission) { let parts = arg.split(' '); let targetUser = parts[0] || "tetlabot"; let ttsText = parts.slice(1).join(' ') || "Внимание. Тестирование вокального модуля успешно завершено."; window.AppEvents.emit('TTS_ADD', { user: targetUser, text: ttsText }); } break;
+                case "testtts": if (hasPermission && window.AppCoreState.widgets['tts']) { let parts = arg.split(' '); let targetUser = parts[0] || "tetlabot"; let ttsText = parts.slice(1).join(' ') || "Внимание. Тестирование вокального модуля успешно завершено."; window.AppEvents.emit('TTS_ADD', { user: targetUser, text: ttsText }); } break;
                 case "testgoal": if (hasPermission) window.AppEvents.emit('GOAL_TEST_ADD'); break;
                 case "testticker":
                     if (hasPermission) {
@@ -300,7 +332,6 @@ window.AppCore = {
                         else { window.AppEvents.emit('TICKER_CUSTOM', { msg: arg || "Это тестовое сообщение для проверки системы бегущей строки 2.0!", badge: "ТЕСТ", color: "#FFD700" }); }
                     }
                     break;
-
                 case "wheel":
                 case "рулетка":
                     if (hasPermission) {
@@ -314,8 +345,11 @@ window.AppCore = {
                     break;
                 case "sr":     
                 case "play":   if (message !== "") window.AppEvents.emit('QUEUE_ADD', { user, url: message }); break;
+                
+                // УМНЫЙ РУБИЛЬНИК: Shoutout
                 case "so":
-                case "shoutout": if (hasPermission && message !== "") window.AppEvents.emit('SHOUTOUT_ADD', { user: message }); break;
+                case "shoutout": if (hasPermission && message !== "" && window.AppCoreState.widgets['shoutout']) window.AppEvents.emit('SHOUTOUT_ADD', { user: message }); break;
+                
                 case "skip": if (hasPermission) { if (argLow === "all") window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_all' }); else window.AppEvents.emit('QUEUE_CMD', { cmd: 'skip_track' }); } break;
                 case "clear": if (hasPermission) window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' }); break;
                 case "vol": if (hasPermission && message !== "") window.AppEvents.emit('PLAYER_VOL', { vol: message }); break;
@@ -323,7 +357,7 @@ window.AppCore = {
                 case "mic": if (hasPermission) window.AppEvents.emit('MEDIA_MIC', { state: argLow }); break;
                 case "emotes":
                 case "смайлы": if (hasPermission) window.AppEvents.emit('EMOTES_CMD', { cmd: argLow }); break;
-                case "tts": if (hasPermission && message !== "") { if (argLow === "stop" || argLow === "skip") window.AppEvents.emit('TTS_CMD', { stop: true }); else window.AppEvents.emit('TTS_ADD', { user, text: message }); } break;
+                case "tts": if (hasPermission && message !== "") { if (argLow === "stop" || argLow === "skip") window.AppEvents.emit('TTS_CMD', { stop: true }); else if (window.AppCoreState.widgets['tts']) window.AppEvents.emit('TTS_ADD', { user, text: message }); } break;
                 case "blur":
                 case "блюр": if (hasPermission) window.AppEvents.emit('BLUR_TOGGLE', { state: argLow }); break;
                 case "media":
@@ -362,7 +396,7 @@ window.AppCore = {
                         else if (argLow === "танцуй" || argLow === "вайб") window.AppEvents.emit('PET_EMOTION', { emotion: 'jam', duration: 5000 });
                     }
                     break;
-                case "alert": if (hasPermission) { triggerLove(); window.AppEvents.emit('ALERT_TEST', { type: argLow }); } break;
+                case "alert": if (hasPermission && window.AppCoreState.widgets['alerts']) { triggerLove(); window.AppEvents.emit('ALERT_TEST', { type: argLow }); } break;
             }
         };
 
@@ -370,7 +404,7 @@ window.AppCore = {
         if (client) {
             client.on("raw_message", (messageCloned, message) => {
                 if (message.command === "USERNOTICE" && message.tags && message.tags["msg-id"] === "viewermilestone") {
-                    window.AppEvents.emit('ALERT_ADD', { user: message.tags["display-name"] || message.tags["login"], type: 'streak', msg: (message.params && message.params.length > 1) ? message.params[1] : "", val: message.tags["msg-param-value"] });
+                    if(window.AppCoreState.widgets['alerts']) window.AppEvents.emit('ALERT_ADD', { user: message.tags["display-name"] || message.tags["login"], type: 'streak', msg: (message.params && message.params.length > 1) ? message.params[1] : "", val: message.tags["msg-param-value"] });
                     triggerLove();
                 }
             });

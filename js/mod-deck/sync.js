@@ -1,3 +1,5 @@
+/* ================= mod-deck/sync.js ================= */
+
 const SyncEngine = {
     lastCorePing: 0,
     lastVisualPing: 0,
@@ -8,6 +10,10 @@ const SyncEngine = {
                 console.log("[SYNC 📥] Локальное обновление состояния", data);
                 if (data.widgets) window.DeckState.updateWidgets(data.widgets);
                 if (data.queue) window.DeckState.updateQueue(data.queue);
+                if (data.theme) window.DeckState.updateTheme(data.theme);
+                if (data.media !== undefined) window.DeckState.updateMedia(data.media);
+                if (data.volume !== undefined) window.DeckState.updateVolume(data.volume);
+                if (data.deaths !== undefined) window.DeckState.updateDeaths(data.deaths);
             });
 
             window.AppEvents.listen('QUEUE_STATE', (data) => {
@@ -22,16 +28,8 @@ const SyncEngine = {
 
     requestSync: function(isManual = false) {
         console.log("[SYNC 📤] Запрос актуальных данных...");
-        
-        // 1. Всегда пробуем запросить локально (невидимо, без чата)
-        if (window.AppEvents) {
-            window.AppEvents.emit('SYSTEM_STATE_REQUEST'); 
-        }
-        
-        // 2. В чат пишем ТОЛЬКО если модер нажал кнопку 🔄 вручную
-        if (isManual && window.TwitchAPI) {
-            window.TwitchAPI.send('!uso_sync_req'); 
-        }
+        if (window.AppEvents) window.AppEvents.emit('SYSTEM_STATE_REQUEST'); 
+        if (isManual && window.TwitchAPI) window.TwitchAPI.send('!uso_sync_req'); 
     },
 
     ping: function(system) {
@@ -54,6 +52,10 @@ const SyncEngine = {
                 console.log("[SYNC 📥] Удаленное обновление из чата", data);
                 if (data.widgets) window.DeckState.updateWidgets(data.widgets);
                 if (data.queue) window.DeckState.updateQueue(data.queue);
+                if (data.theme) window.DeckState.updateTheme(data.theme);
+                if (data.media !== undefined) window.DeckState.updateMedia(data.media);
+                if (data.volume !== undefined) window.DeckState.updateVolume(data.volume);
+                if (data.deaths !== undefined) window.DeckState.updateDeaths(data.deaths);
             } catch (e) { console.error("Ошибка парсинга USO_SYNC", e); }
             return true; 
         }
