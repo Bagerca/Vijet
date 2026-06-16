@@ -89,7 +89,12 @@ window.AppQueueCore = {
     },
 
     broadcastState: function() {
-        window.AppEvents.emit('QUEUE_STATE', { count: this.items.length });
+        window.AppEvents.emit('QUEUE_STATE', { 
+            count: this.items.length, 
+            items: this.items 
+        });
+        // Сигнализируем ядру об изменении очереди для панели
+        if (window.AppCoreState) window.AppCoreState.broadcastFullState('local');
     }
 };
 window.AppQueueCore.init();

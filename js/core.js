@@ -1,15 +1,69 @@
 /* ================= CORE (ЯДРО СИСТЕМЫ) ================= */
+
+window.AppCoreState = {
+    widgets: {
+        chat: true, media: true, goal: true, alerts: true,
+        socials: true, ticker: true, pet: true, emotes: true,
+        music: true, tts: true, particles: true, cam: true, blur: false, deaths: true
+    },
+    broadcastFullState: function(target = 'local') {
+        const payload = {
+            widgets: this.widgets,
+            queue: window.AppQueueCore ? window.AppQueueCore.items : []
+        };
+        
+        if (target === 'local') {
+            window.AppEvents.emit('SYSTEM_STATE_RESPONSE', payload);
+        } else if (target === 'remote' && window.AppConfig.channelName) {
+            const client = ComfyJS.GetClient();
+            if (client && client.readyState() === "OPEN") {
+                ComfyJS.Say(`[USO_SYNC] ${JSON.stringify(payload)}`, window.AppConfig.channelName);
+            }
+        }
+    }
+};
+
 window.AppCore = {
     greetedUsers: new Set(), 
     commandCooldowns: {}, 
 
     init: function() {
         if (window.AppConfig.channelName && window.AppConfig.channelName !== "ТВОЙ_НИК") {
-            console.log(`[CORE] Подключение к каналу: ${window.AppConfig.channelName}...`);
-            ComfyJS.Init(window.AppConfig.channelName);
+            // ФИКС ЧАТОВ: Заставляем Ядро слушать и чат стримера, и чаты всех модеров!
+            let channelsToJoin = [window.AppConfig.channelName];
+            if (window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.length > 0) {
+                channelsToJoin = channelsToJoin.concat(window.AppConfig.allowedUsers);
+            }
+            // Убираем дубликаты
+            channelsToJoin = [...new Set(channelsToJoin.map(c => c.toLowerCase()))];
+            
+            console.log(`[CORE] Подключение к чатам: ${channelsToJoin.join(', ')}...`);
+            
+            // Инициализация ComfyJS сразу на массив каналов
+            ComfyJS.Init(window.AppConfig.channelName, "", channelsToJoin);
+            
             this.setupEvents();
             
-            // Сигнализируем визуалу, что ядро успешно запустилось
+            setInterval(() => window.AppEvents.emit('CORE_HEARTBEAT'), 5000);
+            
+            window.AppEvents.listen('SYSTEM_STATE_REQUEST', () => {
+                window.AppCoreState.broadcastFullState('local');
+            });
+
+            window.AppEvents.listen('WIDGET_TOGGLE', (d) => {
+                if (window.AppCoreState.widgets[d.widget] !== undefined) {
+                    window.AppCoreState.widgets[d.widget] = (d.state === 'on' || d.state === 'show');
+                    window.AppCoreState.broadcastFullState('local');
+                }
+            });
+            window.AppEvents.listen('MEDIA_CAM', (d) => { window.AppCoreState.widgets['cam'] = (d.state === 'on'); window.AppCoreState.broadcastFullState('local'); });
+            window.AppEvents.listen('BLUR_TOGGLE', (d) => { window.AppCoreState.widgets['blur'] = (d.state === 'on'); window.AppCoreState.broadcastFullState('local'); });
+            window.AppEvents.listen('DEATHS_CMD', (d) => {
+                if (d.cmd === 'show' || d.cmd === 'on') window.AppCoreState.widgets['deaths'] = true;
+                if (d.cmd === 'hide' || d.cmd === 'off') window.AppCoreState.widgets['deaths'] = false;
+                window.AppCoreState.broadcastFullState('local');
+            });
+            
             setTimeout(() => {
                 window.AppEvents.emit('CORE_REBOOT_DONE');
             }, 1000);
@@ -29,9 +83,9 @@ window.AppCore = {
         let isPing = false;
         let isTts = false;
         let isFirstTime = false;
+        let forceDefaultStyle = false; // ФИКС: Флаг принудительного дефолтного стиля
         let finalMessage = arg;
 
-        // Мокирование ролей для тестов
         let role = "viewer";
         if (userAlias === window.AppConfig.channelName) role = "broadcaster";
         else if (finalMessage.includes("-mod")) { role = "mod"; finalMessage = finalMessage.replace("-mod", "").trim(); }
@@ -41,6 +95,12 @@ window.AppCore = {
         if (finalMessage.includes("-ping")) { isPing = true; finalMessage = finalMessage.replace("-ping", "").trim(); }
         if (finalMessage.includes("-tts")) { isTts = true; finalMessage = finalMessage.replace("-tts", "").trim(); }
         if (finalMessage.includes("-first")) { isFirstTime = true; finalMessage = finalMessage.replace("-first", "").trim(); }
+        
+        // ФИКС: Если пришел флаг, вырезаем его и запоминаем
+        if (finalMessage.includes("-defaultstyle")) { 
+            forceDefaultStyle = true; 
+            finalMessage = finalMessage.replace("-defaultstyle", "").trim(); 
+        }
 
         if (finalMessage === "") finalMessage = defaultText;
 
@@ -53,8 +113,8 @@ window.AppCore = {
 
         if (isPing) cleanText = `<span class="chat-ping">@${window.AppConfig.channelName}</span> ${cleanText}`;
 
-        // Достаем кастомный стиль для теста
-        const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[userAlias.toLowerCase()]) || null;
+        // ФИКС: Применяем стиль, ТОЛЬКО если не запрошен принудительный дефолт
+        const userStyle = forceDefaultStyle ? null : ((window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[userAlias.toLowerCase()]) || null);
 
         window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
             user: userAlias, color: color, avatarUrl: avatarUrl,
@@ -68,6 +128,7 @@ window.AppCore = {
     },
 
     setupEvents: function() {
+        // Мы добавляем "channel" в аргументы, чтобы понимать, откуда пришло сообщение
         ComfyJS.onChat = async (user, message, flags, self, extra) => {
             const userColor = extra.userColor || '#FF4477'; 
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -117,7 +178,6 @@ window.AppCore = {
 
             const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[lowerUser]) || null;
             
-            // Определяем роль пользователя
             let role = 'viewer';
             if (flags.broadcaster) role = 'broadcaster';
             else if (flags.mod) role = 'mod';
@@ -158,7 +218,7 @@ window.AppCore = {
         ComfyJS.onSubGift = (gifter, streak, recUser) => { window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `для ${recUser}` }); triggerLove(); };
         ComfyJS.onSubMysteryGift = (gifter, numb) => { window.AppEvents.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `подарил ${numb} саб.!` }); triggerLove(); };
 
-        ComfyJS.onCommand = async (user, command, message, flags) => {
+        ComfyJS.onCommand = async (user, command, message, flags, extra) => {
             const isMod = flags.broadcaster || flags.mod;
             const isAllowedUser = window.AppConfig.allowedUsers && window.AppConfig.allowedUsers.map(u => u.toLowerCase()).includes(user.toLowerCase());
             const hasPermission = isMod || isAllowedUser;
@@ -166,6 +226,11 @@ window.AppCore = {
             const arg = message.trim();
             const argLow = arg.toLowerCase(); 
             const cmdKey = command.toLowerCase();
+
+            if (hasPermission && cmdKey === "uso_sync_req") {
+                window.AppCoreState.broadcastFullState('remote');
+                return;
+            }
 
             const heavyCommands = ['media', 'game', 'игра', 'so', 'shoutout'];
             if (heavyCommands.includes(cmdKey)) {
@@ -211,12 +276,11 @@ window.AppCore = {
                     }
                     break;
 
-                // Базовые тесты дефолтного чата
+                // Базовые тесты дефолтного чата (сюда мы прокидываем флаг из панели)
                 case "testfirst": if (hasPermission) this.handleTestCommand(user, "#FF4477", testAvatar, "Привет, я впервые на этом крутом стриме!", "-first " + arg); break;
                 case "testmention": if (hasPermission) this.handleTestCommand(user, "#00E5FF", testAvatar, "Зацени это!", "-ping " + arg); break;
                 case "testhighlight": if (hasPermission) this.handleTestCommand(user, "#FFD700", testAvatar, "Это очень важное сообщение за баллы!", "-hl " + arg); break;
 
-                // УНИВЕРСАЛЬНАЯ КОМАНДА ДЛЯ ЛЮБОГО ЮЗЕРА
                 case "testuser": 
                     if (hasPermission) {
                         let parts = arg.split(' ');
@@ -228,26 +292,15 @@ window.AppCore = {
                     break;
 
                 case "testtts": if (hasPermission) { let parts = arg.split(' '); let targetUser = parts[0] || "tetlabot"; let ttsText = parts.slice(1).join(' ') || "Внимание. Тестирование вокального модуля успешно завершено."; window.AppEvents.emit('TTS_ADD', { user: targetUser, text: ttsText }); } break;
-
-                // Тест цели (фолловеров)
-                case "testgoal": 
-                    if (hasPermission) window.AppEvents.emit('GOAL_TEST_ADD'); 
-                    break;
-
-                // Тест бегущей строки 2.0
+                case "testgoal": if (hasPermission) window.AppEvents.emit('GOAL_TEST_ADD'); break;
                 case "testticker":
                     if (hasPermission) {
-                        if (argLow === "music") {
-                            window.AppEvents.emit('TICKER_CUSTOM', { msg: "<span style='color: #FF4477; font-weight: 800;'>🎵 test_user</span> заказал трек: Секретная Песня", badge: "МУЗЫКА", color: "#FF4477" });
-                        } else if (argLow === "alert") {
-                            window.AppEvents.emit('TICKER_CUSTOM', { msg: "<span style='color: #00FF7F; font-weight: 800;'>💎 big_boss</span> активировал: Выпить шот", badge: "НАГРАДА", color: "#00FF7F" });
-                        } else {
-                            window.AppEvents.emit('TICKER_CUSTOM', { msg: arg || "Это тестовое сообщение для проверки системы бегущей строки 2.0!", badge: "ТЕСТ", color: "#FFD700" });
-                        }
+                        if (argLow === "music") { window.AppEvents.emit('TICKER_CUSTOM', { msg: "<span style='color: #FF4477; font-weight: 800;'>🎵 test_user</span> заказал трек: Секретная Песня", badge: "МУЗЫКА", color: "#FF4477" }); }
+                        else if (argLow === "alert") { window.AppEvents.emit('TICKER_CUSTOM', { msg: "<span style='color: #00FF7F; font-weight: 800;'>💎 big_boss</span> активировал: Выпить шот", badge: "НАГРАДА", color: "#00FF7F" }); }
+                        else { window.AppEvents.emit('TICKER_CUSTOM', { msg: arg || "Это тестовое сообщение для проверки системы бегущей строки 2.0!", badge: "ТЕСТ", color: "#FFD700" }); }
                     }
                     break;
 
-                // Базовые команды управления
                 case "wheel":
                 case "рулетка":
                     if (hasPermission) {
