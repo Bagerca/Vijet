@@ -52,10 +52,11 @@
             }
         }
 
-        // Загружаем скрипты с обходом кэша
+        // ИСПРАВЛЕНИЕ: Загружаем скрипты в СТРОГОМ хронологическом порядке (async = false)
         scriptsToLoad.forEach(src => {
             const s = document.createElement('script');
             s.src = `${src}?v=${cacheVersion}`;
+            s.async = false; // Гарантирует выполнение по очереди: 1 -> 2 -> 3
             document.body.appendChild(s);
         });
     </script>
