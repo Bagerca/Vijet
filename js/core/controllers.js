@@ -6,7 +6,10 @@ window.AppControllers = {
         const state = window.AppCoreState;
         const ev = window.AppEvents;
 
-        c.register(['uso_sync_req'], true, 0, () => state.broadcastFullState('remote'));
+        // Команда от Мод-Дека "пришли мне актуальный стейт"
+        c.register(['uso_sync_req'], true, 0, () => {
+            ev.emit('BROADCAST_REMOTE_SYNC', state.getFullState());
+        });
         
         c.register(['refresh'], true, 0, (user, arg, argLow) => {
             localStorage.removeItem('uso_current_media'); localStorage.removeItem('uso_current_theme');
@@ -19,7 +22,8 @@ window.AppControllers = {
                 ev.emit('CORE_REBOOT_START'); ev.emit('FORCE_RELOAD_VISUAL'); 
                 setTimeout(() => { const coreUrl = new URL(window.location.href); coreUrl.searchParams.set('nocache', Date.now()); window.location.href = coreUrl.toString(); }, 500); 
             } else { 
-                ev.emit('FORCE_RELOAD_VISUAL'); setTimeout(() => state.broadcastFullState('local'), 800);
+                ev.emit('FORCE_RELOAD_VISUAL'); 
+                setTimeout(() => state.broadcastFullState(), 800);
             }
         });
 

@@ -3,8 +3,12 @@ window.AppPlayerCore = {
     yt: null,
     isReady: false,
     currentVol: window.AppConfig.defaultVolume || 30,
+    
+    // Новая система Audio Ducking
+    duckCount: 0, 
     isDucking: false, 
     restoreVolTimeout: null, 
+    
     progressInterval: null,
     currentItem: null,
     pendingData: null,
@@ -14,19 +18,34 @@ window.AppPlayerCore = {
         window.AppEvents.listen('YT_CORE_HIDE', () => this.hide());
         window.AppEvents.listen('PLAYER_VOL', d => this.setVolume(d.vol));
         
-        // === АУДИО САЙДЧЕЙН (Приглушение музыки во время алертов/TTS) ===
+        // === АУДИО САЙДЧЕЙН (Reference Counting) ===
         window.AppEvents.listen('AUDIO_DUCK_START', () => {
+            this.duckCount++;
             this.isDucking = true;
+            
             if (this.restoreVolTimeout) clearTimeout(this.restoreVolTimeout);
-            if (this.isReady && this.yt) this.yt.setVolume(Math.max(1, this.currentVol * 0.15));
+            
+            // Глушим звук мгновенно
+            if (this.isReady && this.yt) {
+                this.yt.setVolume(Math.max(1, this.currentVol * 0.15));
+            }
         });
 
         window.AppEvents.listen('AUDIO_DUCK_STOP', () => {
-            if (this.restoreVolTimeout) clearTimeout(this.restoreVolTimeout);
-            this.restoreVolTimeout = setTimeout(() => {
-                this.isDucking = false;
-                if (this.isReady && this.yt) this.yt.setVolume(this.currentVol);
-            }, 2000); 
+            this.duckCount = Math.max(0, this.duckCount - 1);
+            
+            // Если больше нет активных звуков (алертов/TTS)
+            if (this.duckCount === 0) {
+                if (this.restoreVolTimeout) clearTimeout(this.restoreVolTimeout);
+                
+                // Возвращаем звук с небольшой задержкой (послезвучие)
+                this.restoreVolTimeout = setTimeout(() => {
+                    if (this.duckCount === 0) { // Двойная проверка
+                        this.isDucking = false;
+                        if (this.isReady && this.yt) this.yt.setVolume(this.currentVol);
+                    }
+                }, 2000); 
+            }
         });
 
         window.AppEvents.listen('QUEUE_CMD', d => {
@@ -68,7 +87,6 @@ window.AppPlayerCore = {
     createPlayer: function() {
         if (!document.getElementById('yt-player-core')) return;
         
-        // Обход блокировки file:// для YouTube Music/VEVO
         let safeOrigin = window.location.origin;
         if (!safeOrigin || safeOrigin === 'null' || safeOrigin.startsWith('file')) {
             safeOrigin = 'https://www.youtube.com'; 
@@ -118,7 +136,6 @@ window.AppPlayerCore = {
         }
         this.currentItem = data;
         
-        // Отправляем приказ Визуалу показать картинку (без звука!)
         window.AppEvents.emit('YT_VISUAL_PLAY', { 
             id: data.id, type: data.type, user: data.user, vol: this.currentVol 
         });
@@ -129,7 +146,7 @@ window.AppPlayerCore = {
         setTimeout(() => {
             if (this.yt && typeof this.yt.playVideo === 'function') {
                 this.yt.unMute();
-                this.yt.setVolume(this.currentVol);
+                this.yt.setVolume(this.isDucking ? Math.max(1, this.currentVol * 0.15) : this.currentVol);
                 this.yt.playVideo();
             }
         }, 300);
@@ -148,7 +165,6 @@ window.AppPlayerCore = {
             
             if (!this.isDucking) this.yt.setVolume(this.currentVol);
             
-            // Сообщаем Визуалу просто обновить цифру громкости на экране
             window.AppEvents.emit('YT_VISUAL_VOL', { vol: this.currentVol });
         }
     },
@@ -183,7 +199,6 @@ window.AppPlayerCore = {
                 const cur = this.yt.getCurrentTime();
                 const tot = this.yt.getDuration();
                 if (tot > 0) {
-                    // Ядро рассылает точное время, чтобы Визуал подстраивался
                     window.AppEvents.emit('YT_VISUAL_PROGRESS', { percent: (cur / tot) * 100, currentTime: cur });
                 }
             }

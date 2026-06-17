@@ -7,7 +7,7 @@ window.AppChat = {
     pool: [],       
     active: [],     
     poolSize: 25,   
-    isInitialized: false, // ИЗМЕНЕНО: Флаг инициализации
+    isInitialized: false,
 
     templates: {
         message: document.getElementById('tpl-chat-message'),
@@ -24,7 +24,6 @@ window.AppChat = {
     },
 
     init: function() {
-        // ИЗМЕНЕНО: Жесткая защита от двойного вызова (Double Init Fix)
         if (this.isInitialized) return; 
         this.isInitialized = true;
 
@@ -145,8 +144,13 @@ window.AppChat = {
         this.container.appendChild(el);
         this.active.push(el);
 
+        // ИСПРАВЛЕНИЕ СКРОЛЛА: Ждем отрисовки смайлов браузером перед скроллом!
         if (this.wrapper) {
-            this.wrapper.scrollTop = this.wrapper.scrollHeight;
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    this.wrapper.scrollTop = this.wrapper.scrollHeight;
+                });
+            });
         }
 
         window.dispatchEvent(new CustomEvent('CHAT_NODE_RENDERED', {

@@ -1,3 +1,4 @@
+<!-- ================= index.html ================= -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -161,37 +162,41 @@
         ];
         myStyles.forEach(href => { document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`); });
         
-        // Файлы загружаются синхронно для надежности
         const myScripts = [
             "js/config.js", "js/games-db.js", "js/event-bus.js",
+            "js/services/avatar-manager.js", 
             "js/particles.js", "js/emotes.js", "js/pet.js", "js/chat.js",
             "js/youtube.js", "js/mic.js", "js/socials.js", "js/alerts.js",
             "js/shoutout.js", "js/goal.js", "js/ticker.js", "js/deaths.js",
             "js/mediainfo.js", "js/wheel.js", "js/tts.js", "js/countdown.js", "js/blur.js"
         ];
-        myScripts.forEach(src => {
-            const s = document.createElement('script');
-            s.src = `${src}?v=${cacheBuster}`;
-            s.async = false;
-            document.body.appendChild(s);
-        });
-    </script>
 
-    <!-- === VISUAL BOOTLOADER 2.0 (DUMB UI) === -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(() => {
-                console.log("%c[BOOTLOADER] Запуск визуальных виджетов...", "color: #00FF7F; font-weight: bold;");
-                
+        const loadScript = (src) => {
+            return new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = `${src}?v=${cacheBuster}`;
+                s.onload = resolve;
+                s.onerror = () => reject(new Error(`Failed to load ${src}`));
+                document.body.appendChild(s);
+            });
+        };
+
+        const bootVisuals = async () => {
+            console.log("%c[BOOTLOADER] Запуск визуальных виджетов...", "color: #00FF7F; font-weight: bold;");
+            
+            try {
+                for (const script of myScripts) {
+                    await loadScript(script);
+                }
+
                 const modules = [
                     window.AppBlur, window.AppPet, window.AppTTS, window.AppEmotes,
                     window.AppChat, window.AppMedia, window.AppPlayer, window.AppSocials,
                     window.AppAlerts, window.AppShoutout, window.AppGoal, window.AppTicker,
                     window.AppDeaths, window.AppMediaInfo, window.AppWheel, window.AppCountdown,
-    window.AppParticles
+                    window.AppParticles
                 ];
 
-                // Инициализация виджетов
                 modules.forEach(mod => {
                     if (mod && typeof mod.init === 'function' && !mod.isInitialized) {
                         try {
@@ -203,20 +208,22 @@
 
                 setupSceneModes();
 
-                // Визуал больше не лезет в localStorage. Он ждет приказа от Ядра!
                 window.AppEvents.listen('THEME_UPDATE_UI', (data) => applyTheme(data.theme));
 
-                // Отправляем сигнал Ядру: "Эй, я готов, шли настройки!"
                 window.AppEvents.emit('VISUAL_READY');
 
-                // Ловушки системных перезагрузок
                 window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => triggerRefreshUI());
                 window.AppEvents.listen('CORE_REBOOT_START', () => triggerCoreRefreshUI('start'));
                 window.AppEvents.listen('CORE_REBOOT_DONE', () => triggerCoreRefreshUI('done'));
 
                 setInterval(() => window.AppEvents.emit('VISUAL_HEARTBEAT'), 5000);
-            }, 800);
-        });
+
+            } catch (err) {
+                console.error("%c[BOOTLOADER] Ошибка загрузки визуального слоя:", "color: #FF0050;", err);
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", bootVisuals);
 
         function setupSceneModes() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -273,7 +280,6 @@
             const scene = document.getElementById('scene-wrapper');
             if (scene) { scene.style.transition = "filter 0.4s ease, opacity 0.4s ease"; scene.style.filter = "blur(8px)"; scene.style.opacity = "0.7"; }
             
-            // Включаем красивый лоадер, чтобы было видно, что идет обновление
             let loader = document.getElementById('uso-refresh-loader');
             if (!loader) {
                 loader = document.createElement('div');
@@ -317,7 +323,7 @@
             }, 1000); 
         };
 
-        const triggerCoreRefreshUI = (state) => { /* Косметический лоадер для перезагрузки ядра (можно оставить пустым) */ };
+        const triggerCoreRefreshUI = (state) => { /* Косметический лоадер для перезагрузки ядра */ };
     </script>
 </body>
 </html>

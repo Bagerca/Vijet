@@ -17,8 +17,12 @@ window.AppCoreState = {
         music: true, tts: true, particles: true, cam: true, 
         blur: false, shoutout: true, deaths: false, wheel: false
     },
-    theme: 'default', media: null, volume: window.AppConfig.defaultVolume || 30,
-    deathsCount: 0, queue: [], wheelItems: [],
+    theme: 'default', 
+    media: null, 
+    volume: window.AppConfig.defaultVolume || 30,
+    deathsCount: 0, 
+    queue: [], 
+    wheelItems: [],
 
     init: function() {
         try {
@@ -32,7 +36,9 @@ window.AppCoreState = {
                 this.deathsCount = saved.deathsCount;
                 this.widgets.deaths = this.deathsCount > 0; 
             }
-        } catch(e) { AppLogger.warn("Сбой чтения кэша State, используем дефолт."); }
+        } catch(e) { 
+            window.AppLogger.warn("Сбой чтения кэша State, используем дефолт."); 
+        }
     },
 
     save: function() {
@@ -53,35 +59,44 @@ window.AppCoreState = {
                 changed = true;
             }
         }
+        
         if (changed) {
             this.save();
-            this.broadcastFullState('local');
+            this.broadcastFullState();
             this.syncVisuals(updates);
         }
     },
 
-    syncVisuals: function(specificUpdates = null) {
-        const sendAll = specificUpdates === null; 
-        if (sendAll || specificUpdates.deathsCount !== undefined || (specificUpdates.widgets && specificUpdates.widgets.deaths !== undefined)) {
-            window.AppEvents.emit('DEATHS_UPDATE_UI', { count: this.deathsCount, isVisible: this.widgets.deaths });
-        }
-        if (sendAll || specificUpdates.theme !== undefined) window.AppEvents.emit('THEME_UPDATE_UI', { theme: this.theme });
-        if (sendAll || specificUpdates.media !== undefined) window.AppEvents.emit('MEDIA_UPDATE_UI', this.media);
-        if (sendAll || specificUpdates.wheelItems !== undefined) window.AppEvents.emit('WHEEL_UPDATE_UI', { items: this.wheelItems });
-        if (sendAll || specificUpdates.queue !== undefined) window.AppEvents.emit('QUEUE_STATE', { count: this.queue.length, items: this.queue });
-    },
-
-    broadcastFullState: function(target = 'local') {
-        const payload = {
+    // Метод получения полной копии стейта
+    getFullState: function() {
+        return {
             widgets: this.widgets, queue: this.queue, theme: this.theme,
             media: this.media, volume: this.volume, deaths: this.deathsCount, wheelItems: this.wheelItems
         };
-        if (target === 'local') window.AppEvents.emit('SYSTEM_STATE_RESPONSE', payload);
-        else if (target === 'remote' && window.AppConfig.channelName) {
-            const client = window.ComfyJS ? window.ComfyJS.GetClient() : null;
-            if (client && client.readyState() === "OPEN") {
-                window.ComfyJS.Say(`[USO_SYNC] ${JSON.stringify(payload)}`, window.AppConfig.channelName);
-            }
+    },
+
+    syncVisuals: function(specificUpdates = null) {
+        const sendAll = specificUpdates === null; 
+        
+        if (sendAll || specificUpdates.deathsCount !== undefined || (specificUpdates.widgets && specificUpdates.widgets.deaths !== undefined)) {
+            window.AppEvents.emit('DEATHS_UPDATE_UI', { count: this.deathsCount, isVisible: this.widgets.deaths });
         }
+        if (sendAll || specificUpdates.theme !== undefined) {
+            window.AppEvents.emit('THEME_UPDATE_UI', { theme: this.theme });
+        }
+        if (sendAll || specificUpdates.media !== undefined) {
+            window.AppEvents.emit('MEDIA_UPDATE_UI', this.media);
+        }
+        if (sendAll || specificUpdates.wheelItems !== undefined) {
+            window.AppEvents.emit('WHEEL_UPDATE_UI', { items: this.wheelItems });
+        }
+        if (sendAll || specificUpdates.queue !== undefined) {
+            window.AppEvents.emit('QUEUE_STATE', { count: this.queue.length, items: this.queue });
+        }
+    },
+
+    // Теперь он просто кидает локальный ивент. Отправкой в сеть займется twitch.js
+    broadcastFullState: function() {
+        window.AppEvents.emit('SYSTEM_STATE_RESPONSE', this.getFullState());
     }
 };

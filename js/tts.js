@@ -51,42 +51,16 @@ window.AppTTS = {
         });
     },
 
-    showVisual: function(user) {
+    showVisual: async function(user) {
         if (!this.container) return;
         this.userText.innerText = user;
         
-        if (this.avatarImg) {
-            const safeName = encodeURIComponent(user);
-            const fallbackUrl = `https://ui-avatars.com/api/?name=${safeName}&background=1a1a1a&color=fff&size=64&bold=true`;
-            let foundAvatar = null;
-
+        if (this.avatarImg && window.AvatarManager) {
             try {
-                const cachedAvatars = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
-                const searchName = user.toLowerCase();
-                for (let key in cachedAvatars) {
-                    if (key.toLowerCase() === searchName) {
-                        foundAvatar = cachedAvatars[key];
-                        break;
-                    }
-                }
-            } catch(e) {}
-
-            if (foundAvatar) {
-                this.avatarImg.src = foundAvatar;
-            } else {
-                this.avatarImg.src = fallbackUrl;
-                fetch(`https://api.ivr.fi/v2/twitch/user?login=${user.toLowerCase()}`)
-                    .then(res => res.json())
-                    .then(apiData => {
-                        if (apiData && apiData.length > 0 && apiData[0].logo) {
-                            this.avatarImg.src = apiData[0].logo;
-                            try {
-                                let cache = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
-                                cache[user] = apiData[0].logo;
-                                localStorage.setItem('uso_avatars', JSON.stringify(cache));
-                            } catch(e) {}
-                        }
-                    }).catch(e => console.warn("[TTS VISUAL] Ошибка скачивания аватарки", e));
+                const avatarUrl = await window.AvatarManager.get(user, '#1a1a1a');
+                this.avatarImg.src = avatarUrl;
+            } catch (err) {
+                console.error("[TTS VISUAL] Ошибка получения аватара:", err);
             }
         }
 

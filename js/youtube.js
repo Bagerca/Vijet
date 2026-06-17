@@ -108,7 +108,6 @@ window.AppPlayer = {
     },
 
     updateVolUI: function(vol) {
-        // Мы НЕ меняем громкость плеера, только обновляем текст на экране
         if(!this.volLabel) return;
         this.volLabel.innerText = vol;
         this.volLabel.classList.remove('animate-pop');
@@ -150,37 +149,17 @@ window.AppPlayer = {
         this.queueCount.classList.add('animate-pop');
     },
 
-    updateAvatar: function(user) {
-        if (!this.avatarEl) return;
-        let fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user)}&background=FF4477&color=fff&bold=true`;
-        
-        const setAvatar = (url) => {
-            this.avatarEl.src = url;
+    updateAvatar: async function(user) {
+        if (!this.avatarEl || !window.AvatarManager) return;
+
+        try {
+            const avatarUrl = await window.AvatarManager.get(user, '#FF4477');
+            this.avatarEl.src = avatarUrl;
             this.avatarEl.classList.remove('pop-avatar');
             void this.avatarEl.offsetWidth; 
             this.avatarEl.classList.add('pop-avatar');
-        };
-
-        try {
-            const cachedAvatars = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
-            for (let key in cachedAvatars) {
-                if (key.toLowerCase() === user.toLowerCase()) {
-                    setAvatar(cachedAvatars[key]);
-                    return;
-                }
-            }
-        } catch(e) {}
-
-        setAvatar(fallbackUrl);
-        fetch(`https://api.ivr.fi/v2/twitch/user?login=${user.toLowerCase()}`)
-            .then(res => res.json())
-            .then(apiData => {
-                if (apiData && apiData.length > 0 && apiData[0].logo) {
-                    setAvatar(apiData[0].logo);
-                    let cache = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
-                    cache[user] = apiData[0].logo;
-                    localStorage.setItem('uso_avatars', JSON.stringify(cache));
-                }
-            }).catch(()=>{});
+        } catch (err) {
+            console.error("[YT VISUAL] Ошибка получения аватара:", err);
+        }
     }
 };

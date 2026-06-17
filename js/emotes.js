@@ -81,22 +81,28 @@ window.AppEmotes = {
             img.crossOrigin = "anonymous";
             this.imageCache[id] = { img: img, loaded: false, callbacks: [resolve] };
             
+            // ИСПРАВЛЕНИЕ: Предотвращаем зависание Promise если картинки нет на сервере Twitch
+            img.onerror = () => {
+                console.warn(`[Emotes] Ошибка загрузки смайла ID: ${id}`);
+                this.imageCache[id].loaded = true; 
+                this.imageCache[id].img = null; 
+                this.imageCache[id].callbacks.forEach(cb => cb(null));
+                this.imageCache[id].callbacks = [];
+            };
+
             img.onload = () => {
                 this.imageCache[id].loaded = true;
                 this.imageCache[id].callbacks.forEach(cb => cb(img));
                 this.imageCache[id].callbacks = [];
             };
-            img.onerror = () => {
-                this.imageCache[id].callbacks.forEach(cb => cb(null));
-                this.imageCache[id].callbacks = [];
-            };
+            
             img.src = `https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/3.0`;
         });
     },
 
     spawn: async function(emotesData) {
-        // Защита от накопления смайлов в свернутой вкладке (переключение сцен)
-        if (!this.enabled || !emotesData || document.hidden) return;
+        // ИСПРАВЛЕНИЕ: Убрал `document.hidden`, чтобы смайлы спавнились даже если окно в фоне
+        if (!this.enabled || !emotesData) return;
         const emoteIds = Object.keys(emotesData);
         if (emoteIds.length === 0) return;
 
@@ -110,6 +116,7 @@ window.AppEmotes = {
         const height = this.container.clientHeight;
 
         for (let data of loadedImages) {
+            // Если картинка "битая", пропускаем
             if (!data.img) continue;
             
             let count = Math.min(emotesData[data.id].length, MAX_PER_MSG);
@@ -179,12 +186,9 @@ window.AppEmotes = {
         let dt = (timestamp - this.lastTime) / 1000;
         this.lastTime = timestamp;
 
-        // Очистка мусора при пробуждении сцены после долгой паузы
-        if (dt > 0.5) { 
-            this.emotesArray = [];
-            return;
-        }
-
+        // ИСПРАВЛЕНИЕ: Если дельта времени огромная (возврат из свернутой вкладки),
+        // мы просто фиксируем dt, а не удаляем весь массив смайлов!
+        if (dt > 0.5) dt = 0.016; 
         if (dt > 0.1) dt = 0.016; 
 
         const width = this.container.clientWidth;

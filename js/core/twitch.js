@@ -15,30 +15,62 @@ window.AppTwitch = {
     },
 
     setupEvents: function() {
+        // Обработка команд чата
         window.ComfyJS.onCommand = async (user, command, message, flags, extra) => {
             window.AppCommands.execute(user, command, message, flags, extra);
         };
 
+        // Обработка текстовых сообщений
         window.ComfyJS.onChat = async (user, message, flags, self, extra) => {
             window.AppChatProcessor.processIncomingChat(user, message, flags, self, extra);
         };
 
+        // Алерты: Подписки и подарки
         const ev = window.AppEvents;
         const triggerLove = () => ev.emit('PET_EMOTION', { emotion: 'love', duration: 5000 });
         
-        window.ComfyJS.onSub = (user, message) => { if(window.AppCoreState.widgets.alerts) ev.emit('ALERT_ADD', { user, type: 'sub', msg: message }); triggerLove(); };
-        window.ComfyJS.onResub = (user, message, sMonths, cMonths) => { if(window.AppCoreState.widgets.alerts) ev.emit('ALERT_ADD', { user, type: 'resub', msg: message, val: cMonths }); triggerLove(); };
-        window.ComfyJS.onSubGift = (gifter, streak, recUser) => { if(window.AppCoreState.widgets.alerts) ev.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `для ${recUser}` }); triggerLove(); };
-        window.ComfyJS.onSubMysteryGift = (gifter, numb) => { if(window.AppCoreState.widgets.alerts) ev.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `подарил ${numb} саб.!` }); triggerLove(); };
+        window.ComfyJS.onSub = (user, message) => { 
+            if(window.AppCoreState.widgets.alerts) ev.emit('ALERT_ADD', { user, type: 'sub', msg: message }); 
+            triggerLove(); 
+        };
+        window.ComfyJS.onResub = (user, message, sMonths, cMonths) => { 
+            if(window.AppCoreState.widgets.alerts) ev.emit('ALERT_ADD', { user, type: 'resub', msg: message, val: cMonths }); 
+            triggerLove(); 
+        };
+        window.ComfyJS.onSubGift = (gifter, streak, recUser) => { 
+            if(window.AppCoreState.widgets.alerts) ev.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `для ${recUser}` }); 
+            triggerLove(); 
+        };
+        window.ComfyJS.onSubMysteryGift = (gifter, numb) => { 
+            if(window.AppCoreState.widgets.alerts) ev.emit('ALERT_ADD', { user: gifter, type: 'gift', msg: `подарил ${numb} саб.!` }); 
+            triggerLove(); 
+        };
 
+        // Алерты: Стрики (События из Raw Message)
         const client = window.ComfyJS.GetClient();
         if (client) {
             client.on("raw_message", (messageCloned, message) => {
                 if (message.command === "USERNOTICE" && message.tags && message.tags["msg-id"] === "viewermilestone") {
-                    if(window.AppCoreState.widgets.alerts) ev.emit('ALERT_ADD', { user: message.tags["display-name"] || message.tags["login"], type: 'streak', msg: (message.params && message.params.length > 1) ? message.params[1] : "", val: message.tags["msg-param-value"] });
+                    if(window.AppCoreState.widgets.alerts) {
+                        ev.emit('ALERT_ADD', { 
+                            user: message.tags["display-name"] || message.tags["login"], 
+                            type: 'streak', 
+                            msg: (message.params && message.params.length > 1) ? message.params[1] : "", 
+                            val: message.tags["msg-param-value"] 
+                        });
+                    }
                     triggerLove();
                 }
             });
         }
+
+        // === ИНТЕГРАЦИЯ УДАЛЕННОГО ОБЩЕНИЯ ===
+        // Если кто-то из Ядра просит отправить State в Мод-Дек
+        ev.listen('BROADCAST_REMOTE_SYNC', (payload) => {
+            const currentClient = window.ComfyJS.GetClient();
+            if (currentClient && currentClient.readyState() === "OPEN" && window.AppConfig.channelName) {
+                window.ComfyJS.Say(`[USO_SYNC] ${JSON.stringify(payload)}`, window.AppConfig.channelName);
+            }
+        });
     }
 };

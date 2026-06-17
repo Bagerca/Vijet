@@ -1,8 +1,9 @@
-/* ================= EVENT BUS 2.0 (Синхронная Шина с подтверждениями) ================= */
+/* ================= EVENT BUS 3.0 (Синхронная Шина с отпиской) ================= */
 window.StreamBus = new BroadcastChannel('ultimate_overlay_channel');
 
 window.AppEvents = {
-    _history: [], // Храним историю для дебага
+    _history: [], 
+    _listeners: {}, // Храним ссылки на функции-обработчики
 
     emit: function(eventName, payload = {}) {
         this._history.push({ time: Date.now(), event: eventName, payload });
@@ -20,20 +21,48 @@ window.AppEvents = {
     },
     
     listen: function(eventName, callback) {
-        // Слушаем внешние вкладки
-        window.StreamBus.addEventListener('message', (e) => {
+        if (!this._listeners[eventName]) {
+            this._listeners[eventName] = [];
+        }
+
+        // Внешний обработчик (BroadcastChannel)
+        const extHandler = (e) => {
             if (e.data.event === eventName) {
                 try { callback(e.data.payload); } 
                 catch (err) { console.error(`[BUS ❌ EXT] Ошибка в ${eventName}:`, err); }
             }
-        });
+        };
 
-        // Слушаем локально
-        window.addEventListener('local_bus', (e) => {
+        // Локальный обработчик (CustomEvent)
+        const locHandler = (e) => {
             if (e.detail.event === eventName) {
                 try { callback(e.detail.payload); } 
                 catch (err) { console.error(`[BUS ❌ LOC] Ошибка в ${eventName}:`, err); }
             }
+        };
+
+        // Сохраняем ссылки для возможности отписки
+        this._listeners[eventName].push({ 
+            originalCb: callback, 
+            extHandler: extHandler, 
+            locHandler: locHandler 
+        });
+
+        window.StreamBus.addEventListener('message', extHandler);
+        window.addEventListener('local_bus', locHandler);
+    },
+
+    unlisten: function(eventName, callback) {
+        if (!this._listeners[eventName]) return;
+
+        this._listeners[eventName] = this._listeners[eventName].filter(listener => {
+            if (listener.originalCb === callback) {
+                // Удаляем слушателей из браузера
+                window.StreamBus.removeEventListener('message', listener.extHandler);
+                window.removeEventListener('local_bus', listener.locHandler);
+                return false; // Удаляем из массива
+            }
+            return true;
         });
     }
 };
