@@ -1,4 +1,4 @@
-/* ================= YOUTUBE CORE ПЛЕЕР (ИСПРАВЛЕННЫЙ) ================= */
+/* ================= YOUTUBE CORE ПЛЕЕР (ИСПРАВЛЕННЫЙ ЗАПУСК) ================= */
 window.AppPlayerCore = {
     yt: null,
     isReady: false,
@@ -8,7 +8,7 @@ window.AppPlayerCore = {
     progressInterval: null,
     currentItem: null,
     currentVisualId: null,
-    pendingData: null, // Очередь ожидания инициализации
+    pendingData: null,
 
     init: function() {
         window.AppEvents.listen('YT_CORE_PLAY', d => this.play(d));
@@ -115,8 +115,7 @@ window.AppPlayerCore = {
         this.currentItem = data;
         this.currentVisualId = null; 
         
-        // МГНОВЕННЫЙ ЗАПУСК ВИЗУАЛА: Отправляем сигнал сразу, не дожидаясь ответа от серверов YT.
-        // Это обходит блокировку автовоспроизведения в браузере при тестировании
+        // МГНОВЕННЫЙ ЗАПУСК ВИЗУАЛА
         if (data.type === 'video') {
             this.currentVisualId = data.id;
             window.AppEvents.emit('YT_VISUAL_PLAY', { 
@@ -131,6 +130,15 @@ window.AppPlayerCore = {
         } else {
             this.yt.loadVideoById(data.id);
         }
+
+        // ИСПРАВЛЕНИЕ: Возвращаем принудительный запуск воспроизведения и включение звука!
+        setTimeout(() => {
+            if (this.yt && typeof this.yt.playVideo === 'function') {
+                this.yt.unMute();
+                this.yt.setVolume(this.currentVol);
+                this.yt.playVideo();
+            }
+        }, 300);
     },
 
     hide: function() {
@@ -152,11 +160,9 @@ window.AppPlayerCore = {
     },
 
     handleStateChange: function(event) {
-        // State 1 = PLAYING, State 3 = BUFFERING
         if (event.data === 1 || event.data === 3) { 
             let actualVidId = this.yt.getVideoData().video_id;
             
-            // Защита для плейлистов: отправляем сигнал визуала только если трек переключился
             if (actualVidId && actualVidId !== this.currentVisualId && this.currentItem) {
                 this.currentVisualId = actualVidId;
                 window.AppEvents.emit('YT_VISUAL_PLAY', { 
