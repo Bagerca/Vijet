@@ -1,4 +1,5 @@
-/* ================= БЕГУЩАЯ СТРОКА 3.0 (Smart State Machine & Priority Queue) ================= */
+/* ================= js/ticker.js ================= */
+
 window.AppTicker = {
     container: document.getElementById('ticker-container'),
     maskEl: document.getElementById('ticker-mask'),
@@ -6,41 +7,38 @@ window.AppTicker = {
     badgeTextEl: document.getElementById('ticker-badge-text'),
     badgeDotEl: document.querySelector('#ticker-badge .t-dot'),
     
-    // --- УМНЫЕ ДАННЫЕ ---
-    priorityQueue: [],      // Очередь важных событий (Музыка, Баллы)
-    messageBag: [],         // Колода обычных сообщений (без повторов)
+    priorityQueue: [],      
+    messageBag: [],         
     
-    // --- СОСТОЯНИЯ (State Machine) ---
-    state: 0,               // 0 = СПИТ, 1 = ЕДЕТ ТЕКСТ, 2 = ПРЯЧЕТСЯ/АНИМАЦИЯ
-    currentIsPriority: false, // Является ли текущий текст на экране важным алертом
+    state: 0,               
+    currentIsPriority: false, 
     
-    // --- ТАЙМЕРЫ И НАСТРОЙКИ ---
     intervalTimerId: null,
     textMotionTimerId: null,
     hideTimerId: null,
-    speed: window.AppConfig.tickerSpeed || 120, // Пикселей в секунду
+    speed: window.AppConfig.tickerSpeed || 120, 
+    isInitialized: false, // Флаг инициализации
 
     init: function() {
+        // Защита от двойного запуска
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         if (!window.AppConfig.tickerMessages || window.AppConfig.tickerMessages.length === 0) {
             this.container.style.display = 'none'; 
             return;
         }
         
-        // Слушатели событий
         window.AppEvents.listen('TICKER_MUSIC', d => this.showMusicEvent(d.data, d.user));
         window.AppEvents.listen('TICKER_REWARD', d => this.showRewardEvent(d.user, d.reward, d.message));
         window.AppEvents.listen('TICKER_CUSTOM', d => this.forceShowImmediate(d.msg, d.badge, d.color));
         
-        this.fillBag(); // Заполняем и мешаем колоду сообщений
+        this.fillBag(); 
         this.scheduleNext();
     },
 
-    // ==========================================
-    // ЛОГИКА КОЛОДЫ (Smart Playlist)
-    // ==========================================
     fillBag: function() {
         let msgs = [...window.AppConfig.tickerMessages];
-        // Алгоритм Фишера-Йетса для идеального перемешивания
         for (let i = msgs.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [msgs[i], msgs[j]] = [msgs[j], msgs[i]];
@@ -54,94 +52,70 @@ window.AppTicker = {
         return { html: msg, badge: "ИНФО", color: "#00FF7F" };
     },
 
-    // ==========================================
-    // СИСТЕМА УПРАВЛЕНИЯ ВРЕМЕНЕМ
-    // ==========================================
     scheduleNext: function() {
         clearTimeout(this.intervalTimerId);
         const interval = window.AppConfig.tickerInterval || 60000;
         
         this.intervalTimerId = setTimeout(() => {
-            // Запускаем дефолтное сообщение, только если строка спит и нет очереди алертов
             if (this.state === 0 && this.priorityQueue.length === 0) {
                 this.playNext();
             }
         }, interval);
     },
 
-    // ==========================================
-    // ОБРАБОТКА ВХОДЯЩИХ АЛЕРТОВ
-    // ==========================================
     forceShowImmediate: function(msg, badgeName = "СИСТЕМА", color = "#FF4477") {
-        // 1. Всегда кладем событие в очередь (никаких потерь данных!)
         this.priorityQueue.push({ html: msg, badge: badgeName, color: color });
         
-        // 2. Принимаем решение на основе текущего состояния (State Machine)
         if (this.state === 0) {
-            // Если спит — мгновенно запускаем
             this.playNext();
         } 
         else if (this.state === 1 && !this.currentIsPriority) {
-            // Если едет ОБЫЧНЫЙ текст — жестко прерываем его, чтобы показать алерт
             this.interrupt();
         }
-        // Если state === 2 (уже прячется) ИЛИ currentIsPriority === true (на экране УЖЕ важный алерт),
-        // мы НИЧЕГО не делаем. Алерт спокойно дождется своей очереди. Это решает баг перебивания.
     },
 
-    // ==========================================
-    // ДВИЖОК КОНЕЧНОГО АВТОМАТА
-    // ==========================================
-    
-    // ФУНКЦИЯ 1: Мягкое прерывание
     interrupt: function() {
-        if (this.state !== 1) return; // Защита от двойного вызова
-        this.state = 2; // Блокируем систему (состояние "Прячется")
+        if (this.state !== 1) return; 
+        this.state = 2; 
         
         clearTimeout(this.textMotionTimerId);
         clearTimeout(this.hideTimerId);
         
-        this.textEl.style.transition = 'none'; // Останавливаем текст прямо там, где он есть
+        this.textEl.style.transition = 'none'; 
         this.container.classList.remove('visible');
         this.container.classList.add('is-leaving');
         
-        // Ждем пока отыграет 3D-анимация ухода (600ms)
         setTimeout(() => {
             this.container.classList.add('hidden');
             this.container.classList.remove('is-leaving');
-            this.state = 0; // Снова спим
-            this.playNext(); // Сразу запускаем алерт, который ждет в очереди
+            this.state = 0; 
+            this.playNext(); 
         }, 600);
     },
 
-    // ФУНКЦИЯ 2: Запуск следующего элемента
     playNext: function() {
-        if (this.state !== 0) return; // Защита
-        this.state = 1; // Блокируем систему (состояние "Едет")
+        if (this.state !== 0) return; 
+        this.state = 1; 
         clearTimeout(this.intervalTimerId);
         
         let item;
-        // Проверяем, есть ли важные алерты
         if (this.priorityQueue.length > 0) {
             item = this.priorityQueue.shift();
-            this.currentIsPriority = true; // Защита от перебивания
+            this.currentIsPriority = true; 
         } else {
             item = this.getDefaultMessage();
-            this.currentIsPriority = false; // Можно перебивать
+            this.currentIsPriority = false; 
         }
         
-        // --- Рендер DOM ---
         this.badgeTextEl.innerText = item.badge;
         this.badgeDotEl.style.backgroundColor = item.color;
         this.badgeDotEl.style.boxShadow = `0 0 10px ${item.color}`;
         this.textEl.innerHTML = item.html;
         this.textEl.style.transition = 'none';
         
-        // Очищаем классы и форсируем перерисовку
         this.container.classList.remove('hidden', 'is-leaving');
         void this.container.offsetWidth; 
         
-        // --- Физика Constant Velocity ---
         const maskWidth = this.maskEl.offsetWidth;
         const textWidth = this.textEl.scrollWidth;
         this.textEl.style.transform = `translate3d(${maskWidth}px, 0, 0)`;
@@ -150,27 +124,21 @@ window.AppTicker = {
         const distance = maskWidth + textWidth; 
         const duration = distance / this.speed;
 
-        // --- Запуск Анимаций ---
-        this.container.classList.add('visible'); // 3D-вылет
+        this.container.classList.add('visible'); 
         
-        // Таймер 1: Запуск движения текста (ждем 800ms, пока вылетает плашка)
         this.textMotionTimerId = setTimeout(() => {
             this.textEl.style.transition = `transform ${duration}s linear`;
             this.textEl.style.transform = `translate3d(-${textWidth + 50}px, 0, 0)`;
         }, 800);
         
-        // Таймер 2: Запуск прятанья плашки (Вылет плашки + Движение текста + Пауза)
-        // Использование JS-таймера вместо CSS 'transitionend' на 100% защищает от багов
-        // при сворачивании окон в Windows
         this.hideTimerId = setTimeout(() => {
             this.hideTicker();
         }, 800 + (duration * 1000) + 200); 
     },
 
-    // ФУНКЦИЯ 3: Штатное скрытие строки
     hideTicker: function() {
-        if (this.state !== 1) return; // Если кто-то уже прервал нас, выходим
-        this.state = 2; // Блокировка
+        if (this.state !== 1) return; 
+        this.state = 2; 
         
         this.container.classList.remove('visible');
         this.container.classList.add('is-leaving');
@@ -178,17 +146,13 @@ window.AppTicker = {
         setTimeout(() => {
             this.container.classList.add('hidden');
             this.container.classList.remove('is-leaving');
-            this.state = 0; // Свободны
+            this.state = 0; 
             
-            // Если за время проезда накопились еще алерты — пускаем их
             if (this.priorityQueue.length > 0) this.playNext();
-            else this.scheduleNext(); // Иначе заводим будильник на 1 минуту
+            else this.scheduleNext(); 
         }, 600);
     },
 
-    // ==========================================
-    // ФОРМАТИРОВАНИЕ СОБЫТИЙ С TWITCH
-    // ==========================================
     showMusicEvent: async function(ytData, user) {
         let msg = '';
         if (ytData.type === 'playlist') {
@@ -215,5 +179,4 @@ window.AppTicker = {
         this.forceShowImmediate(msg, "НАГРАДА", "#00FF7F");
     }
 };
-
-window.AppTicker.init();
+// УДАЛЕНО: window.AppTicker.init();

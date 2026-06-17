@@ -1,24 +1,37 @@
-/* ================= TTS ЯДРО (Только для core.html) ================= */
+/* ================= js/tts-core.js ================= */
+
 window.AppTTSCore = {
     queue: [],
     isPlaying: false,
     synth: window.speechSynthesis,
     keepAliveInterval: null,
-    activeUtterance: null, // Защита от Garbage Collector (Bug fix)
+    activeUtterance: null, 
+    availableVoices: [], // Кэш голосов
 
     init: function() {
         if (!window.AppConfig.ttsEnabled) return;
-        let voices = this.synth.getVoices();
-        if (voices.length === 0) this.synth.onvoiceschanged = () => { voices = this.synth.getVoices(); };
+        
+        // ИЗМЕНЕНО: Умная предзагрузка голосов
+        this.loadVoices();
+        if (this.synth.onvoiceschanged !== undefined) {
+            this.synth.onvoiceschanged = () => this.loadVoices();
+        }
         
         window.AppEvents.listen('TTS_ADD', d => this.add(d.user, d.text));
         window.AppEvents.listen('TTS_CMD', d => { if (d.cmd === 'stop') this.stop(); });
     },
 
+    loadVoices: function() {
+        this.availableVoices = this.synth.getVoices();
+        if (this.availableVoices.length > 0) {
+            console.log(`[TTS] Загружено голосов: ${this.availableVoices.length}`);
+        }
+    },
+
     add: function(user, text) {
         if (!window.AppConfig.ttsEnabled || !text) return;
 
-        let cleanText = text.replace(/https?:\/\/[^\s]+/g, "").replace(/www\.[^\s]+/g, ""); 
+        let cleanText = text.replace(/https?:\/\/[^\s]+/g, "ссылка").replace(/www\.[^\s]+/g, "ссылка"); 
         cleanText = cleanText.replace(/(.)\1{10,}/g, "$1$1$1"); 
         if (cleanText.length > window.AppConfig.ttsMaxLength) cleanText = cleanText.substring(0, window.AppConfig.ttsMaxLength) + "...";
 
@@ -48,13 +61,31 @@ window.AppTTSCore = {
         utterance.pitch = customSettings && customSettings.pitch !== undefined ? customSettings.pitch : 1.0;
         utterance.rate = customSettings && customSettings.rate !== undefined ? customSettings.rate : 1.1;
 
-        const voices = this.synth.getVoices();
+        // ИЗМЕНЕНО: Надежный алгоритм выбора русского голоса
         let selectedVoice = null;
+        
+        // 1. Пытаемся найти кастомный голос юзера
         if (customSettings && customSettings.voiceName) {
-            selectedVoice = voices.find(v => v.name.toLowerCase().includes(customSettings.voiceName.toLowerCase()) && v.lang.includes('ru'));
+            selectedVoice = this.availableVoices.find(v => v.name.toLowerCase().includes(customSettings.voiceName.toLowerCase()) && v.lang.includes('ru'));
         }
-        if (!selectedVoice) selectedVoice = voices.find(v => v.lang === 'ru-RU' && v.name.includes('Google')) || voices.find(v => v.lang.includes('ru'));
-        if (selectedVoice) utterance.voice = selectedVoice;
+        // 2. Ищем премиум голос Google (самый приятный в Chrome)
+        if (!selectedVoice) {
+            selectedVoice = this.availableVoices.find(v => v.name.includes('Google') && v.lang === 'ru-RU');
+        }
+        // 3. Ищем голос Microsoft (для Edge)
+        if (!selectedVoice) {
+            selectedVoice = this.availableVoices.find(v => v.name.includes('Microsoft') && v.lang === 'ru-RU');
+        }
+        // 4. Берем любой доступный русский голос
+        if (!selectedVoice) {
+            selectedVoice = this.availableVoices.find(v => v.lang.includes('ru'));
+        }
+
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+        } else {
+            console.warn("[TTS] Русские голоса не найдены в системе! Используется дефолтный голос ОС.");
+        }
 
         const clearKeepAlive = () => {
             if (this.keepAliveInterval) {
@@ -65,16 +96,18 @@ window.AppTTSCore = {
 
         utterance.onstart = () => {
             window.AppEvents.emit('TTS_EQ_START');
-            window.AppEvents.emit('AUDIO_DUCK_START'); // Приглушаем YouTube
-            window.AppEvents.emit('PET_BASE_STATE', { state: 'listen', active: true }); // Питомец начинает слушать (в стек)
+            window.AppEvents.emit('AUDIO_DUCK_START'); 
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'listen', active: true }); 
             
+            // Фикс бага Chrome, когда длинный текст обрывается через 15 секунд
             this.keepAliveInterval = setInterval(() => {
                 if (this.synth.speaking) {
                     this.synth.pause();
                     this.synth.resume();
                 }
-            }, 10000);
+            }, 14000);
         };
+        
         utterance.onboundary = (event) => {
             if (event.name === 'word') window.AppEvents.emit('TTS_EQ_SPIKE');
         };
@@ -82,23 +115,31 @@ window.AppTTSCore = {
         const finishTTS = () => {
             clearKeepAlive();
             window.AppEvents.emit('TTS_EQ_STOP');
-            window.AppEvents.emit('AUDIO_DUCK_STOP'); // Возвращаем громкость музыки
-            window.AppEvents.emit('PET_BASE_STATE', { state: 'listen', active: false }); // Убираем 'listen' из стека
+            window.AppEvents.emit('AUDIO_DUCK_STOP'); 
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'listen', active: false }); 
             this.activeUtterance = null;
             setTimeout(() => this.playNext(), 500);
         };
 
         utterance.onend = finishTTS;
-        utterance.onerror = finishTTS;
+        utterance.onerror = (e) => {
+            console.error("[TTS] Ошибка синтеза речи:", e);
+            finishTTS();
+        };
 
-        // Сохраняем ссылку, чтобы GC не убил объект (Bug Fix)
         this.activeUtterance = utterance;
-        this.synth.speak(utterance);
+        
+        try {
+            this.synth.speak(utterance);
+        } catch(e) {
+            console.error("[TTS] Критический сбой запуска речи:", e);
+            finishTTS();
+        }
     },
 
     stop: function() {
         this.queue = []; 
-        this.synth.cancel(); 
+        try { this.synth.cancel(); } catch(e) {}
         this.isPlaying = false;
         if (this.keepAliveInterval) {
             clearInterval(this.keepAliveInterval);
@@ -110,5 +151,3 @@ window.AppTTSCore = {
         window.AppEvents.emit('PET_BASE_STATE', { state: 'listen', active: false });
     }
 };
-
-setTimeout(() => window.AppTTSCore.init(), 1000);

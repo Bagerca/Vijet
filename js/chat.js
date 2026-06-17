@@ -1,13 +1,13 @@
-/* ================= ЧАТ V2.0 (OBJECT POOLING & ULTRA-PERFORMANCE) ================= */
+/* ================= js/chat.js ================= */
 
 window.AppChat = {
     container: document.getElementById('chat-messages'),
-    wrapper: document.getElementById('chat-container'), // Ссылка на родительский контейнер для прокрутки
+    wrapper: document.getElementById('chat-container'),
     
-    // --- Система пула ---
-    pool: [],       // Склад свободных (скрытых) сообщений
-    active: [],     // Массив сообщений, которые сейчас на экране
-    poolSize: 25,   // Размер склада (Лимит + Запас на случай спама)
+    pool: [],       
+    active: [],     
+    poolSize: 25,   
+    isInitialized: false, // ИЗМЕНЕНО: Флаг инициализации
 
     templates: {
         message: document.getElementById('tpl-chat-message'),
@@ -24,11 +24,14 @@ window.AppChat = {
     },
 
     init: function() {
+        // ИЗМЕНЕНО: Жесткая защита от двойного вызова (Double Init Fix)
+        if (this.isInitialized) return; 
+        this.isInitialized = true;
+
         if (!this.templates.message) return;
 
-        // Инициализация пула (создаем DOM-узлы заранее)
         const maxMsgs = window.AppConfig.maxChatMessages || 12;
-        this.poolSize = maxMsgs + 10; // Лимит + буфер
+        this.poolSize = maxMsgs + 10; 
         
         for (let i = 0; i < this.poolSize; i++) {
             const frag = this.templates.message.content.cloneNode(true);
@@ -46,14 +49,12 @@ window.AppChat = {
             this.pool.push(block);
         }
 
-        // Подписка на события
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', (data) => this.renderMessage(data));
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', () => {
             if (window.AppPet) window.AppPet.resetSleepTimer();
         });
     },
 
-    // Очистка узла перед возвратом в работу
     cleanElement: function(el) {
         el.className = 'chat-block'; 
         el.removeAttribute('data-style');
@@ -63,7 +64,6 @@ window.AppChat = {
         el.setAttribute('data-mention', 'false');
         el.style.removeProperty('--user-color');
         
-        // Быстрая очистка внутренностей
         el.ui.meta.innerHTML = '';
         el.ui.meta.style.display = 'none';
         el.ui.badges.innerHTML = '';
@@ -84,10 +84,8 @@ window.AppChat = {
 
         if (!el) return;
 
-        // Обнуляем состояние
         this.cleanElement(el);
 
-        // Заполняем новыми данными
         el.setAttribute('data-user', data.user.toLowerCase());
         el.setAttribute('data-style', data.styleName || 'default');
         el.style.setProperty('--user-color', data.color);
@@ -96,7 +94,6 @@ window.AppChat = {
         el.setAttribute('data-first', data.isFirstTime ? 'true' : 'false');
         el.setAttribute('data-role', data.role || 'viewer');
 
-        // Значки Twitch (Стабильные встроенные SVG с градиентным оформлением)
         if (data.badges) {
             let bHtml = '';
             if (data.badges.broadcaster) bHtml += `<div class="tw-badge tb-broadcaster"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3.83L19.5 19h-15L12 5.83zM11 10v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg></div>`;
@@ -116,7 +113,6 @@ window.AppChat = {
         el.ui.avatar.src = data.avatarUrl;
         el.ui.text.innerHTML = data.htmlText;
 
-        // Блок Меты (реплаи и бейджики)
         let hasMeta = false;
         const badgesWrapper = document.createElement('div');
         badgesWrapper.style.cssText = "display: flex; gap: 8px; flex-wrap: wrap; width: 100%;";
@@ -146,12 +142,9 @@ window.AppChat = {
 
         if (hasMeta) el.ui.meta.style.display = 'flex';
 
-        // Добавляем в конец чата и регистрируем
         this.container.appendChild(el);
         this.active.push(el);
 
-        // ИЗМЕНЕНО: АВТО-ПРОКРУТКА ВНИЗ
-        // Каждый раз, когда добавляется новое сообщение, мы прокручиваем чат в самый конец.
         if (this.wrapper) {
             this.wrapper.scrollTop = this.wrapper.scrollHeight;
         }
@@ -160,7 +153,6 @@ window.AppChat = {
             detail: { node: el, styleName: data.styleName, text: data.htmlText }
         }));
 
-        // Проверяем лимит чата
         const maxMsgs = window.AppConfig.maxChatMessages || 12;
         if (this.active.length > maxMsgs) {
             const oldestMsg = this.active.shift();
@@ -175,5 +167,3 @@ window.AppChat = {
         }
     }
 };
-
-window.AppChat.init();

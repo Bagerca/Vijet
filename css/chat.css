@@ -1,37 +1,36 @@
-/* =====================================================================
-   ЧАТ: АБСОЛЮТНЫЙ СКЕЛЕТ (HEADLESS UI + CSS GRID API)
-   Здесь только физика, геометрия и анимации. Никакого дизайна!
-   ===================================================================== */
+/* ================= css/chat.css ================= */
 
 /* --- 1. ГЛОБАЛЬНЫЙ КОНТЕЙНЕР --- */
 #chat-container { 
     position: absolute; bottom: 140px; left: 20px; 
     width: 380px; height: 450px; 
     display: flex; flex-direction: column; 
-    justify-content: flex-start; /* ИЗМЕНЕНО: Начинаем выводить сообщения сверху вниз */
-    overflow-y: hidden; /* ИЗМЕНЕНО: Скрываем системный ползунок прокрутки */
+    justify-content: flex-start; 
+    /* ИЗМЕНЕНО: Жестко режем всё, что выходит за рамки */
+    overflow: hidden !important; 
     padding: 0 20px 20px 20px; box-sizing: border-box; 
     -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) calc(100% - 30px), transparent 100%); 
     mask-image: linear-gradient(to top, rgba(0,0,0,1) calc(100% - 30px), transparent 100%);
     transition: all 0.5s ease; 
 }
+
+/* ИЗМЕНЕНО: Физически убиваем рендеринг ползунка в OBS/Chrome */
+#chat-container::-webkit-scrollbar { display: none; }
+
 #chat-messages { display: flex; flex-direction: column; align-items: flex-start; gap: var(--chat-gap, 14px); width: 100%; }
 
 /* --- 2. CSS API ДЛЯ КАСТОМИЗАЦИИ (РОЗЕТКИ) --- */
 .chat-block { 
-    /* Геометрия */
     --c-padding: 0;
     --c-radius: 0;
     --c-margin-bottom: 0;
     --c-min-width: auto;
     
-    /* Визуал */
     --c-bg: transparent;
     --c-border: none;
     --c-shadow: none;
     --c-backdrop: none;
     
-    /* Типографика */
     --c-font-user: inherit;
     --c-font-text: inherit;
     --c-color-text: inherit;
@@ -47,7 +46,6 @@
 .chat-meta { display: flex; flex-direction: column; gap: 4px; width: 100%; margin-bottom: var(--c-margin-bottom, 6px); }
 
 .chat-bubble {
-    /* Базовый Grid Layout для полной свободы */
     display: grid;
     grid-template-areas: 
         "avatar header right"
@@ -57,7 +55,6 @@
     grid-row-gap: 4px;
     align-items: start;
 
-    /* Розетки */
     background: var(--c-bg);
     border: var(--c-border);
     border-radius: var(--c-radius);
@@ -69,14 +66,22 @@
     position: relative; overflow: hidden;
 }
 
-/* Элементы сетки */
 .chat-avatar { grid-area: avatar; align-self: center; flex-shrink: 0; object-fit: cover; }
 .chat-header { grid-area: header; display: flex; align-items: center; gap: 6px; white-space: nowrap; position: relative; z-index: 2; }
 .chat-header-right { grid-area: right; display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-shrink: 0; position: relative; z-index: 2; }
-.chat-text { grid-area: text; align-self: start; font-family: var(--c-font-text); color: var(--c-color-text); position: relative; z-index: 2; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; }
-.chat-user { font-family: var(--c-font-user); color: var(--user-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Значки Твича */
+/* ИЗМЕНЕНО: Жесткий перенос слов без пробелов (ссылки, смех и т.д.) */
+.chat-text { 
+    grid-area: text; align-self: start; 
+    font-family: var(--c-font-text); color: var(--c-color-text); 
+    position: relative; z-index: 2; 
+    word-wrap: break-word; 
+    overflow-wrap: break-word; 
+    word-break: break-word; 
+    max-width: 100%; 
+}
+
+.chat-user { font-family: var(--c-font-user); color: var(--user-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chat-badges { display: flex; align-items: center; gap: 4px; }
 .tw-badge { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 4px; color: #fff; }
 .tw-badge svg { width: 12px; height: 12px; }
@@ -85,15 +90,11 @@
 .tb-vip { background: #E005B9; }
 .tb-sub { background: #8205E0; }
 
-/* --- 4. СИСТЕМНЫЕ ЭЛЕМЕНТЫ (Строгие правила) --- */
+/* --- 4. СИСТЕМНЫЕ ЭЛЕМЕНТЫ --- */
 .chat-emote { height: 1.6em; vertical-align: middle; margin: -0.2em 2px; display: inline-block; }
-
-/* Пинг */
 .chat-ping { background: #FF0050; color: #ffffff; font-weight: 800; padding: 1px 6px; border-radius: 6px; display: inline-block; vertical-align: middle; }
 .chat-ping-bell { display: none; width: 14px; height: 14px; color: #FF0050; animation: ringBell 2.5s infinite ease-in-out; }
-.chat-block[data-mention="true"] .chat-ping-bell { display: block; } /* Управление через Data-Атрибут */
-
-/* Цензура */
+.chat-block[data-mention="true"] .chat-ping-bell { display: block; } 
 .censured-badge { background: #FF0050; color: #ffffff !important; font-size: 10px !important; font-weight: 900 !important; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; display: inline-block; vertical-align: middle; margin: 0 2px; }
 .censured-message { background: rgba(255, 0, 80, 0.05); border: 1px dashed rgba(255, 0, 80, 0.4); color: #FF0050; font-size: 12px; font-weight: 900; padding: 8px 12px; border-radius: 8px; text-transform: uppercase; text-align: center; width: 100%; box-sizing: border-box; }
 

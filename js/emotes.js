@@ -1,10 +1,10 @@
-/* ================= ЭМОДЗИ ЧАТА (3D PARALLAX + DEPTH OF FIELD) ================= */
+/* ================= js/emotes.js ================= */
 
 window.AppEmotes = {
     container: document.getElementById('emotes-container'),
     canvas: null,
     ctx: null,
-    dpr: 1, // Device Pixel Ratio для четкости
+    dpr: 1, 
     
     mode: "bubble",
     enabled: true,
@@ -14,8 +14,12 @@ window.AppEmotes = {
     
     animationId: null,
     lastTime: 0,
+    isInitialized: false,
 
     init: function() {
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         if (!this.container || this.canvas) return; 
 
         if (window.AppConfig.emotesMode) this.mode = window.AppConfig.emotesMode;
@@ -91,14 +95,14 @@ window.AppEmotes = {
     },
 
     spawn: async function(emotesData) {
-        if (!this.enabled || !emotesData) return;
+        // Защита от накопления смайлов в свернутой вкладке (переключение сцен)
+        if (!this.enabled || !emotesData || document.hidden) return;
         const emoteIds = Object.keys(emotesData);
         if (emoteIds.length === 0) return;
 
         const MAX_CONCURRENT = window.AppConfig.emotesMaxPerMessage || 150; 
         const MAX_PER_MSG = 15; 
 
-        // Параллельная загрузка картинок
         const imagePromises = emoteIds.map(id => this.getImage(id).then(img => ({ id, img })));
         const loadedImages = await Promise.all(imagePromises);
 
@@ -113,30 +117,29 @@ window.AppEmotes = {
             for (let i = 0; i < count; i++) {
                 if (this.emotesArray.length >= MAX_CONCURRENT) break;
 
-                // Генерация 3D слоев (Depth of Field)
                 const layerRoll = Math.random();
-                let layer = 1; // 50% шанс на средний план (Фокус)
-                if (layerRoll < 0.25) layer = 0; // 25% шанс на задний план (Мелкие, мутные)
-                else if (layerRoll > 0.75) layer = 2; // 25% шанс на передний план (Огромные, мутные)
+                let layer = 1; 
+                if (layerRoll < 0.25) layer = 0; 
+                else if (layerRoll > 0.75) layer = 2; 
 
                 let scaleBase, speedMult, swayMult;
                 if (layer === 0) { 
-                    scaleBase = 0.35 + Math.random() * 0.2; // Мелкие
-                    speedMult = 0.6 + Math.random() * 0.2;  // Медленные
-                    swayMult = 15; // Слабо качаются
+                    scaleBase = 0.35 + Math.random() * 0.2; 
+                    speedMult = 0.6 + Math.random() * 0.2;  
+                    swayMult = 15; 
                 } else if (layer === 1) { 
-                    scaleBase = 0.7 + Math.random() * 0.4;  // Нормальные
-                    speedMult = 1.0 + Math.random() * 0.3;  // Обычная скорость
-                    swayMult = 35; // Нормально качаются
+                    scaleBase = 0.7 + Math.random() * 0.4;  
+                    speedMult = 1.0 + Math.random() * 0.3;  
+                    swayMult = 35; 
                 } else { 
-                    scaleBase = 1.4 + Math.random() * 0.6;  // Огромные
-                    speedMult = 1.6 + Math.random() * 0.5;  // Быстрые
-                    swayMult = 60; // Сильно качаются
+                    scaleBase = 1.4 + Math.random() * 0.6;  
+                    speedMult = 1.6 + Math.random() * 0.5;  
+                    swayMult = 60; 
                 }
 
                 let emote = {
                     img: data.img,
-                    layer: layer, // 0 = Дальний, 1 = Средний, 2 = Ближний
+                    layer: layer, 
                     x: 0, y: 0, 
                     vx: 0, vy: 0,
                     scale: scaleBase,
@@ -149,7 +152,6 @@ window.AppEmotes = {
                 };
 
                 if (this.mode === 'bubble') {
-                    // Размазываем спавн по всей ширине
                     emote.x = width * 0.05 + Math.random() * (width * 0.9);
                     emote.y = height + 40 + Math.random() * 100;
                     emote.vy = -(100 + Math.random() * 80) * speedMult; 
@@ -177,6 +179,12 @@ window.AppEmotes = {
         let dt = (timestamp - this.lastTime) / 1000;
         this.lastTime = timestamp;
 
+        // Очистка мусора при пробуждении сцены после долгой паузы
+        if (dt > 0.5) { 
+            this.emotesArray = [];
+            return;
+        }
+
         if (dt > 0.1) dt = 0.016; 
 
         const width = this.container.clientWidth;
@@ -186,7 +194,6 @@ window.AppEmotes = {
 
         if (this.emotesArray.length === 0) return;
 
-        // 1. ФАЗА ФИЗИКИ И СБОРКИ МУСОРА
         for (let i = this.emotesArray.length - 1; i >= 0; i--) {
             let e = this.emotesArray[i];
             e.life += dt;
@@ -196,7 +203,6 @@ window.AppEmotes = {
                 e.x = e.startX + Math.sin(e.life * e.swaySpeed + e.swayOffset) * e.swayAmplitude;
                 e.rotation = Math.sin(e.life * e.swaySpeed + e.swayOffset) * 0.25;
                 
-                // Исчезновение наверху
                 if (e.y < height * 0.2) e.alpha -= dt * 1.5; 
                 
             } else if (this.mode === 'fountain') {
@@ -211,19 +217,15 @@ window.AppEmotes = {
             }
         }
 
-        // 2. ФАЗА РЕНДЕРИНГА (ПО СЛОЯМ ДЛЯ ОПТИМИЗАЦИИ ФИЛЬТРОВ)
         for (let currentLayer = 0; currentLayer <= 2; currentLayer++) {
-            
-            // Настраиваем Blur для текущего слоя
             if (currentLayer === 0) {
-                this.ctx.filter = `blur(${3 * this.dpr}px)`; // Сильный блюр заднего плана
+                this.ctx.filter = `blur(${3 * this.dpr}px)`; 
             } else if (currentLayer === 1) {
-                this.ctx.filter = 'none'; // Фокус (четкие)
+                this.ctx.filter = 'none'; 
             } else if (currentLayer === 2) {
-                this.ctx.filter = `blur(${4 * this.dpr}px)`; // Сильный блюр переднего плана (макро)
+                this.ctx.filter = `blur(${4 * this.dpr}px)`; 
             }
 
-            // Рисуем все партиклы, принадлежащие к этому слою
             for (let i = 0; i < this.emotesArray.length; i++) {
                 let e = this.emotesArray[i];
                 if (e.layer !== currentLayer || !e.img) continue;
@@ -242,9 +244,6 @@ window.AppEmotes = {
             }
         }
         
-        // Сброс фильтра в конце кадра
         this.ctx.filter = 'none';
     }
 };
-
-setTimeout(() => window.AppEmotes.init(), 1000);

@@ -1,11 +1,16 @@
-/* ================= ВИЗУАЛ TTS (ОБНОВЛЕННЫЙ ПЛЕЕР) ================= */
+/* ================= js/tts.js ================= */
+
 window.AppTTS = {
     container: document.getElementById('tts-container'),
     userText: document.getElementById('tts-user'),
     avatarImg: document.getElementById('tts-avatar'),
     eqInterval: null, 
+    isInitialized: false,
 
     init: function() {
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         if (!window.AppConfig.ttsEnabled) {
             if(this.container) this.container.style.display = 'none';
             return;
@@ -50,13 +55,11 @@ window.AppTTS = {
         if (!this.container) return;
         this.userText.innerText = user;
         
-        // 1. Умная загрузка аватарки (Синхронизировано с логикой YouTube плеера)
         if (this.avatarImg) {
             const safeName = encodeURIComponent(user);
             const fallbackUrl = `https://ui-avatars.com/api/?name=${safeName}&background=1a1a1a&color=fff&size=64&bold=true`;
             let foundAvatar = null;
 
-            // Шаг А: Ищем в локальном кэше
             try {
                 const cachedAvatars = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
                 const searchName = user.toLowerCase();
@@ -69,17 +72,14 @@ window.AppTTS = {
             } catch(e) {}
 
             if (foundAvatar) {
-                // Если нашли в кэше — ставим сразу
                 this.avatarImg.src = foundAvatar;
             } else {
-                // Шаг Б: Если не нашли — ставим заглушку, и фоном качаем с Twitch API
                 this.avatarImg.src = fallbackUrl;
                 fetch(`https://api.ivr.fi/v2/twitch/user?login=${user.toLowerCase()}`)
                     .then(res => res.json())
                     .then(apiData => {
                         if (apiData && apiData.length > 0 && apiData[0].logo) {
                             this.avatarImg.src = apiData[0].logo;
-                            // Сохраняем в общий кэш
                             try {
                                 let cache = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
                                 cache[user] = apiData[0].logo;
@@ -115,5 +115,3 @@ window.AppTTS = {
         }, 500);
     }
 };
-
-setTimeout(() => window.AppTTS.init(), 1000);

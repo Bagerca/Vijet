@@ -1,10 +1,16 @@
+/* ================= js/alerts.js ================= */
+
 window.AppAlerts = {
     container: document.getElementById('alert-container'),
     queue: [],
     isPlaying: false,
+    isInitialized: false, // Флаг инициализации
 
     init: function() {
-        // Подписка на события
+        // Защита от двойного запуска
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         window.AppEvents.listen('ALERT_ADD', d => this.add(d.user, d.type, d.msg, d.val));
         window.AppEvents.listen('ALERT_TEST', d => {
             if (d.type === "sub") this.add("ТестовыйЮзер", "sub");
@@ -137,5 +143,3 @@ window.AppAlerts = {
         }, window.AppConfig.alertDuration || 5000);
     }
 };
-
-setTimeout(() => window.AppAlerts.init(), 1000);

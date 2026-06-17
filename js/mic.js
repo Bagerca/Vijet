@@ -1,3 +1,5 @@
+/* ================= js/mic.js ================= */
+
 window.AppMedia = {
     container: document.getElementById('webcam-container'),
     frame: document.getElementById('webcam-frame'),
@@ -5,16 +7,24 @@ window.AppMedia = {
     micEnabled: true,
     audioCtx: null,
     analyser: null,
+    isInitialized: false, // Флаг инициализации
     
     init: function() {
+        // Защита от двойного запуска
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         this.container.style.transition = "opacity 0.4s ease";
         
-        // Подписка на события
         window.AppEvents.listen('MEDIA_CAM', d => { 
-            if(d.state==='off') this.toggleCam(false); else if(d.state==='on') this.toggleCam(true); else this.toggleCam();
+            if(d.state==='off') this.toggleCam(false); 
+            else if(d.state==='on') this.toggleCam(true); 
+            else this.toggleCam();
         });
         window.AppEvents.listen('MEDIA_MIC', d => { 
-            if(d.state==='off') this.toggleMic(false); else if(d.state==='on') this.toggleMic(true); else this.toggleMic();
+            if(d.state==='off') this.toggleMic(false); 
+            else if(d.state==='on') this.toggleMic(true); 
+            else this.toggleMic();
         });
 
         setTimeout(() => this.initMic(), 1500);
@@ -74,5 +84,4 @@ window.AppMedia = {
         }
     }
 };
-
-window.AppMedia.init();
+// УДАЛЕНО: window.AppMedia.init();

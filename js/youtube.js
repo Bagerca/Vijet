@@ -1,6 +1,8 @@
-/* ================= YOUTUBE ВИДЖЕТ (ИСПРАВЛЕННЫЙ) ================= */
+/* ================= YOUTUBE ВИДЖЕТ (MUTED VISUAL ONLY) ================= */
 window.AppPlayer = {
     yt: null,
+    isReady: false,
+    
     container: document.getElementById('widget-container'),
     nameLabel: document.getElementById('requester-name'),
     avatarEl: document.getElementById('requester-avatar'), 
@@ -8,16 +10,15 @@ window.AppPlayer = {
     queueCount: document.getElementById('queue-count'),
     progressBar: document.getElementById('yt-progress-bar'), 
     
-    isReady: false,
-    pendingData: null, // Хранилище для трека, если API еще грузится
+    pendingData: null, 
 
     init: function() {
         window.AppEvents.listen('YT_VISUAL_PLAY', d => this.play(d));
         window.AppEvents.listen('YT_VISUAL_HIDE', () => this.hide());
-        window.AppEvents.listen('YT_VISUAL_VOL', d => this.updateVol(d.vol));
+        window.AppEvents.listen('YT_VISUAL_VOL', d => this.updateVolUI(d.vol));
         window.AppEvents.listen('YT_VISUAL_STATE', d => this.updateState(d.state));
-        window.AppEvents.listen('YT_VISUAL_PROGRESS', d => this.updateProgress(d));
-        window.AppEvents.listen('QUEUE_STATE', d => this.updateQueue(d.count));
+        window.AppEvents.listen('YT_VISUAL_PROGRESS', d => this.syncProgress(d));
+        window.AppEvents.listen('QUEUE_STATE', d => this.updateQueueUI(d.count));
 
         this.loadYouTubeAPI();
     },
@@ -43,6 +44,11 @@ window.AppPlayer = {
     createPlayer: function() {
         if (!document.getElementById('yt-player')) return;
         
+        let safeOrigin = window.location.origin;
+        if (!safeOrigin || safeOrigin === 'null' || safeOrigin.startsWith('file')) {
+            safeOrigin = 'https://www.youtube.com'; 
+        }
+        
         this.yt = new YT.Player('yt-player', {
             playerVars: { 
                 'autoplay': 1, 
@@ -50,16 +56,15 @@ window.AppPlayer = {
                 'disablekb': 1, 
                 'modestbranding': 1, 
                 'playsinline': 1, 
-                'mute': 1, // Виджет ВСЕГДА в муте (звук идет из Ядра)
-                'origin': window.location.origin 
+                'mute': 1, // ВИЗУАЛ ВСЕГДА В МУТЕ!
+                'origin': safeOrigin 
             },
             events: {
                 'onReady': () => { 
                     this.isReady = true;
                     this.yt.mute(); 
-                    console.log("%c[YT VISUAL] 📺 Визуальный плеер успешно загружен!", "color: #00FF7F");
+                    console.log("%c[YT VISUAL] 📺 Визуальный плеер загружен!", "color: #00FF7F");
                     
-                    // Если трек ждал загрузки плеера - запускаем его
                     if (this.pendingData) {
                         this.play(this.pendingData);
                         this.pendingData = null;
@@ -70,65 +75,24 @@ window.AppPlayer = {
     },
 
     play: function(data) {
-        // 1. МГНОВЕННО ПОКАЗЫВАЕМ UI (Даже если Iframe еще не готов!)
         if (this.container) this.container.classList.remove('hidden');
         if (this.nameLabel) this.nameLabel.innerText = data.user;
-        
-        // 2. УМНАЯ АВАТАРКА (С поиском и автоматическим скачиванием)
-        if (this.avatarEl) {
-            const setAvatar = (url) => {
-                this.avatarEl.src = url;
-                this.avatarEl.classList.remove('pop-avatar');
-                void this.avatarEl.offsetWidth; 
-                this.avatarEl.classList.add('pop-avatar');
-            };
-
-            let safeName = encodeURIComponent(data.user);
-            let fallbackUrl = `https://ui-avatars.com/api/?name=${safeName}&background=FF4477&color=fff&size=64&bold=true`;
-            let foundAvatar = null;
-            
-            try {
-                const cachedAvatars = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
-                const searchName = data.user.toLowerCase();
-                for (let key in cachedAvatars) {
-                    if (key.toLowerCase() === searchName) {
-                        foundAvatar = cachedAvatars[key];
-                        break;
-                    }
-                }
-            } catch(e) {}
-
-            if (foundAvatar) {
-                setAvatar(foundAvatar);
-            } else {
-                setAvatar(fallbackUrl);
-                fetch(`https://api.ivr.fi/v2/twitch/user?login=${data.user.toLowerCase()}`)
-                    .then(res => res.json())
-                    .then(apiData => {
-                        if (apiData && apiData.length > 0 && apiData[0].logo) {
-                            setAvatar(apiData[0].logo);
-                            try {
-                                let cache = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
-                                cache[data.user] = apiData[0].logo;
-                                localStorage.setItem('uso_avatars', JSON.stringify(cache));
-                            } catch(e) {}
-                        }
-                    }).catch(e => console.warn("[YT VISUAL] Ошибка скачивания аватарки", e));
-            }
-        }
-
-        this.updateVol(data.vol);
         if (this.progressBar) this.progressBar.style.width = '0%';
+        this.updateVolUI(data.vol);
+        this.updateAvatar(data.user);
 
-        // 3. ЗАЩИТА: Если Iframe еще не готов, сохраняем данные и ждем onReady
         if (!this.isReady) {
-            console.warn("[YT VISUAL] ⏳ Плеер еще грузится, ожидаем...");
             this.pendingData = data;
             return;
         }
         
-        // 4. Запускаем видео
-        this.yt.loadVideoById(data.id);
+        if (data.type === 'playlist') {
+            this.yt.loadPlaylist({ list: data.id });
+        } else {
+            this.yt.loadVideoById(data.id);
+        }
+        
+        // Жёстко мутим
         this.yt.mute(); 
         this.yt.playVideo(); 
     },
@@ -143,7 +107,8 @@ window.AppPlayer = {
         }
     },
 
-    updateVol: function(vol) {
+    updateVolUI: function(vol) {
+        // Мы НЕ меняем громкость плеера, только обновляем текст на экране
         if(!this.volLabel) return;
         this.volLabel.innerText = vol;
         this.volLabel.classList.remove('animate-pop');
@@ -157,11 +122,10 @@ window.AppPlayer = {
         else this.container.classList.remove('is-playing');
     },
 
-    updateProgress: function(data) {
-        let percent = data.percent !== undefined ? data.percent : data;
-        if(this.progressBar) this.progressBar.style.width = `${percent}%`;
+    syncProgress: function(data) {
+        if(this.progressBar) this.progressBar.style.width = `${data.percent}%`;
 
-        // УЛЬТРА-СИНХРОНИЗАЦИЯ: Если картинка отстала от звука
+        // СИНХРОНИЗАЦИЯ: Визуал догоняет Ядро
         if (this.isReady && this.yt && typeof this.yt.getCurrentTime === 'function' && data.currentTime !== undefined) {
             const visualState = this.yt.getPlayerState();
             
@@ -169,21 +133,54 @@ window.AppPlayer = {
                 const visualTime = this.yt.getCurrentTime();
                 const diff = Math.abs(visualTime - data.currentTime);
                 
-                // Если разница больше 1.0 секунды — жестко перематываем картинку на время звука
+                // Если картинка отстала/убежала от звука больше чем на 1 секунду — перематываем картинку
                 if (diff > 1.0) {
-                    console.log(`[YT VISUAL 🔄] Выравниваем рассинхрон с Ядром! Разница: ${diff.toFixed(2)}с`);
+                    console.log(`[YT VISUAL 🔄] Выравниваем картинку под звук! Разница: ${diff.toFixed(2)}с`);
                     this.yt.seekTo(data.currentTime, true);
                 }
             }
         }
     },
     
-    updateQueue: function(count) {
+    updateQueueUI: function(count) {
         if (!this.queueCount) return;
         this.queueCount.innerText = count;
         this.queueCount.classList.remove('animate-pop');
         void this.queueCount.offsetWidth;
         this.queueCount.classList.add('animate-pop');
+    },
+
+    updateAvatar: function(user) {
+        if (!this.avatarEl) return;
+        let fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user)}&background=FF4477&color=fff&bold=true`;
+        
+        const setAvatar = (url) => {
+            this.avatarEl.src = url;
+            this.avatarEl.classList.remove('pop-avatar');
+            void this.avatarEl.offsetWidth; 
+            this.avatarEl.classList.add('pop-avatar');
+        };
+
+        try {
+            const cachedAvatars = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
+            for (let key in cachedAvatars) {
+                if (key.toLowerCase() === user.toLowerCase()) {
+                    setAvatar(cachedAvatars[key]);
+                    return;
+                }
+            }
+        } catch(e) {}
+
+        setAvatar(fallbackUrl);
+        fetch(`https://api.ivr.fi/v2/twitch/user?login=${user.toLowerCase()}`)
+            .then(res => res.json())
+            .then(apiData => {
+                if (apiData && apiData.length > 0 && apiData[0].logo) {
+                    setAvatar(apiData[0].logo);
+                    let cache = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
+                    cache[user] = apiData[0].logo;
+                    localStorage.setItem('uso_avatars', JSON.stringify(cache));
+                }
+            }).catch(()=>{});
     }
 };
-window.AppPlayer.init();

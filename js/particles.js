@@ -1,9 +1,18 @@
+/* ================= js/particles.js ================= */
+
 window.AppParticles = {
     canvas: document.getElementById('particles-canvas'),
     ctx: null,
     particlesArray: [],
+    isInitialized: false, // Флаг инициализации
     
     init: function() {
+        // Защита от двойного запуска
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
+        if (!this.canvas) return; // Защита, если canvas отсутствует
+
         this.ctx = this.canvas.getContext('2d');
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
@@ -26,7 +35,9 @@ window.AppParticles = {
     },
 
     animate: function() {
+        if (!this.ctx) return;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
         for (let i = 0; i < this.particlesArray.length; i++) {
             let p = this.particlesArray[i];
             p.x += p.speedX; p.y += p.speedY;
@@ -35,9 +46,11 @@ window.AppParticles = {
 
             // Розовые частицы
             this.ctx.fillStyle = `rgba(255, 68, 119, ${p.opacity})`;
-            this.ctx.beginPath(); this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); this.ctx.fill();
+            this.ctx.beginPath(); 
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); 
+            this.ctx.fill();
         }
         requestAnimationFrame(this.animate.bind(this));
     }
 };
-window.AppParticles.init();
+// УДАЛЕНО: window.AppParticles.init();

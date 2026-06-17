@@ -1,12 +1,16 @@
-/* ================= GOAL 11.1 (CRISP LIGHT UI) ================= */
+/* ================= js/goal.js ================= */
 
 window.AppGoal = {
     container: document.getElementById('goal-container'),
     currentFollowers: -1,
     displayFollowers: 0, 
     animationFrameId: null,
+    isInitialized: false,
 
     init: function() {
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         if (!window.AppConfig.goalTarget || window.AppConfig.goalTarget <= 0) {
             this.container.style.display = 'none';
             return;
@@ -101,7 +105,6 @@ window.AppGoal = {
                 this.displayFollowers = targetValue;
                 
                 if (!isFirstLoad) {
-                    // Оставили только увеличение размера (pop), без мыльного свечения
                     elCurrent.classList.add('pop-text');
                     setTimeout(() => elCurrent.classList.remove('pop-text'), 300);
                 }
@@ -112,5 +115,3 @@ window.AppGoal = {
         this.animationFrameId = requestAnimationFrame(updateCounter);
     }
 };
-
-setTimeout(() => window.AppGoal.init(), 1000);

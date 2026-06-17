@@ -1,11 +1,18 @@
+/* ================= js/blur.js ================= */
+
 window.AppBlur = {
     container: document.getElementById('screen-blur-overlay'),
     isActive: false,
+    isInitialized: false,
 
     init: function() {
-        // Подписка на события
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         window.AppEvents.listen('BLUR_TOGGLE', d => { 
-            if(d.state==='off') this.toggle(false); else if(d.state==='on') this.toggle(true); else this.toggle();
+            if(d.state==='off') this.toggle(false); 
+            else if(d.state==='on') this.toggle(true); 
+            else this.toggle();
         });
     },
 
@@ -22,5 +29,3 @@ window.AppBlur = {
         }
     }
 };
-
-setTimeout(() => window.AppBlur.init(), 1000);

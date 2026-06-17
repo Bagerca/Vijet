@@ -1,10 +1,15 @@
+/* ================= js/shoutout.js ================= */
+
 window.AppShoutout = {
     container: document.getElementById('shoutout-container'),
     queue: [],
     isPlaying: false,
+    isInitialized: false,
 
     init: function() {
-        // Подписка на события
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         window.AppEvents.listen('SHOUTOUT_ADD', d => this.add(d.user));
     },
 
@@ -89,5 +94,3 @@ window.AppShoutout = {
         }, window.AppConfig.shoutoutDuration || 8000);
     }
 };
-
-setTimeout(() => window.AppShoutout.init(), 1000);

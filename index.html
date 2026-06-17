@@ -63,7 +63,7 @@
             <div id="webcam-frame"></div>
         </div>
 
-        <!-- ОБНОВЛЕННЫЙ TTS Виджет -->
+        <!-- TTS Виджет -->
         <div id="tts-container" class="hidden">
             <div class="tts-avatar-wrap">
                 <img id="tts-avatar" src="" alt="Avatar">
@@ -151,24 +151,17 @@
         
         const myStyles = [
             "css/base.css", "css/blur.css", "css/pet.css", "css/tts.css", "css/emotes.css",
-            "css/chat.css", 
-            "css/default_theme.css",
-            "css/users/hollow_knight.css", 
-            "css/users/minecraft.css", 
-            "css/users/angel.css", 
-            "css/users/bendy.css", 
-            "css/users/terminal.css", 
-            "css/users/neon_owner.css", 
-            "css/users/tactical.css", 
+            "css/chat.css", "css/default_theme.css",
+            "css/users/hollow_knight.css", "css/users/minecraft.css", "css/users/angel.css", 
+            "css/users/bendy.css", "css/users/terminal.css", "css/users/neon_owner.css", "css/users/tactical.css", 
             "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
             "css/mediainfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
-            "css/theme-circus.css",
-            "css/theme-noir.css", 
-            "css/modes.css" 
+            "css/theme-circus.css", "css/theme-noir.css", "css/modes.css" 
         ];
         myStyles.forEach(href => { document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`); });
         
+        // Файлы загружаются синхронно для надежности
         const myScripts = [
             "js/config.js", "js/games-db.js", "js/event-bus.js",
             "js/particles.js", "js/emotes.js", "js/pet.js", "js/chat.js",
@@ -176,106 +169,139 @@
             "js/shoutout.js", "js/goal.js", "js/ticker.js", "js/deaths.js",
             "js/mediainfo.js", "js/wheel.js", "js/tts.js", "js/countdown.js", "js/blur.js"
         ];
-        myScripts.forEach(src => { document.write(`<script src="${src}?v=${cacheBuster}"><\/script>`); });
+        myScripts.forEach(src => {
+            const s = document.createElement('script');
+            s.src = `${src}?v=${cacheBuster}`;
+            s.async = false;
+            document.body.appendChild(s);
+        });
     </script>
 
-    <!-- Основная логика визуала -->
+    <!-- === VISUAL BOOTLOADER 2.0 (DUMB UI) === -->
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const activeWidgetsParam = urlParams.get('widgets'); 
-        const sceneParam = urlParams.get('scene');
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                console.log("%c[BOOTLOADER] Запуск визуальных виджетов...", "color: #00FF7F; font-weight: bold;");
+                
+                const modules = [
+                    window.AppBlur, window.AppPet, window.AppTTS, window.AppEmotes,
+                    window.AppChat, window.AppMedia, window.AppPlayer, window.AppSocials,
+                    window.AppAlerts, window.AppShoutout, window.AppGoal, window.AppTicker,
+                    window.AppDeaths, window.AppMediaInfo, window.AppWheel, window.AppCountdown,
+    window.AppParticles
+                ];
 
-        if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
-        if (sceneParam === 'starting') document.body.classList.add('scene-starting');
-        if (sceneParam === 'ending') document.body.classList.add('scene-ending'); 
+                // Инициализация виджетов
+                modules.forEach(mod => {
+                    if (mod && typeof mod.init === 'function' && !mod.isInitialized) {
+                        try {
+                            mod.init();
+                            mod.isInitialized = true; 
+                        } catch(e) { console.error("[BOOTLOADER] Сбой виджета:", e); }
+                    }
+                });
 
-        if (sceneParam === 'starting' || sceneParam === 'ending') {
-            window.AppPlayer = { play: function(){}, hide: function(){}, setVolume: function(){} };
-            const ytPlayer = document.getElementById('yt-player'); if (ytPlayer) ytPlayer.remove(); 
-            const widgetContainer = document.getElementById('widget-container'); if (widgetContainer) widgetContainer.remove();
-        }
+                setupSceneModes();
 
-        const widgetMap = { 'chat': 'chat-container', 'music': 'widget-container', 'socials': 'social-rotator', 'alerts': 'alert-container', 'shoutout': 'shoutout-container', 'goal': 'goal-container', 'ticker': 'ticker-container', 'deaths': 'deaths-container', 'particles': 'particles-canvas', 'emotes': 'emotes-container', 'tts': 'tts-container', 'blur': 'screen-blur-overlay', 'wheel': 'wheel-overlay', 'cam': 'webcam-frame', 'media': 'media-info-container', 'pet': 'pet-container' };
+                // Визуал больше не лезет в localStorage. Он ждет приказа от Ядра!
+                window.AppEvents.listen('THEME_UPDATE_UI', (data) => applyTheme(data.theme));
 
-        if (activeWidgetsParam) {
-            document.body.style.setProperty('background', 'transparent', 'important');
-            document.documentElement.style.setProperty('background', 'transparent', 'important');
-            const activeWidgets = activeWidgetsParam.split(',').map(w => w.trim());
+                // Отправляем сигнал Ядру: "Эй, я готов, шли настройки!"
+                window.AppEvents.emit('VISUAL_READY');
 
-            for (const [key, id] of Object.entries(widgetMap)) {
-                if (!activeWidgets.includes(key)) {
-                    const el = document.getElementById(id);
-                    if (el) el.style.setProperty('display', 'none', 'important');
+                // Ловушки системных перезагрузок
+                window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => triggerRefreshUI());
+                window.AppEvents.listen('CORE_REBOOT_START', () => triggerCoreRefreshUI('start'));
+                window.AppEvents.listen('CORE_REBOOT_DONE', () => triggerCoreRefreshUI('done'));
+
+                setInterval(() => window.AppEvents.emit('VISUAL_HEARTBEAT'), 5000);
+            }, 800);
+        });
+
+        function setupSceneModes() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeWidgetsParam = urlParams.get('widgets'); 
+            const sceneParam = urlParams.get('scene');
+
+            if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
+            if (sceneParam === 'starting') document.body.classList.add('scene-starting');
+            if (sceneParam === 'ending') document.body.classList.add('scene-ending'); 
+
+            if (sceneParam === 'starting' || sceneParam === 'ending') {
+                const widgetContainer = document.getElementById('widget-container'); 
+                if (widgetContainer) widgetContainer.remove();
+            }
+
+            const widgetMap = { 'chat': 'chat-container', 'music': 'widget-container', 'socials': 'social-rotator', 'alerts': 'alert-container', 'shoutout': 'shoutout-container', 'goal': 'goal-container', 'ticker': 'ticker-container', 'deaths': 'deaths-container', 'particles': 'particles-canvas', 'emotes': 'emotes-container', 'tts': 'tts-container', 'blur': 'screen-blur-overlay', 'wheel': 'wheel-overlay', 'cam': 'webcam-frame', 'media': 'media-info-container', 'pet': 'pet-container' };
+
+            if (activeWidgetsParam) {
+                document.body.style.setProperty('background', 'transparent', 'important');
+                const activeWidgets = activeWidgetsParam.split(',').map(w => w.trim());
+
+                for (const [key, id] of Object.entries(widgetMap)) {
+                    if (!activeWidgets.includes(key)) {
+                        const el = document.getElementById(id);
+                        if (el) el.style.setProperty('display', 'none', 'important');
+                    }
                 }
+                if (!activeWidgets.includes('cam') && !activeWidgets.includes('pet')) document.getElementById('webcam-container').style.setProperty('display', 'none', 'important');
             }
 
-            if (!activeWidgets.includes('cam') && !activeWidgets.includes('pet')) {
-                document.getElementById('webcam-container').style.setProperty('display', 'none', 'important');
-            }
-
-            if (!activeWidgets.includes('music')) { const yt = document.getElementById('yt-player'); if(yt) yt.remove(); if(window.AppPlayer) window.AppPlayer.play = function(){}; }
-            if (!activeWidgets.includes('cam')) { if (window.AppMedia) window.AppMedia.init = function(){}; }
-            if (!activeWidgets.includes('particles')) { if (window.AppParticles) window.AppParticles.animate = function(){}; }
-            if (!activeWidgets.includes('emotes')) { if (window.AppEmotes) window.AppEmotes.spawn = function(){}; }
-            if (!activeWidgets.includes('alerts')) { if (window.AppAlerts) window.AppAlerts.add = function(){}; }
-            if (!activeWidgets.includes('deaths')) { if (window.AppDeaths) window.AppDeaths.update = function(){}; }
-            if (!activeWidgets.includes('shoutout')) { if (window.AppShoutout) window.AppShoutout.add = function(){}; }
-            if (!activeWidgets.includes('blur')) { if (window.AppBlur) window.AppBlur.toggle = function(){}; }
-            if (!activeWidgets.includes('wheel')) { if (window.AppWheel) window.AppWheel.toggle = function(){}; }
+            window.AppEvents.listen('WIDGET_TOGGLE', (data) => {
+                const elId = widgetMap[data.widget];
+                if (elId) {
+                    const el = document.getElementById(elId);
+                    if (el) {
+                        if (data.state === 'off' || data.state === 'hide') el.style.setProperty('display', 'none', 'important');
+                        else if (data.state === 'on' || data.state === 'show') {
+                            el.style.removeProperty('display');
+                            if (elId === 'chat-container') el.style.setProperty('display', 'flex', 'important');
+                        }
+                    }
+                }
+            });
         }
+
+        const applyTheme = (themeName) => {
+            document.body.classList.remove('theme-circus', 'theme-noir'); 
+            if (themeName && themeName !== 'default') {
+                document.body.classList.add(`theme-${themeName}`);
+            }
+        };
 
         const triggerRefreshUI = () => {
-            console.log("[ВИЗУАЛ] Принудительный сброс кэша...");
-            
             const scene = document.getElementById('scene-wrapper');
-            if (scene) {
-                scene.style.transition = "filter 0.4s ease, opacity 0.4s ease";
-                scene.style.filter = "blur(8px)";
-                scene.style.opacity = "0.7";
-            }
-
+            if (scene) { scene.style.transition = "filter 0.4s ease, opacity 0.4s ease"; scene.style.filter = "blur(8px)"; scene.style.opacity = "0.7"; }
+            
+            // Включаем красивый лоадер, чтобы было видно, что идет обновление
             let loader = document.getElementById('uso-refresh-loader');
             if (!loader) {
                 loader = document.createElement('div');
                 loader.id = 'uso-refresh-loader';
                 loader.style.cssText = `
-                    position: fixed;
-                    bottom: 40px;
-                    right: 40px;
-                    z-index: 999999;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 12px 24px;
+                    position: fixed; bottom: 40px; right: 40px; z-index: 999999;
+                    display: flex; align-items: center; gap: 12px; padding: 12px 24px;
                     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 245, 250, 0.85) 100%);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255, 255, 255, 0.8);
-                    border-radius: 30px;
+                    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 30px;
                     box-shadow: 0 20px 40px rgba(0,0,0,0.15), 0 5px 20px rgba(0, 255, 127, 0.15);
-                    opacity: 0;
-                    transform: translateY(20px) scale(0.95);
+                    opacity: 0; transform: translateY(20px) scale(0.95);
                     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
                     font-family: 'Montserrat', sans-serif;
                 `;
-
                 loader.innerHTML = `
                     <svg style="width: 22px; height: 22px; animation: usoLoaderSpin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
                         <circle cx="12" cy="12" r="10" stroke="rgba(0,0,0,0.08)"></circle>
                         <path d="M12 2a10 10 0 0 1 10 10" stroke="#00FF7F"></path>
                     </svg>
-                    <span style="font-size: 13px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.5px; text-transform: uppercase;">
-                        Обновление сцены
-                    </span>
+                    <span style="font-size: 13px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.5px; text-transform: uppercase;">Обновление сцены</span>
                 `;
-
                 if (!document.getElementById('uso-loader-style')) {
                     const style = document.createElement('style');
                     style.id = 'uso-loader-style';
                     style.innerHTML = `@keyframes usoLoaderSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
                     document.head.appendChild(style);
                 }
-
                 document.body.appendChild(loader);
             }
 
@@ -291,93 +317,7 @@
             }, 1000); 
         };
 
-        let coreLoaderTimeout;
-        const triggerCoreRefreshUI = (state) => {
-            let loader = document.getElementById('uso-core-loader');
-            
-            if (state === 'start') {
-                console.log("[ВИЗУАЛ] Ядро ушло на перезагрузку...");
-                if (!loader) {
-                    loader = document.createElement('div');
-                    loader.id = 'uso-core-loader';
-                    loader.style.cssText = `
-                        position: fixed; bottom: 40px; right: 40px; z-index: 999999;
-                        display: flex; align-items: center; gap: 12px; padding: 12px 24px;
-                        background: linear-gradient(135deg, rgba(20, 20, 25, 0.95) 0%, rgba(35, 35, 45, 0.85) 100%);
-                        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-                        border: 1px solid rgba(255, 68, 119, 0.5); border-radius: 30px;
-                        box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(255, 68, 119, 0.3);
-                        opacity: 0; transform: translateY(20px) scale(0.95); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-                        color: #fff; font-family: 'Montserrat', sans-serif;
-                    `;
-                    
-                    loader.innerHTML = `
-                        <svg style="width: 20px; height: 20px; color: #FF4477; animation: usoLoaderSpin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-                            <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
-                        </svg>
-                        <span style="font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                            Перезагрузка ядра...
-                        </span>
-                    `;
-                    document.body.appendChild(loader);
-                }
-                
-                requestAnimationFrame(() => {
-                    loader.style.opacity = "1";
-                    loader.style.transform = "translateY(0) scale(1)";
-                });
-                
-                clearTimeout(coreLoaderTimeout);
-                coreLoaderTimeout = setTimeout(() => triggerCoreRefreshUI('done'), 5000);
-                
-            } else if (state === 'done') {
-                console.log("[ВИЗУАЛ] Ядро успешно загружено и на связи!");
-                clearTimeout(coreLoaderTimeout);
-                if (loader) {
-                    loader.style.opacity = "0";
-                    loader.style.transform = "translateY(20px) scale(0.95)";
-                    setTimeout(() => { if (loader && loader.parentNode) loader.remove(); }, 400);
-                }
-            }
-        };
-
-        window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => triggerRefreshUI());
-        window.AppEvents.listen('CORE_REBOOT_START', () => triggerCoreRefreshUI('start'));
-        window.AppEvents.listen('CORE_REBOOT_DONE', () => triggerCoreRefreshUI('done'));
-
-        window.AppEvents.listen('WIDGET_TOGGLE', (data) => {
-            const elId = widgetMap[data.widget];
-            if (elId) {
-                const el = document.getElementById(elId);
-                if (el) {
-                    if (data.state === 'off' || data.state === 'hide') {
-                        el.style.setProperty('display', 'none', 'important');
-                    } else if (data.state === 'on' || data.state === 'show') {
-                        el.style.removeProperty('display');
-                        if (elId === 'chat-container') el.style.setProperty('display', 'flex', 'important');
-                    }
-                }
-            }
-        });
-
-        const applyTheme = (themeName) => {
-            document.body.classList.remove('theme-circus'); 
-            document.body.classList.remove('theme-noir'); 
-            
-            if (themeName && themeName !== 'default') {
-                document.body.classList.add(`theme-${themeName}`);
-            }
-            localStorage.setItem('uso_current_theme', themeName || 'default');
-        };
-
-        window.AppEvents.listen('THEME_CHANGE', (data) => applyTheme(data.theme));
-
-        const savedTheme = localStorage.getItem('uso_current_theme');
-        if (savedTheme) applyTheme(savedTheme);
-
-        setInterval(() => {
-            if (window.AppEvents) window.AppEvents.emit('VISUAL_HEARTBEAT');
-        }, 5000);
+        const triggerCoreRefreshUI = (state) => { /* Косметический лоадер для перезагрузки ядра (можно оставить пустым) */ };
     </script>
 </body>
 </html>

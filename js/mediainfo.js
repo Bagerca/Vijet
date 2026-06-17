@@ -1,9 +1,10 @@
-/* ================= УНИВЕРСАЛЬНАЯ МЕДИА-КАРТОЧКА ================= */
+/* ================= js/mediainfo.js ================= */
+
 window.AppMediaInfo = {
     container: document.getElementById('media-info-container'),
     coverEl: document.getElementById('mi-cover'),
     noMediaEl: document.getElementById('mi-no-media'),
-    ytPlayEl: document.getElementById('mi-yt-play'), // Новая иконка
+    ytPlayEl: document.getElementById('mi-yt-play'), 
     
     typeBadgeEl: document.getElementById('mi-type-badge'),
     titleWrapper: document.getElementById('mi-title-wrapper'),
@@ -12,23 +13,14 @@ window.AppMediaInfo = {
     detailsGrid: document.getElementById('mi-details-grid'),
 
     init: function() {
-        const savedMedia = localStorage.getItem('uso_current_media');
-        if (savedMedia) {
-            try {
-                const data = JSON.parse(savedMedia);
-                this.set(data.type, data.query, true); 
-            } catch(e) {}
-        }
-
-        window.AppEvents.listen('MEDIA_SET', d => this.set(d.type, d.query));
+        window.AppEvents.listen('MEDIA_UPDATE_UI', data => {
+            if (!data) this.hide();
+            else this.fetchAndRender(data.type, data.query);
+        });
     },
 
-    set: async function(type, query, noAnim = false) {
+    fetchAndRender: async function(type, query) {
         if (!this.container) return;
-
-        if (type === "off" || query === "off" || query === "clear") {
-            this.hide(); return;
-        }
 
         let mediaData = null;
 
@@ -44,20 +36,17 @@ window.AppMediaInfo = {
         if (mediaData) {
             this.render(mediaData);
             this.container.classList.remove('hidden');
-            localStorage.setItem('uso_current_media', JSON.stringify({ type: type, query: query })); 
             
-            if (!noAnim) {
-                this.container.classList.remove('pop-anim');
-                void this.container.offsetWidth; 
-                this.container.classList.add('pop-anim');
-            }
+            this.container.classList.remove('pop-anim');
+            void this.container.offsetWidth; 
+            this.container.classList.add('pop-anim');
 
             setTimeout(() => this.checkMarquee(), 100);
 
-            if (window.AppTicker && !noAnim) {
+            if (window.AppTicker) {
                 let prefix = mediaData.type === 'youtube' ? '📺 Реакция:' : (mediaData.type === 'series' ? '🎬 Смотрим:' : '🎮 Играем:');
                 const msg = `<span style="color: ${mediaData.themeColor || '#FF4477'}; font-weight: 800;">${prefix}</span> <span style="color: #1a1a1a; font-weight: 900;">${mediaData.title}</span>`;
-                window.AppTicker.forceShowImmediate(msg);
+                window.AppTicker.forceShowImmediate(msg, "МЕДИА", mediaData.themeColor || "#FF4477");
             }
         }
     },
@@ -80,33 +69,59 @@ window.AppMediaInfo = {
     },
 
     fetchFromSteam: async function(gameName) {
+        // ИЗМЕНЕНО: Добавлена защита от зависания прокси-сервера (Таймаут 4 сек)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+
         try {
             const url = encodeURIComponent(`https://store.steampowered.com/api/storesearch/?term=${gameName}&l=russian&cc=RU`);
-            const response = await fetch(`https://api.allorigins.win/get?url=${url}`);
-            if (!response.ok) throw new Error("Network error");
+            const response = await fetch(`https://api.allorigins.win/get?url=${url}`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) throw new Error("Proxy error");
             const proxyData = await response.json();
             const data = JSON.parse(proxyData.contents);
             
             if (data && data.items && data.items.length > 0) {
                 const game = data.items[0]; 
                 const coverUrl = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.id}/library_600x900_2x.jpg`;
-                return { title: game.name, cover: coverUrl, themeColor: "#1B2838", type: "game", tags: ["Steam Game"], details: { "Платформа": "PC (Steam)" } };
+                return { title: game.name, cover: coverUrl, themeColor: "#1B2838", type: "game", tags: ["Steam"], details: { "Платформа": "PC" } };
             }
-        } catch (err) {}
-        return { title: gameName.toUpperCase(), cover: "", themeColor: "#FF4477", type: "game", tags: ["Пользовательская"], details: {} };
+            throw new Error("Game not found in Steam");
+        } catch (err) {
+            clearTimeout(timeoutId);
+            console.warn(`[MediaInfo] Не удалось получить игру "${gameName}" из Steam. Используем заглушку.`, err.message);
+            // Фолбэк: Возвращаем красивую карточку-заглушку, даже если сеть легла
+            return { 
+                title: gameName.toUpperCase(), 
+                cover: "", 
+                themeColor: "#FF4477", 
+                type: "game", 
+                tags: ["Стрим"], 
+                details: { "Статус": "В эфире" } 
+            };
+        }
     },
 
     fetchFromYouTube: async function(videoId) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
         try {
             const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Network error");
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) throw new Error("YT API error");
             const data = await response.json();
             return {
                 title: data.title, cover: data.thumbnail_url, themeColor: "#FF0000", type: "youtube",
-                tags: ["YouTube", data.author_name], details: { "Платформа": "YouTube", "Канал": data.author_name }
+                tags: ["YouTube", data.author_name], details: { "Канал": data.author_name }
             };
-        } catch (err) { return null; }
+        } catch (err) { 
+            clearTimeout(timeoutId);
+            return { title: "YouTube Video", cover: "", themeColor: "#FF0000", type: "youtube", tags: ["Видео"], details: {} }; 
+        }
     },
 
     render: function(data) {
@@ -114,7 +129,6 @@ window.AppMediaInfo = {
         this.container.style.setProperty('--media-color', color);
         this.container.style.setProperty('--media-glow', `${color}33`);
 
-        // Логика переключения режима "Горизонтальный/Вертикальный"
         if (data.type === 'youtube') {
             this.container.classList.add('is-youtube');
             this.typeBadgeEl.innerText = "РЕАКЦИЯ НА ВИДЕО";
@@ -139,15 +153,14 @@ window.AppMediaInfo = {
             this.coverEl.src = "";
             this.coverEl.classList.add('hidden');
             this.noMediaEl.style.display = 'flex';
-            this.ytPlayEl.style.display = 'none'; // Скрываем Play если обложка не прогрузилась
+            this.ytPlayEl.style.display = 'none'; 
         }
 
         this.tagsContainer.innerHTML = '';
         if (data.tags && data.tags.length > 0) {
             data.tags.forEach(tag => {
                 const t = document.createElement('div');
-                t.className = 'mi-tag';
-                t.innerText = tag;
+                t.className = 'mi-tag'; t.innerText = tag;
                 this.tagsContainer.appendChild(t);
             });
         }
@@ -165,10 +178,5 @@ window.AppMediaInfo = {
         }
     },
 
-    hide: function() {
-        this.container.classList.add('hidden');
-        localStorage.removeItem('uso_current_media'); 
-    }
+    hide: function() { this.container.classList.add('hidden'); }
 };
-
-setTimeout(() => window.AppMediaInfo.init(), 1000);
