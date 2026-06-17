@@ -1,13 +1,14 @@
-/* ================= YOUTUBE CORE ПЛЕЕР (С УМНЫМ САЙДЧЕЙНОМ) ================= */
+/* ================= YOUTUBE CORE ПЛЕЕР (ИСПРАВЛЕННЫЙ) ================= */
 window.AppPlayerCore = {
     yt: null,
     isReady: false,
     currentVol: window.AppConfig.defaultVolume,
     isDucking: false, 
-    restoreVolTimeout: null, // Таймер для умного возврата громкости (Debounce)
+    restoreVolTimeout: null, 
     progressInterval: null,
     currentItem: null,
     currentVisualId: null,
+    pendingData: null, // Очередь ожидания инициализации
 
     init: function() {
         window.AppEvents.listen('YT_CORE_PLAY', d => this.play(d));
@@ -17,29 +18,23 @@ window.AppPlayerCore = {
         // === УМНЫЙ АУДИО САЙДЧЕЙН (Smart Audio Ducking) ===
         window.AppEvents.listen('AUDIO_DUCK_START', () => {
             this.isDucking = true;
-            // Если был запущен таймер возврата громкости - отменяем его
             if (this.restoreVolTimeout) {
                 clearTimeout(this.restoreVolTimeout);
                 this.restoreVolTimeout = null;
             }
-            
             if (this.isReady && this.yt) {
-                // Мягко приглушаем до 15% от текущей громкости
                 this.yt.setVolume(Math.max(1, this.currentVol * 0.15));
             }
         });
 
         window.AppEvents.listen('AUDIO_DUCK_STOP', () => {
-            // Вместо мгновенного возврата, ждем 2 секунды. 
-            // Если за это время придет новый AUDIO_DUCK_START, таймер отменится.
             if (this.restoreVolTimeout) clearTimeout(this.restoreVolTimeout);
-            
             this.restoreVolTimeout = setTimeout(() => {
                 this.isDucking = false;
                 if (this.isReady && this.yt) {
                     this.yt.setVolume(this.currentVol);
                 }
-            }, 2000); // 2000ms = 2 секунды тишины перед возвратом громкости
+            }, 2000); 
         });
 
         window.AppEvents.listen('QUEUE_CMD', d => {
@@ -88,12 +83,16 @@ window.AppPlayerCore = {
                     this.isReady = true;
                     this.setVolume(this.currentVol);
                     window.AppEvents.emit('YT_CORE_READY');
+                    
+                    if (this.pendingData) {
+                        this.play(this.pendingData);
+                        this.pendingData = null;
+                    }
                 },
                 'onStateChange': this.handleStateChange.bind(this),
                 'onError': (e) => {
                     let reason = "Ограничения правообладателя или видео удалено";
                     console.error(`❌ [YT CORE] Ошибка: ${reason} (Код ${e.data})`);
-                    
                     window.AppEvents.emit('TICKER_REWARD', { user: "Система", reward: "Трек недоступен", message: reason });
                     
                     if (this.currentItem && this.currentItem.type === 'playlist') {
@@ -109,17 +108,29 @@ window.AppPlayerCore = {
     },
 
     play: function(data) {
-        if (!this.isReady) return;
+        if (!this.isReady) {
+            this.pendingData = data;
+            return;
+        }
         this.currentItem = data;
         this.currentVisualId = null; 
         
-        if (data.type === 'playlist') this.yt.loadPlaylist({ list: data.id });
-        else this.yt.loadVideoById(data.id);
+        // МГНОВЕННЫЙ ЗАПУСК ВИЗУАЛА: Отправляем сигнал сразу, не дожидаясь ответа от серверов YT.
+        // Это обходит блокировку автовоспроизведения в браузере при тестировании
+        if (data.type === 'video') {
+            this.currentVisualId = data.id;
+            window.AppEvents.emit('YT_VISUAL_PLAY', { 
+                id: data.id, 
+                user: data.user, 
+                vol: this.currentVol 
+            });
+        }
         
-        setTimeout(() => {
-            this.yt.unMute();
-            this.yt.playVideo();
-        }, 300);
+        if (data.type === 'playlist') {
+            this.yt.loadPlaylist({ list: data.id });
+        } else {
+            this.yt.loadVideoById(data.id);
+        }
     },
 
     hide: function() {
@@ -133,7 +144,6 @@ window.AppPlayerCore = {
             this.currentVol = Math.max(0, Math.min(100, parseInt(vol) || window.AppConfig.defaultVolume));
             this.yt.unMute();
             
-            // Защита: применяем громкость к плееру, только если сейчас нет сайдчейна
             if (!this.isDucking) {
                 this.yt.setVolume(this.currentVol);
             }
@@ -142,10 +152,12 @@ window.AppPlayerCore = {
     },
 
     handleStateChange: function(event) {
-        if (event.data === 1) { // PLAYING
+        // State 1 = PLAYING, State 3 = BUFFERING
+        if (event.data === 1 || event.data === 3) { 
             let actualVidId = this.yt.getVideoData().video_id;
             
-            if (actualVidId !== this.currentVisualId && this.currentItem) {
+            // Защита для плейлистов: отправляем сигнал визуала только если трек переключился
+            if (actualVidId && actualVidId !== this.currentVisualId && this.currentItem) {
                 this.currentVisualId = actualVidId;
                 window.AppEvents.emit('YT_VISUAL_PLAY', { 
                     id: actualVidId, 
@@ -154,9 +166,11 @@ window.AppPlayerCore = {
                 });
             }
             
-            this.startProgress();
-            window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: true });
-            window.AppEvents.emit('YT_VISUAL_STATE', { state: 'playing' });
+            if (event.data === 1) {
+                this.startProgress();
+                window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: true });
+                window.AppEvents.emit('YT_VISUAL_STATE', { state: 'playing' });
+            }
             
         } else if (event.data === 2) { // PAUSED
             this.stopProgress();

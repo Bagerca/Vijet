@@ -1,4 +1,4 @@
-/* ================= YOUTUBE ВИДЖЕТ ================= */
+/* ================= YOUTUBE ВИДЖЕТ (ИСПРАВЛЕННЫЙ) ================= */
 window.AppPlayer = {
     yt: null,
     container: document.getElementById('widget-container'),
@@ -7,15 +7,15 @@ window.AppPlayer = {
     volLabel: document.getElementById('volume-level'),
     queueCount: document.getElementById('queue-count'),
     progressBar: document.getElementById('yt-progress-bar'), 
+    
     isReady: false,
+    pendingData: null, // Хранилище для трека, если API еще грузится
 
     init: function() {
         window.AppEvents.listen('YT_VISUAL_PLAY', d => this.play(d));
         window.AppEvents.listen('YT_VISUAL_HIDE', () => this.hide());
         window.AppEvents.listen('YT_VISUAL_VOL', d => this.updateVol(d.vol));
         window.AppEvents.listen('YT_VISUAL_STATE', d => this.updateState(d.state));
-        
-        // НОВОЕ: Теперь мы передаем весь объект даты целиком, чтобы получить точное время
         window.AppEvents.listen('YT_VISUAL_PROGRESS', d => this.updateProgress(d));
         window.AppEvents.listen('QUEUE_STATE', d => this.updateQueue(d.count));
 
@@ -57,16 +57,21 @@ window.AppPlayer = {
                 'onReady': () => { 
                     this.isReady = true;
                     this.yt.mute(); 
-                    console.log("📺 [YT VISUAL] Визуальный плеер успешно загружен!");
+                    console.log("%c[YT VISUAL] 📺 Визуальный плеер успешно загружен!", "color: #00FF7F");
+                    
+                    // Если трек ждал загрузки плеера - запускаем его
+                    if (this.pendingData) {
+                        this.play(this.pendingData);
+                        this.pendingData = null;
+                    }
                 }
             }
         });
     },
 
     play: function(data) {
-        if (!this.isReady) return;
-        
-        // 1. Обновляем Имя
+        // 1. МГНОВЕННО ПОКАЗЫВАЕМ UI (Даже если Iframe еще не готов!)
+        if (this.container) this.container.classList.remove('hidden');
         if (this.nameLabel) this.nameLabel.innerText = data.user;
         
         // 2. УМНАЯ АВАТАРКА (С поиском и автоматическим скачиванием)
@@ -82,7 +87,6 @@ window.AppPlayer = {
             let fallbackUrl = `https://ui-avatars.com/api/?name=${safeName}&background=FF4477&color=fff&size=64&bold=true`;
             let foundAvatar = null;
             
-            // Шаг А: Ищем в кэше БЕЗ УЧЕТА РЕГИСТРА
             try {
                 const cachedAvatars = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
                 const searchName = data.user.toLowerCase();
@@ -95,17 +99,14 @@ window.AppPlayer = {
             } catch(e) {}
 
             if (foundAvatar) {
-                // Если нашли в кэше — ставим сразу
                 setAvatar(foundAvatar);
             } else {
-                // Шаг Б: Если не нашли — ставим заглушку, но МГНОВЕННО скачиваем реальную с Twitch API
                 setAvatar(fallbackUrl);
                 fetch(`https://api.ivr.fi/v2/twitch/user?login=${data.user.toLowerCase()}`)
                     .then(res => res.json())
                     .then(apiData => {
                         if (apiData && apiData.length > 0 && apiData[0].logo) {
                             setAvatar(apiData[0].logo);
-                            // И сразу сохраняем её в кэш на будущее!
                             try {
                                 let cache = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
                                 cache[data.user] = apiData[0].logo;
@@ -117,9 +118,16 @@ window.AppPlayer = {
         }
 
         this.updateVol(data.vol);
-        if (this.container) this.container.classList.remove('hidden');
         if (this.progressBar) this.progressBar.style.width = '0%';
+
+        // 3. ЗАЩИТА: Если Iframe еще не готов, сохраняем данные и ждем onReady
+        if (!this.isReady) {
+            console.warn("[YT VISUAL] ⏳ Плеер еще грузится, ожидаем...");
+            this.pendingData = data;
+            return;
+        }
         
+        // 4. Запускаем видео
         this.yt.loadVideoById(data.id);
         this.yt.mute(); 
         this.yt.playVideo(); 
@@ -130,7 +138,9 @@ window.AppPlayer = {
             this.container.classList.add('hidden');
             this.container.classList.remove('is-playing');
         }
-        if (this.isReady) this.yt.stopVideo();
+        if (this.isReady && this.yt && typeof this.yt.stopVideo === 'function') {
+            this.yt.stopVideo();
+        }
     },
 
     updateVol: function(vol) {
@@ -148,22 +158,18 @@ window.AppPlayer = {
     },
 
     updateProgress: function(data) {
-        // Поддержка и старого, и нового формата данных
         let percent = data.percent !== undefined ? data.percent : data;
         if(this.progressBar) this.progressBar.style.width = `${percent}%`;
 
-        // =========================================================
         // УЛЬТРА-СИНХРОНИЗАЦИЯ: Если картинка отстала от звука
-        // =========================================================
         if (this.isReady && this.yt && typeof this.yt.getCurrentTime === 'function' && data.currentTime !== undefined) {
             const visualState = this.yt.getPlayerState();
             
-            // Если видео сейчас идет (1) или грузится (3)
             if (visualState === 1 || visualState === 3) { 
                 const visualTime = this.yt.getCurrentTime();
                 const diff = Math.abs(visualTime - data.currentTime);
                 
-                // Если разница больше 1.0 секунды — жестко перематываем картинку на время звука!
+                // Если разница больше 1.0 секунды — жестко перематываем картинку на время звука
                 if (diff > 1.0) {
                     console.log(`[YT VISUAL 🔄] Выравниваем рассинхрон с Ядром! Разница: ${diff.toFixed(2)}с`);
                     this.yt.seekTo(data.currentTime, true);

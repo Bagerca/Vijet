@@ -123,13 +123,18 @@ const UIBuilder = {
             container.innerHTML = `<div class="queue-empty-text">Очередь пуста</div>`;
             return;
         }
-        container.innerHTML = items.map((item, index) => `
+        
+        // ОБНОВЛЕНИЕ: Выводим title, если он есть, иначе откатываемся до ID
+        container.innerHTML = items.map((item, index) => {
+            const displayTitle = item.title || (item.type === 'video' ? 'Видео' : 'Плейлист') + ` [${item.id}]`;
+            return `
             <div class="queue-item">
                 <span class="queue-index">#${index + 1}</span>
-                <span class="queue-title" title="${item.id}">${item.type === 'video' ? 'Видео' : 'Плейлист'} [${item.id}]</span>
+                <span class="queue-title" title="${item.id}">${displayTitle}</span>
                 <span class="queue-user">от ${item.user}</span>
             </div>
-        `).join('');
+            `;
+        }).join('');
     },
 
     updateHealthStatus: function(system, isAlive) {

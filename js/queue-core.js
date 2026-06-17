@@ -1,8 +1,8 @@
-/* ================= ОЧЕРЕДЬ МУЗЫКИ (С ПОДДЕРЖКОЙ SAFE MODE) ================= */
+/* ================= ОЧЕРЕДЬ МУЗЫКИ (С ПОДДЕРЖКОЙ SAFE MODE И НАЗВАНИЙ) ================= */
 window.AppQueueCore = {
     items: [],
     isPlaying: false,
-    isAutoPlay: true, // По умолчанию автовоспроизведение включено
+    isAutoPlay: true, 
 
     init: function() {
         const saved = localStorage.getItem('uso_queue');
@@ -49,21 +49,35 @@ window.AppQueueCore = {
         return null;
     },
 
-    add: function(url, user) {
+    // Сделали асинхронным, чтобы вытягивать название
+    add: async function(url, user) {
         console.log(`📥 [QUEUE] Запрос от ${user}: ${url}`);
         const ytData = this.extractData(url);
         
         if (ytData) {
-            this.items.push({ type: ytData.type, id: ytData.id, user: user });
+            
+            // Фетчим название видео через YouTube oEmbed API
+            if (ytData.type === 'video') {
+                try {
+                    const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${ytData.id}&format=json`);
+                    const data = await response.json();
+                    ytData.title = data.title;
+                } catch (e) {
+                    ytData.title = `YouTube Video [${ytData.id}]`;
+                }
+            } else {
+                ytData.title = `Плейлист [${ytData.id}]`;
+            }
+
+            // Добавляем title в объект
+            this.items.push({ type: ytData.type, id: ytData.id, user: user, title: ytData.title });
             this.save();
             window.AppEvents.emit('TICKER_MUSIC', { data: ytData, user: user });
             
-            // Если плеер свободен И включено автовоспроизведение -> играем сразу.
-            // Иначе трек просто ждет в очереди.
             if (!this.isPlaying && this.isAutoPlay) {
                 this.next();
             } else if (!this.isAutoPlay && !this.isPlaying) {
-                console.log("🛡️ [SAFE MODE] Трек добавлен в очередь, но автовоспроизведение отключено. Ждем команды модератора.");
+                console.log("🛡️ [SAFE MODE] Трек добавлен в очередь, но автовоспроизведение отключено.");
             }
         } else {
             console.error(`❌ [QUEUE] Ошибка: Не удалось распознать ссылку "${url}"`);
@@ -72,7 +86,6 @@ window.AppQueueCore = {
 
     next: function() {
         if (this.items.length > 0) {
-            // Если очередь не пуста, мы берем трек даже при Safe Mode (потому что next вызывается вручную модером или по окончании трека)
             this.isPlaying = true;
             const nextItem = this.items.shift();
             this.save();
