@@ -141,80 +141,193 @@
         </div>
     </template>
 
-    <!-- Загрузчик файлов -->
+    <!-- Модульный загрузчик зависимостей -->
     <script>
         const cacheBuster = new URLSearchParams(window.location.search).get('nocache') || Date.now();
-        
-        const myStyles = [
-            "css/base.css", "css/blur.css", "css/pet.css", "css/tts.css", "css/emotes.css",
-            "css/chat.css", "css/default_theme.css",
-            "css/users/hollow_knight.css", "css/users/minecraft.css", "css/users/angel.css", 
-            "css/users/bendy.css", "css/users/terminal.css", "css/users/neon_owner.css", "css/users/tactical.css", 
-            "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
-            "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
-            "css/mediainfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
-            "css/theme-circus.css", "css/theme-noir.css", "css/modes.css" 
-        ];
-        myStyles.forEach(href => { document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`); });
-        
-        const myScripts = [
-            "js/config.js", "js/games-db.js", "js/event-bus.js",
-            "js/services/avatar-manager.js", 
-            "js/particles.js", "js/emotes.js", "js/pet.js", "js/chat.js",
-            "js/youtube.js", "js/mic.js", "js/socials.js", "js/alerts.js",
-            "js/shoutout.js", "js/goal.js", "js/ticker.js", "js/deaths.js",
-            "js/mediainfo.js", "js/wheel.js", "js/tts.js", "js/countdown.js", "js/blur.js"
-        ];
+
+        // 1. Карта зависимостей виджетов (загружаем только то, что нужно конкретному виджету)
+        const dependencyMap = {
+            base: {
+                css: ["css/base.css", "css/modes.css", "css/theme-circus.css", "css/theme-noir.css"],
+                js: ["js/config.js", "js/event-bus.js"]
+            },
+            chat: {
+                css: [
+                    "css/chat.css", "css/default_theme.css",
+                    "css/users/hollow_knight.css", "css/users/minecraft.css", 
+                    "css/users/angel.css", "css/users/bendy.css", 
+                    "css/users/tactical.css", "css/users/terminal.css", 
+                    "css/users/neon_owner.css"
+                ],
+                js: ["js/services/avatar-manager.js", "js/chat.js"]
+            },
+            pet: {
+                css: ["css/pet.css"],
+                js: ["js/pet.js"]
+            },
+            tts: {
+                css: [
+                    "css/tts.css", "css/users/neon_owner.css", "css/users/hollow_knight.css", 
+                    "css/users/minecraft.css", "css/users/angel.css", "css/users/bendy.css", 
+                    "css/users/tactical.css", "css/users/terminal.css"
+                ],
+                js: ["js/services/avatar-manager.js", "js/tts.js"]
+            },
+            emotes: {
+                css: ["css/emotes.css"],
+                js: ["js/emotes.js"]
+            },
+            music: {
+                css: ["css/youtube.css"],
+                js: ["js/services/avatar-manager.js", "js/youtube.js"]
+            },
+            cam: {
+                css: ["css/webcam.css", "css/pet.css"],
+                js: ["js/mic.js", "js/pet.js"]
+            },
+            socials: {
+                css: ["css/socials.css"],
+                js: ["js/socials.js"]
+            },
+            alerts: {
+                css: ["css/alerts.css"],
+                js: ["js/alerts.js"]
+            },
+            shoutout: {
+                css: ["css/shoutout.css"],
+                js: ["js/shoutout.js"]
+            },
+            goal: {
+                css: ["css/goal.css"],
+                js: ["js/goal.js"]
+            },
+            ticker: {
+                css: ["css/ticker.css"],
+                js: ["js/ticker.js"]
+            },
+            deaths: {
+                css: ["css/deaths.css"],
+                js: ["js/deaths.js"]
+            },
+            media: {
+                css: ["css/mediainfo.css"],
+                js: ["js/mediainfo.js"]
+            },
+            wheel: {
+                css: ["css/wheel.css"],
+                js: ["js/wheel.js"]
+            },
+            particles: {
+                css: [],
+                js: ["js/particles.js"]
+            },
+            countdown: {
+                css: ["css/starting.css", "css/ending.css"],
+                js: ["js/countdown.js"]
+            }
+        };
+
+        const loadStyle = (href) => {
+            return new Promise((resolve) => {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = `${href}?v=${cacheBuster}`;
+                link.onload = resolve;
+                link.onerror = resolve; 
+                document.head.appendChild(link);
+            });
+        };
 
         const loadScript = (src) => {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 const s = document.createElement('script');
                 s.src = `${src}?v=${cacheBuster}`;
                 s.onload = resolve;
-                s.onerror = () => reject(new Error(`Failed to load ${src}`));
+                s.onerror = (e) => { console.warn(`Error loading script: ${src}`, e); resolve(); };
                 document.body.appendChild(s);
             });
         };
 
         const bootVisuals = async () => {
-            console.log("%c[BOOTLOADER] Запуск визуальных виджетов...", "color: #00FF7F; font-weight: bold;");
-            
-            try {
-                for (const script of myScripts) {
-                    await loadScript(script);
-                }
+            const urlParams = new URLSearchParams(window.location.search);
+            // Извлекаем переданные параметры (учитывая newline символы из конфига OBS)
+            const widgetParam = (urlParams.get('widgets') || urlParams.get('widget') || '').trim().toLowerCase();
+            const sceneParam = (urlParams.get('scene') || '').trim().toLowerCase();
 
-                const modules = [
-                    window.AppBlur, window.AppPet, window.AppTTS, window.AppEmotes,
-                    window.AppChat, window.AppMedia, window.AppPlayer, window.AppSocials,
-                    window.AppAlerts, window.AppShoutout, window.AppGoal, window.AppTicker,
-                    window.AppDeaths, window.AppMediaInfo, window.AppWheel, window.AppCountdown,
-                    window.AppParticles
-                ];
+            let activeWidgets = [];
+            if (widgetParam) {
+                activeWidgets = widgetParam.split(',').map(w => w.trim());
+            } else {
+                activeWidgets = ['all']; // По умолчанию грузим всё
+            }
 
-                modules.forEach(mod => {
-                    if (mod && typeof mod.init === 'function' && !mod.isInitialized) {
-                        try {
-                            mod.init();
-                            mod.isInitialized = true; 
-                        } catch(e) { console.error("[BOOTLOADER] Сбой виджета:", e); }
+            // Формируем списки загрузки
+            let cssToLoad = [...dependencyMap.base.css];
+            let jsToLoad = [...dependencyMap.base.js];
+
+            if (sceneParam === 'starting') {
+                cssToLoad.push("css/starting.css");
+                jsToLoad.push("js/countdown.js");
+            } else if (sceneParam === 'ending') {
+                cssToLoad.push("css/ending.css");
+            }
+
+            if (activeWidgets.includes('all')) {
+                Object.keys(dependencyMap).forEach(key => {
+                    if (key !== 'base') {
+                        cssToLoad.push(...dependencyMap[key].css);
+                        jsToLoad.push(...dependencyMap[key].js);
                     }
                 });
+            } else {
+                activeWidgets.forEach(w => {
+                    if (dependencyMap[w]) {
+                        cssToLoad.push(...dependencyMap[w].css);
+                        jsToLoad.push(...dependencyMap[w].js);
+                    }
+                });
+            }
 
-                setupSceneModes();
+            // Убираем дубли
+            cssToLoad = [...new Set(cssToLoad)];
+            jsToLoad = [...new Set(jsToLoad)];
 
+            console.log("%c[BOOTLOADER] Загрузка ресурсов для виджетов:", "color: #00FF7F; font-weight: bold;", activeWidgets);
+
+            // Загружаем CSS последовательно
+            for (const css of cssToLoad) {
+                await loadStyle(css);
+            }
+
+            // Загружаем JS последовательно
+            for (const js of jsToLoad) {
+                await loadScript(js);
+            }
+
+            // Запуск инициализации только загруженных модулей
+            const modules = [
+                window.AppBlur, window.AppPet, window.AppTTS, window.AppEmotes,
+                window.AppChat, window.AppMedia, window.AppPlayer, window.AppSocials,
+                window.AppAlerts, window.AppShoutout, window.AppGoal, window.AppTicker,
+                window.AppDeaths, window.AppMediaInfo, window.AppWheel, window.AppCountdown,
+                window.AppParticles
+            ];
+
+            modules.forEach(mod => {
+                if (mod && typeof mod.init === 'function' && !mod.isInitialized) {
+                    try {
+                        mod.init();
+                        mod.isInitialized = true; 
+                    } catch(e) { console.error("[BOOTLOADER] Сбой инициализации модуля:", e); }
+                }
+            });
+
+            setupSceneModes();
+
+            if (window.AppEvents) {
                 window.AppEvents.listen('THEME_UPDATE_UI', (data) => applyTheme(data.theme));
-
                 window.AppEvents.emit('VISUAL_READY');
-
-                window.AppEvents.listen('FORCE_RELOAD_VISUAL', () => triggerRefreshUI());
-                window.AppEvents.listen('CORE_REBOOT_START', () => triggerCoreRefreshUI('start'));
-                window.AppEvents.listen('CORE_REBOOT_DONE', () => triggerCoreRefreshUI('done'));
-
                 setInterval(() => window.AppEvents.emit('VISUAL_HEARTBEAT'), 5000);
-
-            } catch (err) {
-                console.error("%c[BOOTLOADER] Ошибка загрузки визуального слоя:", "color: #FF0050;", err);
             }
         };
 
@@ -222,10 +335,8 @@
 
         function setupSceneModes() {
             const urlParams = new URLSearchParams(window.location.search);
-            
-            // ИСПРАВЛЕНИЕ: Парсинг поддерживает и 'widgets', и одиночный 'widget' из OBS
-            const activeWidgetsParam = urlParams.get('widgets') || urlParams.get('widget'); 
-            const sceneParam = urlParams.get('scene');
+            const widgetParam = (urlParams.get('widgets') || urlParams.get('widget') || '').trim().toLowerCase();
+            const sceneParam = (urlParams.get('scene') || '').trim().toLowerCase();
 
             if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');
             if (sceneParam === 'starting') document.body.classList.add('scene-starting');
@@ -236,11 +347,17 @@
                 if (widgetContainer) widgetContainer.remove();
             }
 
-            const widgetMap = { 'chat': 'chat-container', 'music': 'widget-container', 'socials': 'social-rotator', 'alerts': 'alert-container', 'shoutout': 'shoutout-container', 'goal': 'goal-container', 'ticker': 'ticker-container', 'deaths': 'deaths-container', 'particles': 'particles-canvas', 'emotes': 'emotes-container', 'tts': 'tts-container', 'blur': 'screen-blur-overlay', 'wheel': 'wheel-overlay', 'cam': 'webcam-frame', 'media': 'media-info-container', 'pet': 'pet-container' };
+            const widgetMap = { 
+                'chat': 'chat-container', 'music': 'widget-container', 'socials': 'social-rotator', 
+                'alerts': 'alert-container', 'shoutout': 'shoutout-container', 'goal': 'goal-container', 
+                'ticker': 'ticker-container', 'deaths': 'deaths-container', 'particles': 'particles-canvas', 
+                'emotes': 'emotes-container', 'tts': 'tts-container', 'blur': 'screen-blur-overlay', 
+                'wheel': 'wheel-overlay', 'cam': 'webcam-frame', 'media': 'media-info-container', 'pet': 'pet-container' 
+            };
 
-            if (activeWidgetsParam) {
+            if (widgetParam && widgetParam !== 'all') {
                 document.body.style.setProperty('background', 'transparent', 'important');
-                const activeWidgets = activeWidgetsParam.split(',').map(w => w.trim());
+                const activeWidgets = widgetParam.split(',').map(w => w.trim());
 
                 for (const [key, id] of Object.entries(widgetMap)) {
                     if (!activeWidgets.includes(key)) {
@@ -248,22 +365,27 @@
                         if (el) el.style.setProperty('display', 'none', 'important');
                     }
                 }
-                if (!activeWidgets.includes('cam') && !activeWidgets.includes('pet')) document.getElementById('webcam-container').style.setProperty('display', 'none', 'important');
+                if (!activeWidgets.includes('cam') && !activeWidgets.includes('pet')) {
+                    const webcamContainer = document.getElementById('webcam-container');
+                    if (webcamContainer) webcamContainer.style.setProperty('display', 'none', 'important');
+                }
             }
 
-            window.AppEvents.listen('WIDGET_TOGGLE', (data) => {
-                const elId = widgetMap[data.widget];
-                if (elId) {
-                    const el = document.getElementById(elId);
-                    if (el) {
-                        if (data.state === 'off' || data.state === 'hide') el.style.setProperty('display', 'none', 'important');
-                        else if (data.state === 'on' || data.state === 'show') {
-                            el.style.removeProperty('display');
-                            if (elId === 'chat-container') el.style.setProperty('display', 'flex', 'important');
+            if (window.AppEvents) {
+                window.AppEvents.listen('WIDGET_TOGGLE', (data) => {
+                    const elId = widgetMap[data.widget];
+                    if (elId) {
+                        const el = document.getElementById(elId);
+                        if (el) {
+                            if (data.state === 'off' || data.state === 'hide') el.style.setProperty('display', 'none', 'important');
+                            else if (data.state === 'on' || data.state === 'show') {
+                                el.style.removeProperty('display');
+                                if (elId === 'chat-container') el.style.setProperty('display', 'flex', 'important');
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
         const applyTheme = (themeName) => {
@@ -320,7 +442,7 @@
             }, 1000); 
         };
 
-        const triggerCoreRefreshUI = (state) => { /* Косметический лоадер для перезагрузки ядра */ };
+        const triggerCoreRefreshUI = (state) => {};
     </script>
 </body>
 </html>
