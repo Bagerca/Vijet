@@ -145,7 +145,7 @@
     <script>
         const cacheBuster = new URLSearchParams(window.location.search).get('nocache') || Date.now();
 
-        // 1. Карта зависимостей виджетов (загружаем только то, что нужно конкретному виджету)
+        // 1. Карта зависимостей виджетов (теперь включая blur)
         const dependencyMap = {
             base: {
                 css: ["css/base.css", "css/modes.css", "css/theme-circus.css", "css/theme-noir.css"],
@@ -224,6 +224,10 @@
             countdown: {
                 css: ["css/starting.css", "css/ending.css"],
                 js: ["js/countdown.js"]
+            },
+            blur: {
+                css: ["css/blur.css"],
+                js: ["js/blur.js"]
             }
         };
 
@@ -250,7 +254,6 @@
 
         const bootVisuals = async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            // Извлекаем переданные параметры (учитывая newline символы из конфига OBS)
             const widgetParam = (urlParams.get('widgets') || urlParams.get('widget') || '').trim().toLowerCase();
             const sceneParam = (urlParams.get('scene') || '').trim().toLowerCase();
 
@@ -258,10 +261,9 @@
             if (widgetParam) {
                 activeWidgets = widgetParam.split(',').map(w => w.trim());
             } else {
-                activeWidgets = ['all']; // По умолчанию грузим всё
+                activeWidgets = ['all']; 
             }
 
-            // Формируем списки загрузки
             let cssToLoad = [...dependencyMap.base.css];
             let jsToLoad = [...dependencyMap.base.js];
 
@@ -288,23 +290,19 @@
                 });
             }
 
-            // Убираем дубли
             cssToLoad = [...new Set(cssToLoad)];
             jsToLoad = [...new Set(jsToLoad)];
 
-            console.log("%c[BOOTLOADER] Загрузка ресурсов для виджетов:", "color: #00FF7F; font-weight: bold;", activeWidgets);
+            console.log("%c[BOOTLOADER] Загрузка ресурсов:", "color: #00FF7F; font-weight: bold;", activeWidgets);
 
-            // Загружаем CSS последовательно
             for (const css of cssToLoad) {
                 await loadStyle(css);
             }
 
-            // Загружаем JS последовательно
             for (const js of jsToLoad) {
                 await loadScript(js);
             }
 
-            // Запуск инициализации только загруженных модулей
             const modules = [
                 window.AppBlur, window.AppPet, window.AppTTS, window.AppEmotes,
                 window.AppChat, window.AppMedia, window.AppPlayer, window.AppSocials,
