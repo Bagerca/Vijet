@@ -1,188 +1,106 @@
-/* ================= js/chat.js ================= */
-
+/* ================= ЧАТ (ПРОДВИНУТАЯ АРХИТЕКТУРА + ДЕДУПЛИКАТОР) ================= */
 window.AppChat = {
     container: document.getElementById('chat-messages'),
-    wrapper: document.getElementById('chat-container'),
-    
-    pool: [],       
-    active: [],     
-    poolSize: 25,   
-    isInitialized: false,
-    
-    // Хранилище обработанных ID для жесткого отсечения дубликатов
-    renderedMessageIds: new Set(), 
-
-    templates: {
-        message: document.getElementById('tpl-chat-message'),
-        reply: document.getElementById('tpl-chat-reply'),
-        badgeFirst: document.getElementById('tpl-chat-badge-first'),
-        badgeHigh: document.getElementById('tpl-chat-badge-highlight')
-    },
-
-    getColorFromName: function(name) {
-        const colors = ["#FF4477", "#00E5FF", "#00FF7F", "#FFD700", "#a29bfe", "#fd79a8", "#74b9ff", "#55efc4", "#ff7675", "#F59E0B"];
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        return colors[Math.abs(hash) % colors.length];
-    },
+    renderedMessageIds: new Set(), // Кэш ID для предотвращения дублирования
 
     init: function() {
-        if (this.isInitialized) return; 
-        this.isInitialized = true;
-
-        if (!this.templates.message) return;
-
-        const maxMsgs = window.AppConfig.maxChatMessages || 12;
-        this.poolSize = maxMsgs + 10; 
-        
-        for (let i = 0; i < this.poolSize; i++) {
-            const frag = this.templates.message.content.cloneNode(true);
-            const block = frag.querySelector('.chat-block');
-            
-            block.ui = {
-                meta: block.querySelector('.chat-meta'),
-                avatar: block.querySelector('.chat-avatar'),
-                badges: block.querySelector('.chat-badges'),
-                user: block.querySelector('.chat-user'),
-                time: block.querySelector('.chat-time'),
-                text: block.querySelector('.chat-text')
-            };
-            
-            this.pool.push(block);
-        }
-
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', (data) => this.renderMessage(data));
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', () => {
             if (window.AppPet) window.AppPet.resetSleepTimer();
         });
     },
 
-    cleanElement: function(el) {
-        el.className = 'chat-block'; 
-        el.removeAttribute('data-style');
-        el.setAttribute('data-msg-type', 'normal');
-        el.setAttribute('data-role', 'viewer');
-        el.setAttribute('data-first', 'false');
-        el.setAttribute('data-mention', 'false');
-        el.style.removeProperty('--user-color');
-        
-        el.ui.meta.innerHTML = '';
-        el.ui.meta.style.display = 'none';
-        el.ui.badges.innerHTML = '';
-        el.ui.badges.style.display = 'none';
-        el.ui.text.innerHTML = '';
-        
-        return el;
-    },
-
     renderMessage: function(data) {
-        // ДЕДУПЛИКАЦИЯ: Если сообщение с таким ID уже было отрисовано, игнорируем его
+        // ДЕДУПЛИКАЦИЯ: Если сообщение с таким ID уже отрисовано на экране — жестко игнорируем дубликат
         if (data.id) {
             if (this.renderedMessageIds.has(data.id)) {
-                console.log(`[DEDUPLICATOR] Дубликат сообщения отсечен: ${data.user} - ID: ${data.id}`);
+                console.log(`[DEDUPLICATOR 🛑] Дубликат сообщения отсечен: ${data.user} - ID: ${data.id}`);
                 return; 
             }
             this.renderedMessageIds.add(data.id);
-            // Защита памяти от переполнения
-            if (this.renderedMessageIds.size > 150) {
-                this.renderedMessageIds = new Set(Array.from(this.renderedMessageIds).slice(-75));
-            }
-        }
-
-        let el;
-        if (this.pool.length > 0) {
-            el = this.pool.pop();
-        } else {
-            el = this.active.shift();
-            if (el && el.parentNode) el.remove();
-        }
-
-        if (!el) return;
-
-        this.cleanElement(el);
-
-        el.setAttribute('data-user', data.user.toLowerCase());
-        el.setAttribute('data-style', data.styleName || 'default');
-        el.style.setProperty('--user-color', data.color);
-        el.setAttribute('data-msg-type', data.isHighlighted ? 'highlight' : 'normal');
-        el.setAttribute('data-mention', data.isMention ? 'true' : 'false');
-        el.setAttribute('data-first', data.isFirstTime ? 'true' : 'false');
-        el.setAttribute('data-role', data.role || 'viewer');
-
-        if (data.badges) {
-            let bHtml = '';
-            if (data.badges.broadcaster) bHtml += `<div class="tw-badge tb-broadcaster"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3.83L19.5 19h-15L12 5.83zM11 10v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg></div>`;
-            else if (data.badges.moderator) bHtml += `<div class="tw-badge tb-mod"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></div>`;
-            else if (data.badges.vip) bHtml += `<div class="tw-badge tb-vip"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>`;
-            if (data.badges.subscriber || data.badges.founder) bHtml += `<div class="tw-badge tb-sub"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>`;
             
-            if (bHtml) {
-                el.ui.badges.innerHTML = bHtml;
-                el.ui.badges.style.display = 'flex';
+            // Очищаем старые записи кэша, чтобы не росла память
+            if (this.renderedMessageIds.size > 100) {
+                this.renderedMessageIds = new Set(Array.from(this.renderedMessageIds).slice(-50));
             }
         }
 
-        el.ui.user.textContent = data.user;
-        el.ui.user.style.color = data.color;
-        el.ui.time.textContent = data.time;
-        el.ui.avatar.src = data.avatarUrl;
-        el.ui.text.innerHTML = data.htmlText;
+        let metaHTML = '';
+        let extraClasses = '';
+        let bellHTML = '';
 
-        let hasMeta = false;
-        const badgesWrapper = document.createElement('div');
-        badgesWrapper.style.cssText = "display: flex; gap: 8px; flex-wrap: wrap; width: 100%;";
-        
+        if (data.replyData) {
+            metaHTML += `
+                <div class="chat-reply">
+                    <div class="chat-reply-user">
+                        <svg class="reply-icon" viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+                        ${data.replyData.user}
+                    </div>
+                    <div class="chat-reply-text">${data.replyData.htmlText}</div>
+                </div>
+            `;
+        }
+
         if (data.isFirstTime) {
-            hasMeta = true;
-            badgesWrapper.appendChild(this.templates.badgeFirst.content.cloneNode(true));
+            extraClasses += ' is-first-time';
+            metaHTML += `
+                <div class="chat-badge chat-badge-first">
+                    <svg class="badge-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path></svg>
+                    Впервые в чате
+                </div>
+            `;
         }
 
         if (data.isHighlighted) {
-            hasMeta = true;
-            badgesWrapper.appendChild(this.templates.badgeHigh.content.cloneNode(true));
+            extraClasses += ' is-highlighted';
+            metaHTML += `
+                <div class="chat-badge chat-badge-highlight">
+                    <svg class="badge-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    Выделено за баллы
+                </div>
+            `;
         }
 
-        if (badgesWrapper.childNodes.length > 0) {
-            el.ui.meta.appendChild(badgesWrapper);
+        if (data.isMention) {
+            extraClasses += ' is-mention';
+            bellHTML = `<svg class="chat-ping-bell" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>`;
         }
 
-        if (data.replyData) {
-            hasMeta = true;
-            const replyFrag = this.templates.reply.content.cloneNode(true);
-            replyFrag.querySelector('.reply-name').textContent = data.replyData.user;
-            replyFrag.querySelector('.chat-reply-text').innerHTML = data.replyData.htmlText;
-            replyFrag.querySelector('.chat-reply').style.setProperty('--reply-color', this.getColorFromName(data.replyData.user));
-            el.ui.meta.appendChild(replyFrag);
+        const blockDiv = document.createElement('div');
+        blockDiv.className = `chat-block${extraClasses}`;
+        blockDiv.setAttribute('data-user', data.user.toLowerCase());
+        
+        if (data.styleName) {
+            blockDiv.setAttribute('data-style', data.styleName);
         }
-
-        if (hasMeta) el.ui.meta.style.display = 'flex';
-
-        this.container.appendChild(el);
-        this.active.push(el);
-
-        if (this.wrapper) {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    this.wrapper.scrollTop = this.wrapper.scrollHeight;
-                });
-            });
-        }
-
-        window.dispatchEvent(new CustomEvent('CHAT_NODE_RENDERED', {
-            detail: { node: el, styleName: data.styleName, text: data.htmlText }
-        }));
-
-        const maxMsgs = window.AppConfig.maxChatMessages || 12;
-        if (this.active.length > maxMsgs) {
-            const oldestMsg = this.active.shift();
+        
+        blockDiv.style.setProperty('--user-color', data.color);
+        
+        blockDiv.innerHTML = `
+            ${metaHTML ? `<div class="chat-meta">${metaHTML}</div>` : ''}
             
-            if (oldestMsg) {
-                oldestMsg.classList.add('chat-out');
-                setTimeout(() => { 
-                    if (oldestMsg.parentNode) oldestMsg.remove(); 
-                    this.pool.unshift(oldestMsg); 
-                }, 400); 
-            }
+            <div class="chat-bubble">
+                <div class="chat-header">
+                    <img src="${data.avatarUrl}" class="chat-avatar">
+                    <span class="chat-user" style="color: ${data.color}">${data.user}</span>
+                    <div class="chat-header-right">
+                        ${bellHTML}
+                        <span class="chat-time">${data.time}</span>
+                    </div>
+                </div>
+                <div class="chat-text">${data.htmlText}</div>
+            </div>
+        `;
+        
+        this.container.appendChild(blockDiv);
+
+        const activeMessages = Array.from(this.container.children).filter(el => !el.classList.contains('chat-out'));
+        if (activeMessages.length > window.AppConfig.maxChatMessages) {
+            const oldestMsg = activeMessages[0];
+            oldestMsg.classList.add('chat-out');
+            setTimeout(() => { if (oldestMsg.parentNode) oldestMsg.remove(); }, 400);
         }
     }
 };
+
+window.AppChat.init();
