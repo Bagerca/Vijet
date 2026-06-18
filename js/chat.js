@@ -8,6 +8,9 @@ window.AppChat = {
     active: [],     
     poolSize: 25,   
     isInitialized: false,
+    
+    // Хранилище обработанных ID для жесткого отсечения дубликатов
+    renderedMessageIds: new Set(), 
 
     templates: {
         message: document.getElementById('tpl-chat-message'),
@@ -73,6 +76,19 @@ window.AppChat = {
     },
 
     renderMessage: function(data) {
+        // ДЕДУПЛИКАЦИЯ: Если сообщение с таким ID уже было отрисовано, игнорируем его
+        if (data.id) {
+            if (this.renderedMessageIds.has(data.id)) {
+                console.log(`[DEDUPLICATOR] Дубликат сообщения отсечен: ${data.user} - ID: ${data.id}`);
+                return; 
+            }
+            this.renderedMessageIds.add(data.id);
+            // Защита памяти от переполнения
+            if (this.renderedMessageIds.size > 150) {
+                this.renderedMessageIds = new Set(Array.from(this.renderedMessageIds).slice(-75));
+            }
+        }
+
         let el;
         if (this.pool.length > 0) {
             el = this.pool.pop();
@@ -144,7 +160,6 @@ window.AppChat = {
         this.container.appendChild(el);
         this.active.push(el);
 
-        // ИСПРАВЛЕНИЕ СКРОЛЛА: Ждем отрисовки смайлов браузером перед скроллом!
         if (this.wrapper) {
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {

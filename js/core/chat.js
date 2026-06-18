@@ -25,7 +25,6 @@ window.AppChatProcessor = {
         let { text: cleanText, hasForbidden } = window.ChatFilter.processText(finalMessage, window.AppConfig.forbiddenWords);
 
         if (isTts && window.AppCoreState.widgets['tts']) {
-            // ИСПРАВЛЕНИЕ: Передаем флаг forceDefault дальше в TTS-ядро
             window.AppEvents.emit('TTS_ADD', { 
                 user: userAlias, 
                 text: cleanText.replace(/<[^>]+>/g, ''),
@@ -39,7 +38,11 @@ window.AppChatProcessor = {
 
         const userStyle = forceDefaultStyle ? null : ((window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[userAlias.toLowerCase()]) || null);
 
+        // Для тестовых команд генерируем случайный уникальный ID
+        const fakeMsgId = "test_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+
         window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+            id: fakeMsgId,
             user: userAlias, color: color, avatarUrl: avatarUrl,
             time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             htmlText: cleanText, replyData: isReply ? this.generateFakeReply() : null,
@@ -118,6 +121,7 @@ window.AppChatProcessor = {
         else if (flags.subscriber || flags.founder) role = 'sub';
 
         window.AppEvents.emit('CHAT_RENDER_MESSAGE', { 
+            id: msgId, // Передаем уникальный ID
             user, color: userColor, avatarUrl, time, htmlText: cleanText, 
             replyData, isFirstTime, isHighlighted, isMention, styleName: userStyle, role: role, badges: extra.userBadges
         });
