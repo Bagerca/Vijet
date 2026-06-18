@@ -98,9 +98,7 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         ШАБЛОНЫ ДЛЯ ЧАТА
-         ========================================== -->
+    <!-- Шаблоны для чата -->
     <template id="tpl-chat-message">
         <div class="chat-block" data-style="default" data-msg-type="normal" data-role="viewer" data-first="false" data-mention="false">
             <div class="chat-meta" style="display: none;"></div>
@@ -224,7 +222,9 @@
 
         function setupSceneModes() {
             const urlParams = new URLSearchParams(window.location.search);
-            const activeWidgetsParam = urlParams.get('widgets'); 
+            
+            // ИСПРАВЛЕНИЕ: Парсинг поддерживает и 'widgets', и одиночный 'widget' из OBS
+            const activeWidgetsParam = urlParams.get('widgets') || urlParams.get('widget'); 
             const sceneParam = urlParams.get('scene');
 
             if (sceneParam === 'chatting') document.body.classList.add('scene-chatting');

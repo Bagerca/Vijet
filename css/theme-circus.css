@@ -2,7 +2,7 @@
    ГЛОБАЛЬНАЯ ТЕМА: УДИВИТЕЛЬНЫЙ ЦИФРОВОЙ ЦИРК (УЦЦ)
    Полный ремастер V2. 
    Шаг 1: Прогресс-бар подписчиков (Goal)
-   Шаг 2: Анимированная рамка вебкамеры (Анимация починена)
+   Шаг 2: Идеальная анимированная рамка (Webcam Frame - OBS Fix)
    ========================================================= */
 
 /* Конфигурация палитры частиц для темы УЦЦ (Передается в JS) */
@@ -73,7 +73,7 @@ body.theme-circus .goal-icon svg {
     filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)) !important;
 }
 
-/* ШАХМАТНЫЙ ТРЕК */
+/* ШАХМАТНЫЙ ТРЕК: Сдвинут вправо от круга */
 body.theme-circus .goal-track {
     position: absolute !important;
     top: 6px !important; 
@@ -146,25 +146,29 @@ body.theme-circus .goal-divider { color: #004CB8 !important; font-weight: 900 !i
 body.theme-circus .goal-max { color: #888888 !important; font-weight: 900 !important; line-height: 1 !important; }
 
 
-/* --- 2. РАМКА ВЕБКАМЕРЫ (THEMED WEBCAM FRAME) --- */
+/* --- 2. РАМКА ВЕБКАМЕРЫ (CIRCUS STRIPES) --- */
 
 body.theme-circus #webcam-frame {
-    border-width: 6px !important;
+    border: 6px solid transparent !important;
     border-radius: 20px !important;
     background: transparent !important;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45) !important;
 }
 
+/* УБИВАЕМ дефолтную неоновую рамку из webcam.css, чтобы она не блокировала анимацию */
 body.theme-circus #webcam-frame::before {
-    top: -6px !important; 
-    left: -6px !important; 
-    right: -6px !important; 
-    bottom: -6px !important;
-    padding: 6px !important;
-    border-radius: 20px !important;
+    display: none !important;
+}
+
+/* Создаем рамку Цирка с чистого листа на свободном слое ::after */
+body.theme-circus #webcam-frame::after {
+    content: '';
+    position: absolute;
+    top: -6px; left: -6px; right: -6px; bottom: -6px;
+    padding: 6px; /* Это задает толщину рамки */
+    border-radius: 20px;
     
-    /* ИСПРАВЛЕНИЕ: Используем background-image вместо background, 
-       чтобы !important не блокировал анимацию background-position */
+    /* Идеальные диагональные полосы */
     background-image: repeating-linear-gradient(
         -45deg,
         #E52521 0px, #E52521 16px,
@@ -173,17 +177,22 @@ body.theme-circus #webcam-frame::before {
         #ffffff 34px, #ffffff 36px
     ) !important;
     
-    background-size: 50.91px 50.91px !important; 
+    /* Вычисленный размер раппорта для бесшовного движения */
+    background-size: 50.91px 50.91px !important;
+    will-change: background-position;
     
-    /* Анимация теперь имеет полный контроль над позицией фона */
-    animation: circusFrameAnts 1.5s linear infinite !important;
-    
+    /* Классическая безотказная маска: вырезает прозрачную дырку по границе padding */
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
     -webkit-mask-composite: xor !important;
     mask-composite: exclude !important;
+    
+    /* Анимация теперь не заблокирована !important из базового CSS */
+    animation: circusFrameAnts 1.5s linear infinite !important;
+    pointer-events: none;
+    z-index: 2;
 }
 
-/* Бегущие по кругу огни (Анимация разблокирована) */
+/* Бесконечное скольжение текстуры */
 @keyframes circusFrameAnts {
     0% { background-position: 0px 0px; }
     100% { background-position: 50.91px 50.91px; }
