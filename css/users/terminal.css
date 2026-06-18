@@ -1,52 +1,445 @@
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+/* ================= text/css (TERMINAL V7) ================= */
 
-.chat-block[data-style="terminal"] { margin: 15px 0 15px 0; }
+/* =====================================================================
+   КАСТОМНЫЙ СТИЛЬ: terminal (РЕМАСТЕР V7: CLI Pure BSOD & Full Grid)
+   Восстановлена пунктирная линия развертки, пиксельное время VT323, без стрелочек на BSOD.
+   ===================================================================== */
 
-.chat-block[data-style="terminal"] .chat-bubble {
-    background-color: #050a05 !important;
-    background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.08) 2px, rgba(0, 255, 65, 0.08) 4px) !important;
-    border: 1px solid #00ff41 !important; border-radius: 0 !important; 
-    box-shadow: 6px 6px 0 rgba(0, 255, 65, 0.15), inset 0 0 20px rgba(0, 255, 65, 0.05) !important;
-    padding: 16px 20px !important; min-width: 260px; position: relative;
-    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
-    animation: terminalBoot 0.3s ease-out forwards, slightFlicker 6s infinite !important;
+/* Импортируем Share Tech Mono для консоли и VT323 для пиксельных часов */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+/* --- 1. СВОЙСТВА И СБРОСЫ ВЕБ-КОНСОЛИ --- */
+.chat-block[data-style="terminal"] {
+    --c-bg: #050c05; /* Глубокий темный фосфор */
+    --c-border: 1.5px solid #00ff41;
+    --c-radius: 2px; /* Острые углы ретро-монитора */
+    --c-padding: 12px 16px;
+    --c-min-width: 280px;
+    --c-margin-bottom: 10px;
+    
+    --c-font-user: 'Share Tech Mono', monospace;
+    --c-font-text: 'Share Tech Mono', monospace;
+    --c-color-text: #b3ffb3;
+    
+    margin: 10px 0;
+    z-index: 40;
 }
-@keyframes terminalBoot { 0% { transform: scaleY(0.01) scaleX(0.9); opacity: 0; filter: contrast(3); } 50% { transform: scaleY(1.05) scaleX(1); opacity: 1; filter: contrast(1); } 100% { transform: scaleY(1) scaleX(1); } }
-@keyframes slightFlicker { 0%, 100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: 0.9; } 94% { opacity: 1; } 96% { opacity: 0.85; } 97% { opacity: 1; } }
 
-.chat-block[data-style="terminal"] .chat-header { border-bottom: 1px dashed rgba(0, 255, 65, 0.4) !important; padding-bottom: 8px; margin-bottom: 12px; }
+/* Полностью скрываем значки Твича (Модератор, VIP, Саб) и уродливый колокольчик пинга */
+.chat-block[data-style="terminal"] .tb-mod,
+.chat-block[data-style="terminal"] .tb-vip,
+.chat-block[data-style="terminal"] .tb-sub,
+.chat-block[data-style="terminal"] .chat-badge-first,
+.chat-block[data-style="terminal"] .chat-ping-bell {
+    display: none !important;
+}
 
-.chat-block[data-style="terminal"] .chat-avatar { width: 32px !important; height: 32px !important; border-radius: 0 !important; border: 1px solid #00ff41 !important; filter: grayscale(100%) sepia(100%) hue-rotate(70deg) saturate(400%) contrast(1.5) brightness(0.9) !important; box-shadow: 0 0 8px rgba(0, 255, 65, 0.3) !important; }
-.chat-block[data-style="terminal"] .chat-user { font-family: 'Share Tech Mono', monospace !important; color: #00ff41 !important; font-size: 16px !important; font-weight: 400 !important; text-shadow: 0 0 5px rgba(0, 255, 65, 0.5) !important; text-transform: lowercase; letter-spacing: 1px; }
-.chat-block[data-style="terminal"] .chat-user::before { content: 'root@'; color: rgba(0, 255, 65, 0.5); }
-.chat-block[data-style="terminal"] .chat-user::after { content: ':~#'; color: rgba(0, 255, 65, 0.5); }
-.chat-block[data-style="terminal"] .chat-time { font-family: 'Share Tech Mono', monospace !important; color: #008f11 !important; font-size: 13px !important; }
 
-.chat-block[data-style="terminal"] .chat-text { font-family: 'Share Tech Mono', monospace !important; color: #b3ffb3 !important; font-size: 16px !important; line-height: 1.4 !important; text-shadow: 0 0 3px rgba(0, 255, 65, 0.4) !important; }
+/* --- 2. ГЕОМЕТРИЯ CRT МОНИТОРА (ОДНОУРОВНЕВЫЙ BLOCK LAYOUT) --- */
+.chat-block[data-style="terminal"] .chat-bubble {
+    display: block !important; /* Отказываемся от боковой колонки */
+    border: var(--c-border); /* БЕЗ !important для плавной работы анимации */
+    border-radius: var(--c-radius) !important;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.25), inset 0 0 12px rgba(0, 255, 65, 0.1) !important;
+    position: relative;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    
+    /* Запуск технической загрузки и легкого мерцания фосфора */
+    animation: terminalBoot 0.3s ease-out forwards, slightFlicker 8s infinite;
+}
+
+@keyframes terminalBoot { 
+    0% { transform: scaleY(0.01) scaleX(0.9); opacity: 0; } 
+    50% { transform: scaleY(1.05) scaleX(1); opacity: 1; } 
+    100% { transform: scaleY(1) scaleX(1); } 
+}
+
+@keyframes slightFlicker { 
+    0%, 100% { opacity: 1; } 
+    92% { opacity: 1; } 
+    93% { opacity: 0.94; } 
+    94% { opacity: 1; } 
+    96% { opacity: 0.88; } 
+    97% { opacity: 1; } 
+}
+
+/* Высокооптимизированная сетка развертки CRT (Без муара в OBS) */
+.chat-block[data-style="terminal"] .chat-bubble::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%), linear-gradient(90deg, rgba(0, 255, 65, 0.04), rgba(0, 255, 65, 0.01), rgba(0, 255, 65, 0.04));
+    z-index: 10;
+    background-size: 100% 4px, 6px 100%;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+
+/* --- 3. ИСПРАВЛЕННАЯ СТРОКА ЗАГОЛОВКА (АВАТАР + НИК В ОДИН РЯД) --- */
+
+/* Аватарка (Компактно встроена слева в строку ника) */
+.chat-block[data-style="terminal"] .chat-avatar { 
+    display: inline-block !important;
+    vertical-align: middle !important;
+    width: 24px !important; height: 24px !important; 
+    border-radius: 2px !important; 
+    border: 1px solid #00ff41; /* Без !important */
+    filter: grayscale(100%) sepia(100%) hue-rotate(70deg) saturate(400%) contrast(1.4) brightness(0.9) !important; 
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.3) !important; 
+    margin: 0 10px 0 0 !important;
+    float: left !important;
+    
+    animation: neonShiftSmooth 4s infinite alternate ease-in-out;
+}
+
+/* Строка ника */
+.chat-block[data-style="terminal"] .chat-header { 
+    display: inline-block !important;
+    vertical-align: middle !important;
+    border-bottom: none !important; 
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    float: left !important;
+    width: auto !important;
+}
+
+/* Unix-формат никнейма */
+.chat-block[data-style="terminal"] .chat-user { 
+    display: inline-block !important;
+    color: #00ff41 !important; 
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 15px !important; 
+    font-weight: 500 !important; 
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5) !important; 
+    text-transform: lowercase; 
+    letter-spacing: 0.5px; 
+}
+.chat-block[data-style="terminal"] .chat-user::before { content: 'root@'; color: rgba(0, 255, 65, 0.4); }
+.chat-block[data-style="terminal"] .chat-user::after { content: ':~#'; color: rgba(0, 255, 65, 0.4); }
+
+/* Правая часть (Время) */
+.chat-block[data-style="terminal"] .chat-header-right {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    float: right !important;
+    margin-top: 3px !important;
+}
+/* Время сочным компьютерно-пиксельным шрифтом VT323 */
+.chat-block[data-style="terminal"] .chat-time { 
+    font-family: 'VT323', monospace !important;
+    color: #008f11 !important; 
+    font-size: 17px !important; 
+    letter-spacing: 1px !important;
+}
+
+
+/* --- 4. ТЕКСТ СООБЩЕНИЯ (ВО ВСЮ ШИРИНУ ПОД НИКОМ) --- */
+.chat-block[data-style="terminal"] .chat-text { 
+    display: block !important;
+    clear: both !important; 
+    width: 100% !important;
+    padding-top: 8px !important;
+    margin-top: 6px !important;
+    border-top: 1px dashed rgba(0, 255, 65, 0.2) !important; /* Dotted-линия консоли сохранена во всех состояниях */
+}
 .chat-block[data-style="terminal"] .chat-text::before { content: '> '; color: #00ff41; font-weight: bold; }
-.chat-block[data-style="terminal"] .chat-text::after { content: ' █'; color: #00ff41; animation: blinkCursor 1s step-end infinite; }
-@keyframes blinkCursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-.chat-block[data-style="terminal"] .chat-reply { background: transparent !important; border: 1px dashed rgba(0, 255, 65, 0.3) !important; border-radius: 0 !important; padding: 6px 10px !important; margin-bottom: 8px !important; }
-.chat-block[data-style="terminal"] .chat-reply::before, .chat-block[data-style="terminal"] .reply-icon { display: none !important; }
-.chat-block[data-style="terminal"] .chat-reply-user { color: #008f11 !important; font-family: 'Share Tech Mono', monospace !important; font-size: 11px !important; letter-spacing: 1px !important; text-transform: lowercase; }
-.chat-block[data-style="terminal"] .chat-reply-user::before { content: '|-- fetch_log: '; color: rgba(0, 255, 65, 0.5); }
-.chat-block[data-style="terminal"] .chat-reply-text { color: rgba(179, 255, 179, 0.4) !important; font-family: 'Share Tech Mono', monospace !important; font-style: normal !important; font-size: 13px !important; }
+/* У старых сообщений курсор ПОЛНОСТЬЮ пропадает */
+.chat-block[data-style="terminal"] .chat-text::after { 
+    content: '' !important; 
+}
+
+/* Курсор рендерится и мигает ИСКЛЮЧИТЕЛЬНО на последнем (активном) сообщении */
+.chat-block[data-style="terminal"]:last-child .chat-text::after { 
+    content: ' █' !important; 
+    color: #00ff41 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5) !important;
+    animation: blinkCursor 1s step-end infinite !important; 
+}
+
+@keyframes blinkCursor { 
+    0%, 100% { opacity: 1; } 
+    50% { opacity: 0; } 
+}
+
+
+/* --- 5. УМНЫЙ КЛИНИНГ ЦЕНЗУРЫ (ИСПРАВЛЕНО: ТОЛЬКО СТРЕЛКИ И КУРСОРЫ) --- */
+/* ПУНКТИРНАЯ ЛИНИЯ ВОССТАНОВЛЕНА, убрано старое ломающее правило */
+
+/* ФИКС: Полностью выгружаем зеленую стрелочку ">" при синем экране */
+.chat-block[data-style="terminal"] .chat-text:has(.censured-message)::before {
+    display: none !important;
+    content: "" !important;
+}
+
+/* ФИКС: Полностью выгружаем мигающий курсор "█" при синем экране */
+.chat-block[data-style="terminal"] .chat-text:has(.censured-message)::after {
+    display: none !important;
+    content: "" !important;
+}
+
+
+/* --- 6. ПРИГЛУШЕННЫЙ ТЕХНИЧЕСКИЙ РЕПЛЕЙ (REPLY LOG) --- */
+.chat-block[data-style="terminal"] .chat-reply { 
+    background: #030703 !important; 
+    border: 1px dashed rgba(0, 255, 65, 0.2) !important; 
+    border-radius: 0 !important; 
+    padding: 6px 10px !important; 
+    margin-bottom: 8px !important; 
+    box-shadow: none !important;
+}
+.chat-block[data-style="terminal"] .chat-reply::before, 
+.chat-block[data-style="terminal"] .reply-icon { 
+    display: none !important; 
+}
+.chat-block[data-style="terminal"] .chat-reply-user { 
+    color: #008f11 !important; 
+    font-family: 'Share Tech Mono', monospace !important; 
+    font-size: 11px !important; 
+    letter-spacing: 1px !important; 
+    text-transform: lowercase; 
+}
+.chat-block[data-style="terminal"] .chat-reply-user::before { content: '|-- fetch_log: '; color: rgba(0, 255, 65, 0.2); }
+.chat-block[data-style="terminal"] .chat-reply-text { 
+    color: rgba(179, 255, 179, 0.4) !important; 
+    font-family: 'Share Tech Mono', monospace !important; 
+    font-size: 13px !important; 
+}
 .chat-block[data-style="terminal"] .chat-reply-text::before { content: '// '; }
 
-.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-bubble { border-color: #ffb000 !important; box-shadow: 6px 6px 0 rgba(255, 176, 0, 0.15), inset 0 0 20px rgba(255, 176, 0, 0.05) !important; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 176, 0, 0.05) 2px, rgba(255, 176, 0, 0.05) 4px) !important; }
-.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-user, .chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-text::after, .chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-text::before { color: #ffb000 !important; text-shadow: 0 0 5px rgba(255, 176, 0, 0.5) !important; }
-.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-avatar { border-color: #ffb000 !important; filter: grayscale(100%) sepia(100%) hue-rotate(5deg) saturate(500%) contrast(1.5) brightness(0.9) !important; box-shadow: 0 0 8px rgba(255, 176, 0, 0.3) !important; }
-.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-badge-highlight { background: #ffb000 !important; color: #050a05 !important; border: none !important; border-radius: 0 !important; font-family: 'Share Tech Mono', monospace !important; font-size: 11px !important; padding: 2px 8px !important; }
-.chat-block[data-msg-type="highlight"][data-style="terminal"] .badge-star { display: none !important; }
-.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-badge-highlight::before { content: 'SUDO_EXEC'; font-weight: bold; }
 
-.chat-block[data-mention="true"][data-style="terminal"] .chat-bubble { border-right: 4px solid #ff0041 !important; }
-.chat-block[data-mention="true"][data-style="terminal"] .chat-ping { background: #ff0041 !important; color: #050a05 !important; font-family: 'Share Tech Mono', monospace !important; border-radius: 0 !important; border: none !important; padding: 0 4px !important; font-weight: bold !important; text-shadow: none !important; }
-.chat-block[data-mention="true"][data-style="terminal"] .chat-ping::before { content: '[TARGET: '; opacity: 0.7; }
-.chat-block[data-mention="true"][data-style="terminal"] .chat-ping::after { content: ']'; opacity: 0.7; }
+/* --- 7. ХАЙЛАЙТ ЗА БАЛЛЫ (КРАСНАЯ ТРЕВОГА / KERNEL PANIC) --- */
+/* Табличка сверху полностью убрана */
+.chat-block[data-style="neon_owner"] .chat-badge-highlight,
+.chat-block[data-style="terminal"] .chat-badge-highlight { 
+    display: none !important;
+}
 
-.chat-block[data-style="terminal"] .censured-badge { background: #050a05 !important; color: #ff0041 !important; border: 1px solid #ff0041 !important; border-radius: 0 !important; font-family: 'Share Tech Mono', monospace !important; box-shadow: 0 0 5px rgba(255, 0, 65, 0.5) !important; }
-.chat-block[data-style="terminal"] .censured-badge::before { content: 'ERR_'; }
-.chat-block[data-style="terminal"] .censured-message { background: repeating-linear-gradient(-45deg, rgba(255, 0, 65, 0.1) 0, rgba(255, 0, 65, 0.1) 10px, transparent 10px, transparent 20px) !important; background-color: #050a05 !important; border: 1px solid #ff0041 !important; color: #ff0041 !important; border-radius: 0 !important; font-family: 'Share Tech Mono', monospace !important; text-shadow: 0 0 5px rgba(255, 0, 65, 0.5) !important; letter-spacing: 2px !important; }
-.chat-block[data-style="terminal"] .censured-message::before { content: '[DATA_CORRUPTED] '; }
+/* Весь бабл превращается в аварийный красный терминал тревоги */
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-bubble { 
+    background: rgba(28, 5, 12, 0.95) !important; /* Глубокое темно-алое стекло */
+    border-color: #FF0041 !important; 
+    box-shadow: 0 0 25px rgba(255, 0, 65, 0.4), inset 0 0 15px rgba(255, 0, 65, 0.2) !important; 
+    animation: kernelPanicShiftSmooth 4s infinite alternate ease-in-out !important;
+}
+
+@keyframes kernelPanicShiftSmooth {
+    0% { border-color: #FF0041; box-shadow: 0 0 15px rgba(255, 0, 65, 0.35); }
+    100% { border-color: #FF5500; box-shadow: 0 0 25px rgba(255, 85, 0, 0.5); }
+}
+
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-bubble::before {
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%), linear-gradient(90deg, rgba(255, 0, 65, 0.04), rgba(255, 0, 65, 0.01), rgba(255, 0, 65, 0.04)) !important;
+    background-size: 100% 4px, 6px 100% !important;
+}
+
+/* Огромный водяной знак "CORE OVERLOAD" */
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-bubble::after {
+    content: 'CORE OVERLOAD';
+    position: absolute;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 42px !important;
+    font-weight: 900 !important;
+    color: rgba(255, 0, 65, 0.05) !important; 
+    top: 55%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-8deg) !important;
+    pointer-events: none;
+    z-index: 1;
+    white-space: nowrap !important;
+    letter-spacing: 6px !important;
+}
+
+/* Оранжево-красная разделительная линия для хайлайта */
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-text {
+    border-top-color: rgba(255, 0, 65, 0.25) !important;
+    position: relative;
+    z-index: 2;
+    
+    /* Текст сообщения перекрашен из зеленого в сочный янтарный */
+    color: #ffb000 !important;
+    text-shadow: 0 0 5px rgba(255, 176, 0, 0.4) !important;
+}
+
+/* Префикс аварийного сбоя */
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-text::before { 
+    content: '[CRITICAL_ERR] > ' !important;
+    color: #FF0041 !important; 
+}
+
+/* Никнейм аварийного скрипта в алых тонах системного сбоя */
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-user { 
+    display: inline-block !important;
+    background-image: linear-gradient(90deg, #FF0041, #FF8000, #FF0041) !important;
+    background-size: 200% auto !important;
+    -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
+    animation: textGradientMove 4s linear infinite !important;
+    text-shadow: none !important;
+}
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-user::before { content: 'admin@'; color: rgba(255, 0, 65, 0.4); }
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-user::after { content: 'core_overload:~#'; color: rgba(255, 0, 65, 0.4); }
+
+/* Красный аварийный курсор на конце последнего сообщения */
+.chat-block[data-msg-type="highlight"][data-style="terminal"]:last-child .chat-text::after { 
+    content: ' █' !important; 
+    color: #FF0041 !important;
+    text-shadow: 0 0 5px rgba(255, 0, 65, 0.5) !important;
+    animation: blinkCursor 1s step-end infinite !important; 
+}
+
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-avatar { 
+    border-color: #FF0041 !important; 
+    filter: grayscale(100%) sepia(100%) hue-rotate(330deg) saturate(400%) contrast(1.4) brightness(0.9) !important; 
+    box-shadow: 0 0 8px rgba(255, 0, 65, 0.3) !important; 
+    animation: none !important;
+}
+
+/* Мигающий алый ярлык KERNEL PANIC справа */
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-header-right::before { 
+    content: '[ KERNEL PANIC ]' !important; 
+    background: rgba(255, 0, 65, 0.15) !important; 
+    color: #FF0041 !important; 
+    border: 1.5px solid #FF0041 !important;
+    animation: alertFlash 1s infinite alternate ease-in-out !important;
+}
+
+/* Время в хайлайте ало-красное под цвет ярка и тревоги */
+.chat-block[data-msg-type="highlight"][data-style="terminal"] .chat-time {
+    color: #FF0041 !important;
+    text-shadow: 0 0 5px rgba(255, 0, 65, 0.4) !important;
+}
+
+@keyframes alertFlash {
+    0% { opacity: 0.4; box-shadow: 0 0 2px rgba(255, 0, 65, 0.2); }
+    100% { opacity: 1; box-shadow: 0 0 10px rgba(255, 0, 65, 0.6); }
+}
+
+
+/* --- 8. ПИНГ / УПОМИНАНИЕ (ALARM INTRUSION) --- */
+.chat-block[data-mention="true"][data-style="terminal"] .chat-bubble { 
+    animation: terminalIntrusion 1.5s infinite alternate ease-in-out !important;
+}
+@keyframes terminalIntrusion {
+    0% { border-color: #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.2); }
+    100% { border-color: #ff0041; box-shadow: 0 0 25px rgba(255, 0, 65, 0.5), inset 0 0 10px rgba(255, 0, 65, 0.2); }
+}
+
+/* Красная разделительная линия при пинге */
+.chat-block[data-mention="true"][data-style="terminal"] .chat-text {
+    border-top-color: rgba(255, 0, 65, 0.2) !important;
+}
+
+.chat-block[data-mention="true"][data-style="terminal"] .chat-ping { 
+    background: rgba(255, 0, 65, 0.15) !important; 
+    color: #ff0041 !important; 
+    font-family: 'Share Tech Mono', monospace !important; 
+    border-radius: 0 !important; 
+    border: 1px solid rgba(255, 0, 65, 0.4) !important; 
+    padding: 0 6px !important; 
+    font-weight: bold !important; 
+    text-shadow: 0 0 5px rgba(255, 0, 65, 0.5) !important;
+}
+.chat-block[data-mention="true"][data-style="terminal"] .chat-ping::before { content: 'INTRUDER_'; }
+
+
+/* --- 9. ЦЕНЗУРА (КИБЕР-BSOD) --- */
+.chat-block[data-style="terminal"] .censured-badge { 
+    background: #000000 !important; color: #ff0041 !important; 
+    border: 1px solid #ff0041 !important; border-radius: 0 !important; 
+    font-family: 'Share Tech Mono', monospace !important; 
+    box-shadow: 0 0 5px rgba(255, 0, 65, 0.5) !important; 
+}
+.chat-block[data-style="terminal"] .censured-badge::before { content: 'CORRUPTED'; }
+
+/* Экран Смерти BSOD */
+.chat-block[data-style="terminal"] .censured-message { 
+    background: #0000aa !important; 
+    border: 2px solid #ffffff !important; 
+    border-radius: 0 !important;
+    color: #ffffff !important; 
+    font-family: 'Share Tech Mono', monospace !important; 
+    font-size: 14px !important; 
+    text-align: left !important;
+    padding: 16px !important;
+    box-shadow: 8px 8px 0 rgba(0,0,0,0.5) !important;
+    text-shadow: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* HEX-символы изолированы пробелами (\A  A вместо \A\AA). Иконка-галочка убрана */
+.chat-block[data-style="terminal"] .censured-message::before { 
+    content: '*** STOP: 0x000000D1 (SYSTEM_THREAD_EXCEPTION_NOT_HANDLED)\A  *** FATAL_ERROR: RECV_CORRUPTED - TOXIC_DATA_PACKET\A  \A  A FATAL EXCEPTION HAS OCCURRED. THE MESSAGE HAS BEEN BLOCKED\A  TO PROTECT THE SYSTEM STABILITY.\A  \A  PRESS ANY KEY TO CONTINUE _'; 
+    white-space: pre-wrap !important;
+    color: #ffffff !important;
+    display: block !important;
+    line-height: 1.4 !important;
+}
+
+
+/* --- 10. КАСТОМНЫЙ ТЕРМИНАЛЬНЫЙ TTS-ВИДЖЕТ --- */
+#tts-container[data-style="terminal"] {
+    background: #050c05 !important;
+    border: 1.5px solid #00ff41 !important;
+    border-radius: 2px !important;
+    padding: 12px 24px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 255, 65, 0.25) !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Маска CRT на TTS */
+#tts-container[data-style="terminal"]::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%) !important;
+    background-size: 100% 4px !important;
+    z-index: 10;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+#tts-container[data-style="terminal"] .tts-avatar-wrap {
+    border-radius: 2px !important;
+    border: 1px solid #00ff41 !important;
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3) !important;
+}
+
+#tts-container[data-style="terminal"] #tts-avatar {
+    border-radius: 0 !important;
+    filter: grayscale(100%) sepia(100%) hue-rotate(70deg) saturate(400%) contrast(1.4) brightness(0.9) !important;
+}
+
+#tts-container[data-style="terminal"] .tts-avatar-ring { 
+    display: none !important; 
+}
+
+#tts-container[data-style="terminal"] .tts-title {
+    color: rgba(0, 255, 65, 0.4) !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    letter-spacing: 2px !important;
+}
+#tts-container[data-style="terminal"] .tts-title::before {
+    content: '>> RUN ';
+}
+
+#tts-container[data-style="terminal"] .tts-user {
+    color: #00ff41 !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5) !important;
+    text-transform: lowercase;
+}
+#tts-container[data-style="terminal"] .tts-user::before {
+    content: 'root@';
+    opacity: 0.5;
+}
+
+#tts-container[data-style="terminal"] .tts-bar {
+    background: #00ff41 !important;
+    border-radius: 0 !important;
+}
