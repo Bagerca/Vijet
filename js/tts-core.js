@@ -6,18 +6,18 @@ window.AppTTSCore = {
     synth: window.speechSynthesis,
     keepAliveInterval: null,
     activeUtterance: null, 
-    availableVoices: [], // Кэш голосов
+    availableVoices: [], 
 
     init: function() {
         if (!window.AppConfig.ttsEnabled) return;
         
-        // ИЗМЕНЕНО: Умная предзагрузка голосов
         this.loadVoices();
         if (this.synth.onvoiceschanged !== undefined) {
             this.synth.onvoiceschanged = () => this.loadVoices();
         }
         
-        window.AppEvents.listen('TTS_ADD', d => this.add(d.user, d.text));
+        // ИСПРАВЛЕНИЕ: Ловим флаг forceDefault
+        window.AppEvents.listen('TTS_ADD', d => this.add(d.user, d.text, d.forceDefault));
         window.AppEvents.listen('TTS_CMD', d => { if (d.cmd === 'stop') this.stop(); });
     },
 
@@ -28,7 +28,7 @@ window.AppTTSCore = {
         }
     },
 
-    add: function(user, text) {
+    add: function(user, text, forceDefault = false) {
         if (!window.AppConfig.ttsEnabled || !text) return;
 
         let cleanText = text.replace(/https?:\/\/[^\s]+/g, "ссылка").replace(/www\.[^\s]+/g, "ссылка"); 
@@ -36,7 +36,8 @@ window.AppTTSCore = {
         if (cleanText.length > window.AppConfig.ttsMaxLength) cleanText = cleanText.substring(0, window.AppConfig.ttsMaxLength) + "...";
 
         if (cleanText.trim().length > 0) {
-            this.queue.push({ user: user, text: cleanText.trim() });
+            // ИСПРАВЛЕНИЕ: Записываем флаг в очередь
+            this.queue.push({ user: user, text: cleanText.trim(), forceDefault: forceDefault });
             if (!this.isPlaying) this.playNext();
         }
     },
@@ -51,7 +52,8 @@ window.AppTTSCore = {
         this.isPlaying = true;
         const currentData = this.queue.shift();
         
-        window.AppEvents.emit('TTS_VISUAL_SHOW', { user: currentData.user });
+        // ИСПРАВЛЕНИЕ: Отправляем весь объект (user + forceDefault) на визуал
+        window.AppEvents.emit('TTS_VISUAL_SHOW', currentData);
 
         const utterance = new SpeechSynthesisUtterance(currentData.text);
         utterance.lang = 'ru-RU'; 
@@ -61,22 +63,17 @@ window.AppTTSCore = {
         utterance.pitch = customSettings && customSettings.pitch !== undefined ? customSettings.pitch : 1.0;
         utterance.rate = customSettings && customSettings.rate !== undefined ? customSettings.rate : 1.1;
 
-        // ИЗМЕНЕНО: Надежный алгоритм выбора русского голоса
         let selectedVoice = null;
         
-        // 1. Пытаемся найти кастомный голос юзера
         if (customSettings && customSettings.voiceName) {
             selectedVoice = this.availableVoices.find(v => v.name.toLowerCase().includes(customSettings.voiceName.toLowerCase()) && v.lang.includes('ru'));
         }
-        // 2. Ищем премиум голос Google (самый приятный в Chrome)
         if (!selectedVoice) {
             selectedVoice = this.availableVoices.find(v => v.name.includes('Google') && v.lang === 'ru-RU');
         }
-        // 3. Ищем голос Microsoft (для Edge)
         if (!selectedVoice) {
             selectedVoice = this.availableVoices.find(v => v.name.includes('Microsoft') && v.lang === 'ru-RU');
         }
-        // 4. Берем любой доступный русский голос
         if (!selectedVoice) {
             selectedVoice = this.availableVoices.find(v => v.lang.includes('ru'));
         }
@@ -99,7 +96,6 @@ window.AppTTSCore = {
             window.AppEvents.emit('AUDIO_DUCK_START'); 
             window.AppEvents.emit('PET_BASE_STATE', { state: 'listen', active: true }); 
             
-            // Фикс бага Chrome, когда длинный текст обрывается через 15 секунд
             this.keepAliveInterval = setInterval(() => {
                 if (this.synth.speaking) {
                     this.synth.pause();

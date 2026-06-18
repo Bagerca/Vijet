@@ -16,7 +16,8 @@ window.AppTTS = {
             return;
         }
 
-        window.AppEvents.listen('TTS_VISUAL_SHOW', d => this.showVisual(d.user));
+        // ИСПРАВЛЕНИЕ: Теперь принимаем объект с данными целиком, а не просто строку
+        window.AppEvents.listen('TTS_VISUAL_SHOW', d => this.showVisual(d));
         window.AppEvents.listen('TTS_VISUAL_HIDE', () => this.hideVisual());
         window.AppEvents.listen('TTS_EQ_START', () => this.startEqualizer());
         window.AppEvents.listen('TTS_EQ_SPIKE', () => this.spikeEqualizer());
@@ -51,8 +52,11 @@ window.AppTTS = {
         });
     },
 
-    showVisual: async function(user) {
+    showVisual: async function(data) {
         if (!this.container) return;
+        
+        // Извлекаем никнейм
+        const user = data.user;
         this.userText.innerText = user;
         
         if (this.avatarImg && window.AvatarManager) {
@@ -65,9 +69,17 @@ window.AppTTS = {
         }
 
         this.container.setAttribute('data-user', user.toLowerCase());
-        const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[user.toLowerCase()]) || null;
-        if (userStyle) {
-            this.container.setAttribute('data-style', userStyle);
+        
+        // ИСПРАВЛЕНИЕ: Проверяем, был ли запрошен дефолтный стиль
+        if (data.forceDefault) {
+            this.container.removeAttribute('data-style'); // Очищаем кастомку
+        } else {
+            const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[user.toLowerCase()]) || null;
+            if (userStyle) {
+                this.container.setAttribute('data-style', userStyle);
+            } else {
+                this.container.removeAttribute('data-style');
+            }
         }
         
         this.container.classList.remove('hidden', 'tts-out');

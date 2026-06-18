@@ -1,6 +1,8 @@
+/* ================= users/hollow_knight.css ================= */
+
 /* =====================================================================
    КАСТОМНЫЙ СТИЛЬ: hollow_knight (РЕМАСТЕР: Hollow Knight)
-   Адаптировано под CSS Grid Architecture
+   Адаптировано под CSS Grid Architecture и плотную верстку
    ===================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap');
@@ -10,7 +12,7 @@
     --c-bg: radial-gradient(circle at top, #141c2c 0%, #06080d 90%);
     --c-border: 1px solid rgba(147, 184, 214, 0.3);
     --c-radius: 6px;
-    --c-padding: 45px 20px 35px 20px;
+    --c-padding: 34px 20px 20px 20px;
     --c-min-width: 280px;
     --c-margin-bottom: 0px; 
     
@@ -18,22 +20,14 @@
     --c-font-text: 'Cormorant Garamond', serif;
     --c-color-text: #c5deef;
     
-    margin: 25px 0 25px 0; 
+    margin: 14px 0 10px 0; 
     z-index: 20;
     position: relative; 
 }
 
-/* --- БАЗОВОЕ ОРАНЖЕВОЕ СВЕЧЕНИЕ (ИНФЕКЦИЯ) --- */
-.chat-block[data-style="hollow_knight"]::before {
-    content: ''; position: absolute; bottom: 0px; left: 50%; transform: translateX(-50%);
-    width: 280px; height: 80px; 
-    background: radial-gradient(ellipse at bottom center, rgba(255, 85, 0, 0.6) 0%, rgba(230, 60, 0, 0.2) 50%, transparent 70%);
-    filter: blur(15px); z-index: -1; pointer-events: none;
-    animation: orangeRadiance 3s infinite alternate ease-in-out;
-}
-@keyframes orangeRadiance {
-    0% { opacity: 0.6; transform: translateX(-50%) scale(0.9); }
-    100% { opacity: 1; transform: translateX(-50%) scale(1.1); filter: blur(20px); box-shadow: 0 10px 30px rgba(255, 85, 0, 0.3); }
+/* --- ИГНОРИРОВАНИЕ БЕЙДЖА "ВПЕРВЫЕ В ЧАТЕ" --- */
+.chat-block[data-style="hollow_knight"] .chat-badge-first {
+    display: none !important;
 }
 
 /* --- 2. УНИКАЛЬНАЯ ГЕОМЕТРИЯ --- */
@@ -66,16 +60,16 @@
     background-size: contain; background-repeat: no-repeat; background-position: center;
     filter: drop-shadow(0 0 8px rgba(147, 184, 214, 0.8));
 }
-.chat-block[data-style="hollow_knight"] .chat-bubble::before { top: 6px; }
-.chat-block[data-style="hollow_knight"] .chat-bubble::after { bottom: 12px; transform: translateX(-50%) rotate(180deg); }
+.chat-block[data-style="hollow_knight"] .chat-bubble::before { top: 4px; }
+.chat-block[data-style="hollow_knight"] .chat-bubble::after { bottom: 4px; transform: translateX(-50%) rotate(180deg); }
 
 
 /* --- 3. ВНУТРЕННИЕ ЭЛЕМЕНТЫ --- */
 
 /* Аватарка */
 .chat-block[data-style="hollow_knight"] .chat-avatar {
-    position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
-    width: 48px; height: 48px; margin: 0;
+    position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+    width: 44px; height: 44px; margin: 0;
     border-radius: 50% !important; 
     border: 2px solid rgba(147, 184, 214, 0.9); background: #06080d;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(147, 184, 214, 0.5), inset 0 0 10px #000;
@@ -102,7 +96,7 @@
 /* Линия времени */
 .chat-block[data-style="hollow_knight"] .chat-header-right { 
     width: 100%; justify-content: center; gap: 15px; 
-    margin: 10px 0 15px 0; opacity: 0.9; 
+    margin: 6px 0 12px 0; opacity: 0.9; 
 }
 .chat-block[data-style="hollow_knight"] .chat-time { font-size: 11px; letter-spacing: 2px; color: rgba(147, 184, 214, 0.8); }
 .chat-block[data-style="hollow_knight"] .chat-header-right::before,
@@ -116,15 +110,12 @@
     background: radial-gradient(circle at center, rgba(30, 10, 0, 0.95), rgba(10, 2, 0, 0.95)) !important;
     border: 1px solid rgba(255, 85, 0, 0.4) !important;
     border-radius: 8px !important;
-    
-    padding: 8px 16px !important; 
-    margin-bottom: 28px !important; 
-    
+    padding: 6px 16px !important; 
+    margin-bottom: 20px !important; 
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-align: center;
     box-shadow: 0 0 20px rgba(255, 85, 0, 0.2), inset 0 0 10px rgba(255, 85, 0, 0.1) !important;
     backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important;
-    
     position: relative;
     z-index: 1; 
     max-width: 85%;
@@ -133,177 +124,288 @@
 
 /* След из капель инфекции */
 .chat-block[data-style="hollow_knight"] .chat-reply::after {
-    content: '';
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: 7px;
-    height: 7px;
-    background: #ffaa00;
-    border-radius: 50%;
-    
-    box-shadow:
-        0 9px 0 -1px #ff8800,
-        0 18px 0 -2.5px #ff5500,
-        0 0 8px #ffaa00,
-        0 9px 8px #ff8800,
-        0 18px 6px #ff5500;
-        
-    z-index: -1;
-    animation: infectionDrip 2s infinite alternate ease-in-out;
+    content: ''; position: absolute; top: calc(100% + 2px); left: 50%; transform: translateX(-50%);
+    width: 6px; height: 6px; background: #ffaa00; border-radius: 50%;
+    box-shadow: 0 8px 0 -1px #ff8800, 0 15px 0 -2px #ff5500, 0 0 8px #ffaa00, 0 8px 8px #ff8800;
+    z-index: -1; animation: infectionDrip 2s infinite alternate ease-in-out;
 }
-
-@keyframes infectionDrip {
-    0% { opacity: 0.6; filter: brightness(1); }
-    100% { opacity: 1; filter: brightness(1.3); }
-}
+@keyframes infectionDrip { 0% { opacity: 0.6; filter: brightness(1); } 100% { opacity: 1; filter: brightness(1.3); } }
 
 .chat-block[data-style="hollow_knight"] .chat-reply::before { display: none !important; }
 .chat-block[data-style="hollow_knight"] .reply-icon { display: none !important; }
-
-/* Имя того, кому отвечают */
-.chat-block[data-style="hollow_knight"] .chat-reply-user { 
-    color: #ffaa00 !important; 
-    font-family: 'Cinzel', serif !important; 
-    font-size: 13px !important; 
-    letter-spacing: 2px !important; 
-    text-shadow: 0 0 8px rgba(255, 85, 0, 0.9), 1px 1px 2px rgba(0,0,0,1) !important; 
-    text-transform: uppercase !important;
-}
-
-/* Текст ответа */
-.chat-block[data-style="hollow_knight"] .chat-reply-text { 
-    color: #ffe6cc !important; 
-    font-family: 'Cormorant Garamond', serif !important;
-    font-size: 16px !important; 
-    font-weight: 600 !important;
-    font-style: italic !important; 
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-    max-width: 240px; 
-    text-shadow: 1px 1px 2px rgba(0,0,0,1), 0 0 10px rgba(255, 85, 0, 0.6) !important; 
-    margin-top: 2px;
-}
+.chat-block[data-style="hollow_knight"] .chat-reply-user { color: #ffaa00 !important; font-family: 'Cinzel', serif !important; font-size: 12px !important; letter-spacing: 2px !important; text-shadow: 0 0 8px rgba(255, 85, 0, 0.9), 1px 1px 2px rgba(0,0,0,1) !important; text-transform: uppercase !important; }
+.chat-block[data-style="hollow_knight"] .chat-reply-text { color: #ffe6cc !important; font-family: 'Cormorant Garamond', serif !important; font-size: 15px !important; font-weight: 600 !important; font-style: italic !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; text-shadow: 1px 1px 2px rgba(0,0,0,1), 0 0 10px rgba(255, 85, 0, 0.6) !important; margin-top: 2px; }
 
 
-/* --- 5. МОДИФИКАТОРЫ (ИНФЕКЦИЯ: ВЫДЕЛЕНИЕ, ПИНГ, МАТ) --- */
-
-/* Скрываем дефолтную блямбу и звезду */
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-badge-highlight { 
-    display: none !important; 
-}
-
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] {
-    --c-border: 1px solid rgba(255, 85, 0, 0.5);
-}
-
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-bubble { 
-    border-left: 1px solid rgba(255, 85, 0, 0.8); 
-    animation: plagueBreathe 3s infinite alternate ease-in-out !important; 
-}
-
-@keyframes plagueBreathe {
-    0% { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(255, 85, 0, 0.15); border-color: rgba(255, 85, 0, 0.4); }
-    100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 1), inset 0 0 35px rgba(255, 85, 0, 0.4); border-color: rgba(255, 85, 0, 0.8); }
-}
+/* --- 5. МОДИФИКАТОРЫ (ИНФЕКЦИЯ: ВЫДЕЛЕНИЕ, ПИНГ) --- */
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-badge-highlight { display: none !important; }
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] { --c-border: 1px solid rgba(255, 85, 0, 0.5); }
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-bubble { border-left: 1px solid rgba(255, 85, 0, 0.8); animation: plagueBreathe 3s infinite alternate ease-in-out !important; }
+@keyframes plagueBreathe { 0% { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(255, 85, 0, 0.15); border-color: rgba(255, 85, 0, 0.4); } 100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 1), inset 0 0 35px rgba(255, 85, 0, 0.4); border-color: rgba(255, 85, 0, 0.8); } }
 
 /* Зараженная аватарка */
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-avatar { 
-    border-color: #ff5500; 
-    filter: sepia(100%) hue-rotate(350deg) saturate(350%) brightness(1.2) contrast(1.2); 
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 85, 0, 0.8), inset 0 0 10px #000; 
-}
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-avatar { border-color: #ff5500; filter: sepia(100%) hue-rotate(350deg) saturate(350%) brightness(1.2) contrast(1.2); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 85, 0, 0.8), inset 0 0 10px #000; }
 
 /* Зараженные узоры */
 .chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-bubble::before, 
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-bubble::after { 
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%23ff5500'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%23ff5500' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%23ff5500' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%23ff5500'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%23ff5500'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%23ff5500' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%23ff5500' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%23ff5500'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%23ff5500'/%3E%3C/svg%3E");
-    filter: drop-shadow(0 0 10px rgba(255, 85, 0, 1)); 
-}
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-bubble::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%23ff5500'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%23ff5500' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%23ff5500' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%23ff5500'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%23ff5500'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%23ff5500' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%23ff5500' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%23ff5500'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%23ff5500'/%3E%3C/svg%3E"); filter: drop-shadow(0 0 10px rgba(255, 85, 0, 1)); }
 
 /* Зараженный цвет имени и текста */
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-user {
-    color: #ffaa00 !important;
-    text-shadow: 0 0 12px rgba(255, 85, 0, 0.9), 0 2px 4px rgba(0,0,0,1) !important;
-}
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-text {
-    color: #ffe6cc !important;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 12px rgba(255, 85, 0, 0.6) !important;
-}
-
-/* Центральная линия Лучезарности */
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-header-right::before { background: linear-gradient(90deg, transparent, rgba(255, 85, 0, 0.9)); }
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-header-right::after { background: linear-gradient(270deg, transparent, rgba(255, 85, 0, 0.9)); }
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-user { color: #ffaa00 !important; text-shadow: 0 0 12px rgba(255, 85, 0, 0.9), 0 2px 4px rgba(0,0,0,1) !important; }
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-text { color: #ffe6cc !important; text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 12px rgba(255, 85, 0, 0.6) !important; }
 
 /* Анимация звезд */
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-time {
-    font-size: 0 !important; 
-    white-space: nowrap !important;
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-time { font-size: 0 !important; white-space: nowrap !important; position: relative; display: flex; justify-content: center; align-items: center; width: 80px; height: 20px; margin: 0 15px; }
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-time::before { content: '✦\00A0✧\00A0✦'; position: absolute; font-size: 18px; color: #ffaa00; letter-spacing: 2px; text-shadow: 0 0 10px #ff5500; animation: starPhaseOne 3s infinite alternate ease-in-out; }
+.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-time::after { content: '✧\00A0✦\00A0✧'; position: absolute; font-size: 18px; color: #ffaa00; letter-spacing: 2px; text-shadow: 0 0 10px #ff5500; animation: starPhaseTwo 3s infinite alternate ease-in-out; }
+
+/* ПИНГ */
+.chat-block[data-mention="true"][data-style="hollow_knight"] .chat-bubble { border-right: 1px solid rgba(255, 85, 0, 0.6); }
+.chat-block[data-mention="true"][data-style="hollow_knight"] .chat-ping-bell { display: none !important; }
+.chat-block[data-mention="true"][data-style="hollow_knight"] .chat-ping { background: rgba(255, 85, 0, 0.15) !important; border: 1px solid rgba(255, 85, 0, 0.4) !important; border-radius: 4px !important; color: #ffaa00 !important; font-family: 'Cinzel', serif !important; font-weight: 800 !important; font-size: 16px !important; padding: 2px 8px !important; margin-right: 4px !important; box-shadow: 0 0 10px rgba(255, 85, 0, 0.2), inset 0 0 8px rgba(255, 85, 0, 0.1) !important; text-shadow: 0 0 8px rgba(255, 85, 0, 0.9) !important; letter-spacing: 1px !important; display: inline-block !important; }
+
+
+/* --- 6. ЛОРНАЯ ЦЕНЗУРА (ПУСТОТА / THE VOID) --- */
+
+/* Заблюренное слово */
+.chat-block[data-style="hollow_knight"] .censured-badge { 
+    background: #06080d !important; 
+    
+    /* Делаем оригинальный текст невидимым, но сохраняем его размер для правильной физики строки */
+    color: transparent !important; 
+    
+    border: 1px solid rgba(147, 184, 214, 0.4) !important; 
+    border-radius: 4px !important; 
+    box-shadow: 0 0 10px rgba(0,0,0,0.8), inset 0 0 8px rgba(147, 184, 214, 0.1) !important; 
+    
+    /* Идеальное выравнивание по центру строки */
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    height: 24px;
+    padding: 0 10px !important;
+    margin: 0 4px;
+}
+
+/* Наш кастомный текст поверх невидимого */
+.chat-block[data-style="hollow_knight"] .censured-badge::before { 
+    content: '[ VOID ]'; 
+    position: absolute;
+    
+    /* ФИКС: Жесткое математическое центрирование */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* Убираем лишние отступы внутри самого шрифта */
+    line-height: 1 !important;
+    
+    /* Визуальная компенсация (сдвигаем на 1px вниз из-за особенности шрифта Cinzel) */
+    margin-top: 1px;
+    
+    color: #93b8d6;
+    font-family: 'Cinzel', serif !important; 
+    font-size: 12px !important; 
+    font-weight: 800 !important;
+    text-transform: uppercase !important; 
+    letter-spacing: 2px !important; 
+}
+
+/* Полностью скрытое сообщение */
+.chat-block[data-style="hollow_knight"] .censured-message { 
+    background: rgba(6, 8, 13, 0.85) !important; 
+    border: 1px dashed rgba(147, 184, 214, 0.3) !important; 
+    color: transparent !important; 
+    font-family: 'Cinzel', serif !important; 
+    border-radius: 6px !important; 
+    padding: 16px !important;
+    box-shadow: inset 0 0 20px #000 !important;
+    text-align: center;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 80px;  
-    height: 20px;
-    margin: 0 15px; 
 }
 
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-time::before {
-    content: '✦\00A0✧\00A0✦';
+.chat-block[data-style="hollow_knight"] .censured-message::before { 
+    content: '[ ПОГЛОЩЕНО ПУСТОТОЙ ]'; 
     position: absolute;
-    font-size: 18px;
-    color: #ffaa00;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px #ff5500;
-    animation: starPhaseOne 3s infinite alternate ease-in-out;
+    color: rgba(147, 184, 214, 0.6);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-shadow: 0 0 8px #000;
 }
 
-.chat-block[data-msg-type="highlight"][data-style="hollow_knight"] .chat-time::after {
-    content: '✧\00A0✦\00A0✧';
-    position: absolute;
-    font-size: 18px;
-    color: #ffaa00;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px #ff5500;
-    animation: starPhaseTwo 3s infinite alternate ease-in-out;
+/* --- 7. КАСТОМНЫЙ TTS ВИДЖЕТ (ИДЕАЛЬНЫЙ "ШЕПОТ ПУСТОТЫ") --- */
+
+/* Контейнер: Идеальная симметричная сетка 52px - 1fr - 52px */
+#tts-container[data-style="hollow_knight"] {
+    display: grid !important;
+    grid-template-columns: 52px 1fr 52px !important;
+    align-items: center !important;
+    gap: 24px !important;
+    
+    background: linear-gradient(180deg, #0f131a 0%, #06080d 100%) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    
+    border: 1px solid rgba(147, 184, 214, 0.15) !important;
+    border-top: 1px solid rgba(147, 184, 214, 0.3) !important;
+    border-radius: 16px !important;
+    padding: 16px 24px !important;
+    
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(147, 184, 214, 0.05) !important;
+    min-width: 420px !important;
+    height: auto !important;
 }
 
-@keyframes starPhaseOne {
-    0%, 35% { opacity: 1; }
-    65%, 100% { opacity: 0; }
+#tts-container[data-style="hollow_knight"]::before,
+#tts-container[data-style="hollow_knight"]::after {
+    display: none !important;
 }
 
-@keyframes starPhaseTwo {
-    0%, 35% { opacity: 0; }
-    65%, 100% { opacity: 1; }
+/* --- Аватарка (Цветная, со свечением) --- */
+#tts-container[data-style="hollow_knight"] .tts-avatar-wrap {
+    width: 52px !important; 
+    height: 52px !important; 
+    margin: 0 !important;
+    border-radius: 50% !important;
+    background: #000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    /* Базовое тусклое свечение в состоянии покоя */
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 15px rgba(147, 184, 214, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
 }
 
-
-/* ПИНГ (УДАР ИНФЕКЦИЕЙ) */
-.chat-block[data-mention="true"][data-style="hollow_knight"] .chat-bubble { border-right: 1px solid rgba(255, 85, 0, 0.6); }
-
-/* Прячем красный системный колокольчик */
-.chat-block[data-mention="true"][data-style="hollow_knight"] .chat-ping-bell { 
-    display: none !important; 
+#tts-container[data-style="hollow_knight"] #tts-avatar {
+    width: 100% !important; 
+    height: 100% !important;
+    border: none !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    opacity: 1 !important; 
+    filter: contrast(1.1) brightness(1.1) !important; 
 }
 
-/* Элегантная табличка пинга */
-.chat-block[data-mention="true"][data-style="hollow_knight"] .chat-ping { 
-    background: rgba(255, 85, 0, 0.15) !important;
-    border: 1px solid rgba(255, 85, 0, 0.4) !important;
-    border-radius: 4px !important; 
-    color: #ffaa00 !important; 
-    font-family: 'Cinzel', serif !important; 
+#tts-container[data-style="hollow_knight"] .tts-avatar-ring { display: none !important; }
+
+/* Динамическое свечение (Эквалайзер голоса) работает только пока виджет активен */
+#tts-container.tts-in[data-style="hollow_knight"] .tts-avatar-wrap {
+    animation: hkAvatarVoiceEq 0.6s infinite !important;
+}
+
+/* --- Центральный блок: Текст и Вензеля --- */
+#tts-container[data-style="hollow_knight"] .tts-info {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+/* Обертка для верхней части */
+#tts-container[data-style="hollow_knight"] .tts-title {
+    font-size: 0 !important; 
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    margin: 0 !important;
+}
+
+#tts-container[data-style="hollow_knight"] .tts-title svg { display: none !important; }
+
+/* Верхний вензель */
+#tts-container[data-style="hollow_knight"] .tts-title::before {
+    content: '';
+    display: block;
+    width: 160px; height: 10px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%2393b8d6'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2393b8d6'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%2393b8d6'/%3E%3C/svg%3E");
+    background-size: contain; background-repeat: no-repeat; background-position: center;
+    opacity: 0.6;
+    margin-bottom: 2px; 
+}
+
+/* Текст "ШЕПОТ ПУСТОТЫ" */
+#tts-container[data-style="hollow_knight"] .tts-title::after {
+    content: 'ШЕПОТ ПУСТОТЫ';
+    font-size: 11px !important; 
+    color: rgba(147, 184, 214, 0.7) !important;
+    font-family: 'Cinzel', serif !important;
+    letter-spacing: 3px !important; 
     font-weight: 800 !important;
-    font-size: 16px !important;
-    padding: 2px 8px !important;
-    margin-right: 4px !important;
-    box-shadow: 0 0 10px rgba(255, 85, 0, 0.2), inset 0 0 8px rgba(255, 85, 0, 0.1) !important; 
-    text-shadow: 0 0 8px rgba(255, 85, 0, 0.9) !important; 
-    letter-spacing: 1px !important;
-    display: inline-block !important;
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
 }
 
-/* ЦЕНЗУРА (ПУСТОТА) */
-.chat-block[data-style="hollow_knight"] .censured-badge { background: #000; border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.6); font-family: 'Cinzel', serif; font-size: 12px; box-shadow: 0 0 10px #000, inset 0 0 5px #000; }
-.chat-block[data-style="hollow_knight"] .censured-message { background: rgba(0, 0, 0, 0.8); border: 1px dashed rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.4); font-family: 'Cinzel', serif; letter-spacing: 4px; text-shadow: 0 0 5px #000; }
+/* Имя пользователя */
+#tts-container[data-style="hollow_knight"] .tts-user {
+    font-family: 'Cinzel', serif !important;
+    color: #ffffff !important;
+    font-size: 19px !important; 
+    text-shadow: 0 2px 10px rgba(147, 184, 214, 0.4) !important;
+    letter-spacing: 3px !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
+/* Нижний вензель (перевернутый) */
+#tts-container[data-style="hollow_knight"] .tts-user::after {
+    content: '';
+    display: block;
+    width: 160px; height: 10px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%2393b8d6'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2393b8d6'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%2393b8d6'/%3E%3C/svg%3E");
+    background-size: contain; background-repeat: no-repeat; background-position: center;
+    margin-top: 6px;
+    transform: rotate(180deg);
+    opacity: 0.6;
+}
+
+/* --- Динамический Эквалайзер (Правая колонка) --- */
+#tts-container[data-style="hollow_knight"] .tts-wave {
+    display: flex !important;
+    gap: 4px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    height: 24px !important;
+    width: 100% !important;
+}
+
+/* Изящные вертикальные полоски */
+#tts-container[data-style="hollow_knight"] .tts-bar {
+    width: 4px !important;
+    background: rgba(147, 184, 214, 0.3) !important;
+    border-radius: 4px !important; 
+    clip-path: none !important;
+    box-shadow: none !important;
+    transition: height 0.1s ease, background 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+/* Плавное свечение при пиках громкости */
+#tts-container[data-style="hollow_knight"] .tts-bar.active-spike {
+    background: #ffffff !important;
+    box-shadow: 0 0 6px #fff, 0 0 12px rgba(147, 184, 214, 0.8) !important;
+}
+
+/* ================= АНИМАЦИИ ================= */
+
+/* Рваная анимация свечения вокруг аватарки (имитирует речь) */
+@keyframes hkAvatarVoiceEq {
+    0%   { box-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 15px rgba(147, 184, 214, 0.2); }
+    15%  { box-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 35px rgba(147, 184, 214, 0.7); }
+    35%  { box-shadow: 0 0 10px rgba(255, 255, 255, 0.4), 0 0 20px rgba(147, 184, 214, 0.3); }
+    55%  { box-shadow: 0 0 25px rgba(255, 255, 255, 1.0), 0 0 45px rgba(147, 184, 214, 0.8); }
+    75%  { box-shadow: 0 0 12px rgba(255, 255, 255, 0.5), 0 0 25px rgba(147, 184, 214, 0.4); }
+    100% { box-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 15px rgba(147, 184, 214, 0.2); }
+}

@@ -25,7 +25,12 @@ window.AppChatProcessor = {
         let { text: cleanText, hasForbidden } = window.ChatFilter.processText(finalMessage, window.AppConfig.forbiddenWords);
 
         if (isTts && window.AppCoreState.widgets['tts']) {
-            window.AppEvents.emit('TTS_ADD', { user: userAlias, text: cleanText.replace(/<[^>]+>/g, '') });
+            // ИСПРАВЛЕНИЕ: Передаем флаг forceDefault дальше в TTS-ядро
+            window.AppEvents.emit('TTS_ADD', { 
+                user: userAlias, 
+                text: cleanText.replace(/<[^>]+>/g, ''),
+                forceDefault: forceDefaultStyle
+            });
         }
 
         if (isPing && !hasForbidden) {
@@ -45,7 +50,6 @@ window.AppChatProcessor = {
     },
 
     processIncomingChat: async function(user, message, flags, self, extra) {
-        // Дедупликация
         const msgId = extra.id;
         if (msgId) {
             if (this.processedMessageIds.has(msgId)) return; 
