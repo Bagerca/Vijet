@@ -93,10 +93,10 @@
     text-shadow: 0 2px 4px rgba(0,0,0,0.9); padding: 0 5px 10px 5px; z-index: 5;
 }
 
-/* Линия времени */
+/* Линия времени (ИСПРАВЛЕНЫ ОТСТУПЫ) */
 .chat-block[data-style="hollow_knight"] .chat-header-right { 
     width: 100%; justify-content: center; gap: 15px; 
-    margin: 6px 0 12px 0; opacity: 0.9; 
+    margin: 2px 0 4px 0; opacity: 0.9; 
 }
 .chat-block[data-style="hollow_knight"] .chat-time { font-size: 11px; letter-spacing: 2px; color: rgba(147, 184, 214, 0.8); }
 .chat-block[data-style="hollow_knight"] .chat-header-right::before,
@@ -194,10 +194,13 @@
     content: '[ VOID ]'; 
     position: absolute;
     
-    /* ФИКС: Жесткое математическое центрирование */
+    /* Жесткое математическое центрирование */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    
+    /* ФИКС БАГА: Запрещаем перенос букв на новые строки */
+    white-space: nowrap !important;
     
     /* Убираем лишние отступы внутри самого шрифта */
     line-height: 1 !important;
