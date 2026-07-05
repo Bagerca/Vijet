@@ -1,3 +1,4 @@
+/* ФАЙЛ: js/mod-deck/sync.js */
 /* ================= СИНХРОНИЗАЦИЯ ПАНЕЛИ С ЯДРОМ ================= */
 window.DeckSync = {
     init() {
@@ -7,7 +8,7 @@ window.DeckSync = {
         // Запрашиваем состояние при старте
         setTimeout(() => {
             window.AppEvents.emit('STATE_SYNC_REQUEST');
-        }, 2000);
+        }, 1500);
 
         // И при выходе из спящего режима телефона/браузера
         document.addEventListener("visibilitychange", () => {
@@ -27,11 +28,12 @@ window.DeckSync = {
             }
         };
 
-        // Тумблеры
+        // 1. Тумблеры
         setToggle('blur', state.blur);
         setToggle('cam', state.cam);
+        setToggle('deaths', state.deaths > 0); // Упрощенная логика смертей
         
-        // Громкость
+        // 2. Громкость
         const volSlider = document.getElementById('input-vol');
         const volLabel = document.getElementById('vol-label');
         if (volSlider && volSlider.value != state.youtube.volume) {
@@ -40,20 +42,27 @@ window.DeckSync = {
             if (volLabel) volLabel.innerText = state.youtube.volume + '%';
         }
 
-        // Селект темы
-        const themeSelect = document.getElementById('custom-theme-select');
-        if (themeSelect && themeSelect.getAttribute('data-value') !== state.theme) {
-            themeSelect.setAttribute('data-value', state.theme);
-            const selectedVisual = themeSelect.querySelector('.select-selected');
-            const options = themeSelect.querySelectorAll('.select-items div');
-            options.forEach(opt => {
-                if (opt.getAttribute('data-value') === state.theme && selectedVisual) {
-                    selectedVisual.innerHTML = opt.innerHTML;
-                }
-            });
+        // 3. Селект Темы
+        if (window.DeckUI && state.theme) {
+            window.DeckUI.setSelectValue('custom-theme-select', state.theme);
+        }
+
+        // 4. НОВОЕ: Плашка Медиа (Игры и YouTube)
+        if (state.media && window.DeckUI) {
+            const ytInput = document.getElementById('input-media-yt');
+            
+            if (state.media.type === 'game' || state.media.type === 'series') {
+                window.DeckUI.setSelectValue('custom-game-select', state.media.query);
+                if (ytInput) ytInput.value = ''; // Очищаем поле ютуба
+            } 
+            else if (state.media.type === 'yt') {
+                window.DeckUI.setSelectValue('custom-game-select', 'off'); // Выключаем игры
+                if (ytInput) ytInput.value = `https://youtube.com/watch?v=${state.media.query}`;
+            } 
+            else { // 'off'
+                window.DeckUI.setSelectValue('custom-game-select', 'off');
+                if (ytInput) ytInput.value = '';
+            }
         }
     }
 };
-
-// Вызываем в app.js
-// В файле js/mod-deck/app.js добавь строку: window.DeckSync.init();

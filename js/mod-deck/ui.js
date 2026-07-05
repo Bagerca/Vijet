@@ -13,7 +13,7 @@ window.DeckUI = {
                 setTimeout(() => {
                     const val = targetChatSelect.getAttribute('data-value');
                     if (window.DeckAuth) window.DeckAuth.setTargetChannel(val);
-                }, 50); // Ждем пока селект обновит атрибут data-value
+                }, 50); 
             });
         }
 
@@ -57,6 +57,33 @@ window.DeckUI = {
         toast.style.animation = null;
         
         setTimeout(() => toast.classList.add('hidden'), 2500);
+    },
+
+    // НОВОЕ: Программное переключение кастомных селектов (для Sync.js)
+    setSelectValue(selectId, value) {
+        const customSelect = document.getElementById(selectId);
+        if (!customSelect) return;
+        
+        // Если значение уже установлено, ничего не делаем
+        if (customSelect.getAttribute('data-value') === value) return;
+
+        const itemsList = customSelect.querySelector('.select-items');
+        const selectedVisual = customSelect.querySelector('.select-selected');
+        
+        if (!itemsList || !selectedVisual) return;
+
+        // Ищем нужный пункт в списке
+        const targetOption = Array.from(itemsList.querySelectorAll('div[data-value]'))
+                                  .find(opt => opt.getAttribute('data-value') === value);
+
+        if (targetOption) {
+            customSelect.setAttribute('data-value', value);
+            selectedVisual.innerHTML = targetOption.innerHTML;
+        } else {
+            // Если игры нет в списке (ввели руками команду в чат), просто пишем текст
+            customSelect.setAttribute('data-value', value);
+            selectedVisual.innerHTML = value === 'off' ? '❌ Скрыть плашку' : `🎮 ${value}`;
+        }
     },
 
     setupCustomSelects() {
@@ -146,7 +173,6 @@ window.DeckUI = {
                 { login: "treebals", label: "Terminal" }
             ];
 
-            // Оставили только один Дефолт и исправили аватарки (стиль прописан инлайн)
             chatList.innerHTML = `
                 <div class="optgroup">Обычный чат</div>
                 <div data-value="testuser default_user">Дефолт (Обычное)</div>
