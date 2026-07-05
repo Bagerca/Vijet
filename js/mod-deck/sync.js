@@ -19,8 +19,6 @@ window.DeckSync = {
     },
 
     updateUI(state) {
-        console.log("🛠️ [MOD DECK] Синхронизация интерфейса с Ядром", state);
-
         const setToggle = (id, isActive) => {
             const toggle = document.querySelector(`.widget-toggle[data-widget="${id}"]`);
             if (toggle && toggle.checked !== isActive) {
@@ -28,25 +26,27 @@ window.DeckSync = {
             }
         };
 
-        // 1. Уникальные Тумблеры
+        // 1. Уникальные Тумблеры (Имеют собственный стейт в Ядре)
         setToggle('blur', state.blur);
         setToggle('cam', state.cam);
         setToggle('deaths', state.deaths > 0);
         
-        // НОВОЕ: Синхронизируем тумблер Колеса Фортуны
-        // Если модер в чате пишет !wheel show - тумблер в панели включится
+        // Синхронизируем тумблер Колеса Фортуны
         const wheelBtnShow = document.querySelector('[data-cmd="!wheel show"]');
         if (wheelBtnShow) {
-            // Визуально подсвечиваем кнопку, если колесо сейчас на экране
             if (state.wheelVisible) wheelBtnShow.style.boxShadow = 'inset 0 0 10px var(--c-green)';
             else wheelBtnShow.style.boxShadow = 'none';
         }
 
         // 2. ДИНАМИЧЕСКИЙ МАСТЕР ВИДЖЕТОВ
-        // Пробегаемся по всему реестру скрытых/показанных виджетов
         if (state.widgets) {
+            // ИСПРАВЛЕНИЕ: Игнорируем уникальные тумблеры, даже если они ошибочно попали в память как виджеты
+            const ignoreList = ['blur', 'cam', 'deaths']; 
+            
             for (const [widgetId, isVisible] of Object.entries(state.widgets)) {
-                setToggle(widgetId, isVisible);
+                if (!ignoreList.includes(widgetId)) {
+                    setToggle(widgetId, isVisible);
+                }
             }
         }
         

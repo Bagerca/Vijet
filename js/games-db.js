@@ -91,6 +91,14 @@ window.GamesDatabase = {
         tags: ["Симулятор жизни", "Nintendo"], 
         details: { "Разработчик": "Nintendo", "Год": "Новинка", "Платформа": "PC (Эмулятор)" }
     },
+    "war thunder": { 
+        title: "War Thunder", 
+        cover: "img/covers/war_thunder.png", 
+        themeColor: "#2D3748", 
+        type: "game",
+        tags: ["Авиация / Танки", "ММО Экшен", "Бесплатно"], 
+        details: { "Разработчик": "Gaijin Entertainment", "Год": "2012", "Платформа": "PC / Консоли" }
+    },
 
     // === ФИЛЬМЫ И СЕРИАЛЫ ===
     "digital circus": {
