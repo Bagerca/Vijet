@@ -2,15 +2,12 @@
 /* ================= СИНХРОНИЗАЦИЯ ПАНЕЛИ С ЯДРОМ ================= */
 window.DeckSync = {
     init() {
-        // Ловим ответ от ядра
         window.AppEvents.listen('STATE_SYNC_RESPONSE', state => this.updateUI(state));
 
-        // Запрашиваем состояние при старте
         setTimeout(() => {
             window.AppEvents.emit('STATE_SYNC_REQUEST');
         }, 1500);
 
-        // И при выходе из спящего режима телефона/браузера
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === 'visible') {
                 window.AppEvents.emit('STATE_SYNC_REQUEST');
@@ -31,7 +28,6 @@ window.DeckSync = {
         setToggle('cam', state.cam);
         setToggle('deaths', state.deaths > 0);
         
-        // Синхронизируем тумблер Колеса Фортуны
         const wheelBtnShow = document.querySelector('[data-cmd="!wheel show"]');
         if (wheelBtnShow) {
             if (state.wheelVisible) wheelBtnShow.style.boxShadow = 'inset 0 0 10px var(--c-green)';
@@ -40,7 +36,6 @@ window.DeckSync = {
 
         // 2. ДИНАМИЧЕСКИЙ МАСТЕР ВИДЖЕТОВ
         if (state.widgets) {
-            // Игнор-лист для защиты от старых фантомных записей
             const ignoreList = ['blur', 'cam', 'deaths']; 
             
             for (const [widgetId, isVisible] of Object.entries(state.widgets)) {
@@ -50,21 +45,25 @@ window.DeckSync = {
             }
         }
         
-        // 3. Громкость музыки
+        // 3. Громкость музыки (С защитой от перебивания)
         const volSlider = document.getElementById('input-vol');
         const volLabel = document.getElementById('vol-label');
-        if (volSlider && volSlider.value != state.youtube.volume) {
+        
+        // ВАЖНО: Если мы тянем ползунок (!hasAttribute('data-dragging')), игнорируем обновление
+        if (volSlider && !volSlider.hasAttribute('data-dragging') && volSlider.value != state.youtube.volume) {
             volSlider.value = state.youtube.volume;
             volSlider.style.setProperty('--slider-fill', state.youtube.volume + '%');
             if (volLabel) volLabel.innerText = state.youtube.volume + '%';
         }
 
-        // 3.5 Синхронизация ползунков частиц (Созвездия)
+        // 3.5 Синхронизация ползунков частиц (С защитой от перебивания)
         if (state.particles) {
             const updateSlider = (id, valId, val, suffix, isFloat = false) => {
                 const el = document.getElementById(id);
                 const valEl = document.getElementById(valId);
-                if (!el || !valEl) return;
+                
+                // ВАЖНО: Игнорируем обновление, если тянем ползунок
+                if (!el || !valEl || el.hasAttribute('data-dragging')) return;
                 
                 const min = el.min;
                 const max = el.max;
@@ -89,7 +88,7 @@ window.DeckSync = {
             window.DeckUI.setSelectValue('custom-theme-select', state.theme);
         }
 
-        // 5. Плашка Медиа (Игры и YouTube)
+        // 5. Плашка Медиа
         if (state.media && window.DeckUI) {
             const ytInput = document.getElementById('input-media-yt');
             

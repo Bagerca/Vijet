@@ -15,9 +15,7 @@ window.AppConfig = {
         "kiriika11": "minecraft",
         "to_be_ang": "angel",
         "dragonsmaddison": "bendy",
-        "darkl1us": "tactical",
-        "tetlabot": "terminal",
-        "treebals": "terminal"
+        "darkl1us": "tactical"
     },
 
     // ==========================================

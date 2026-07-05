@@ -5,17 +5,31 @@ window.DeckCommands = {
         const volSlider = document.getElementById('input-vol');
         const volLabel = document.getElementById('vol-label');
         if (volSlider && volLabel) {
+            
+            // ЗАЩИТА ОТ РАССИНХРОНА: Блокируем входящие пакеты, пока тянем ползунок
+            const lockSlider = () => volSlider.setAttribute('data-dragging', 'true');
+            const unlockSlider = () => setTimeout(() => volSlider.removeAttribute('data-dragging'), 1000);
+            
+            volSlider.addEventListener('mousedown', lockSlider);
+            volSlider.addEventListener('touchstart', lockSlider, {passive: true});
+            volSlider.addEventListener('mouseup', unlockSlider);
+            volSlider.addEventListener('touchend', unlockSlider);
+
             volSlider.addEventListener('input', (e) => {
+                lockSlider(); // На всякий случай блокируем и при движении
                 const val = e.target.value;
                 volLabel.innerText = val + '%';
                 volSlider.style.setProperty('--slider-fill', val + '%');
             });
-            volSlider.addEventListener('change', (e) => window.DeckAuth.sendCommand(`!vol ${e.target.value}`));
+            
+            volSlider.addEventListener('change', (e) => {
+                window.DeckAuth.sendCommand(`!vol ${e.target.value}`);
+                unlockSlider(); // Снимаем блок через секунду после отпускания
+            });
         }
 
         document.querySelector('.control-panel').addEventListener('click', (e) => {
             const btn = e.target.closest('.cmd-btn, .action-btn');
-            // Игнорируем кнопки удержания при обычном клике!
             if (!btn || btn.classList.contains('btn-hold')) return;
 
             btn.style.transform = 'scale(0.92)';
@@ -78,14 +92,11 @@ window.DeckCommands = {
                 let msgInput = getVal('test-chat-msg') || 'Пример текста!';
                 let flags = Array.from(document.querySelectorAll('.mod-pill.active')).map(p => p.getAttribute('data-mod'));
                 
-                // ЛОГИКА ЦЕНЗУРЫ: Внедряем триггерные слова перед отправкой в ядро
                 if (flags.includes('-c_word')) {
-                    msgInput = msgInput + ' пидор'; // Точное совпадение цензурирует только само слово
+                    msgInput = msgInput + ' пидор'; 
                     flags = flags.filter(f => f !== '-c_word');
                 }
                 if (flags.includes('-c_msg')) {
-                    // Омоглиф (п1д0p нормализуется в пидор). 
-                    // Пробивает точный поиск и попадает в Smart Search, что скрывает ВЕСЬ бабл!
                     msgInput = 'п1д0p ' + msgInput; 
                     flags = flags.filter(f => f !== '-c_msg');
                 }

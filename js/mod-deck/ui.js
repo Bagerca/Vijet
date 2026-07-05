@@ -177,7 +177,7 @@ window.DeckUI = {
         });
     },
 
-    // ЛОГИКА НАСТРОЙКИ ЧАСТИЦ С ДЕБАУНСОМ
+    // ЛОГИКА НАСТРОЙКИ ЧАСТИЦ С ДЕБАУНСОМ И БЛОКИРОВКОЙ РАССИНХРОНА
     setupParticleSliders() {
         let updateTimer;
         
@@ -195,7 +195,17 @@ window.DeckUI = {
             const valEl = document.getElementById(valId);
             if (!el || !valEl) return;
 
+            // Блокиратор входящих пакетов
+            const lock = () => el.setAttribute('data-dragging', 'true');
+            const unlock = () => setTimeout(() => el.removeAttribute('data-dragging'), 1000);
+            
+            el.addEventListener('mousedown', lock);
+            el.addEventListener('touchstart', lock, {passive: true});
+            el.addEventListener('mouseup', unlock);
+            el.addEventListener('touchend', unlock);
+
             el.addEventListener('input', (e) => {
+                lock();
                 const val = e.target.value;
                 const min = e.target.min;
                 const max = e.target.max;
@@ -283,4 +293,4 @@ window.DeckUI = {
         
         this.setupCustomSelects(); 
     }
-};
+};  
