@@ -146,15 +146,14 @@ window.DeckUI = {
                 { login: "treebals", label: "Terminal" }
             ];
 
+            // Оставили только один Дефолт и исправили аватарки (стиль прописан инлайн)
             chatList.innerHTML = `
                 <div class="optgroup">Обычный чат</div>
-                <div data-value="testfirst">Дефолт (Впервые)</div>
-                <div data-value="testhighlight">Дефолт (За баллы)</div>
-                <div data-value="testmention">Дефолт (Пинг)</div>
+                <div data-value="testuser default_user">Дефолт (Обычное)</div>
                 <div class="optgroup">Кастомные стили (VIP)</div>
                 ${vipUsers.map(u => `
                     <div data-value="testuser ${u.login}" class="item-with-cover">
-                        <img src="https://ui-avatars.com/api/?name=${u.login}&background=222&color=fff" id="av-${u.login}" class="select-item-cover" style="border-radius: 50%;">
+                        <img src="https://ui-avatars.com/api/?name=${u.login}&background=222&color=fff" id="av-${u.login}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #222;">
                         <span>${u.login} <span class="text-muted">(${u.label})</span></span>
                     </div>`).join('')}
             `;

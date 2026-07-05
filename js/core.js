@@ -17,8 +17,31 @@ window.AppCore = {
         "refresh": (arg) => {
             if (arg === "core") { 
                 window.AppEvents.emit('CORE_REBOOT_START');
-                setTimeout(() => { const u = new URL(window.location.href); u.searchParams.set('nocache', Date.now()); window.location.href = u.toString(); }, 300);
-            } else window.AppEvents.emit('FORCE_RELOAD_VISUAL');
+
+                // --- ЗАВОДСКИЕ НАСТРОЙКИ (ХАРД-РЕСЕТ) ---
+                window.AppEvents.emit('THEME_CHANGE', { theme: 'default' });
+                window.AppEvents.emit('MEDIA_SET', { type: 'off' });
+                window.AppEvents.emit('DEATHS_CMD', { cmd: 'hide' });
+                window.AppEvents.emit('WHEEL_TOGGLE', { state: false });
+                window.AppEvents.emit('BLUR_TOGGLE', { state: 'off' });
+                window.AppEvents.emit('MEDIA_CAM', { state: 'on' });
+                
+                // Останавливаем аудио и очищаем очередь
+                window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' });
+                window.AppEvents.emit('TTS_CMD', { cmd: 'stop' });
+
+                // Полная зачистка памяти
+                localStorage.removeItem('uso_global_state');
+                localStorage.removeItem('uso_current_media');
+
+                setTimeout(() => { 
+                    const u = new URL(window.location.href); 
+                    u.searchParams.set('nocache', Date.now()); 
+                    window.location.href = u.toString(); 
+                }, 600); // Даем 600мс чтобы анимации скрытия успели проиграть
+            } else {
+                window.AppEvents.emit('FORCE_RELOAD_VISUAL');
+            }
         },
         "wheel": (arg) => {
             if (arg === "show" || arg === "on") window.AppEvents.emit('WHEEL_TOGGLE', { state: true });

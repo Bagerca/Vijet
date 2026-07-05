@@ -16,7 +16,7 @@ window.AppDeaths = {
         if (savedDeaths !== null) {
             this.count = parseInt(savedDeaths, 10) || 0;
             this.render();
-            if (this.count > 0) this.toggle(true);
+            // Убрали авто-показ! Теперь по дефолту всегда скрыто.
         }
 
         // Создаем DOM-элемент для Комбо
@@ -63,7 +63,8 @@ window.AppDeaths = {
         localStorage.setItem('uso_deaths', this.count);
         this.render();
         
-        if (!this.isVisible && this.count > 0) {
+        // Автоматически показываем счетчик, ТОЛЬКО если нам добавили новую смерть
+        if (!this.isVisible && this.count > 0 && type === 'add') {
             this.toggle(true);
         }
 
