@@ -83,7 +83,7 @@
         myStyles.forEach(href => { document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`); });
         
         // УМНЫЙ ЗАГРУЗЧИК СКРИПТОВ
-        const activeWidgets = urlParams.get('widgets') ? urlParams.get('widgets').split(',').map(s => s.trim()) : null;
+        const activeWidgets = urlParams.get('widgets') ? urlParams.get('widgets').split(',').map(s => s.trim().toLowerCase()) : null;
         
         // Базовые скрипты, нужные всегда
         let myScripts = [
@@ -91,7 +91,7 @@
             "js/system-manager.js", "js/state-client.js"
         ];
 
-        // Карта соответствия виджетов и их скриптов
+        // Идеальная строгая карта: Один ключ = Один виджет. Никаких алиасов.
         const widgetModules = {
             'particles': ['js/particles.js'],
             'emotes': ['js/emotes.js'],
@@ -104,8 +104,7 @@
             'goal': ['js/goal.js'],
             'ticker': ['js/ticker.js'],
             'deaths': ['js/deaths.js'],
-            'media': ['js/mediainfo.js'],
-            'gameinfo': ['js/mediainfo.js'], // Alias
+            'media': ['js/mediainfo.js'], // Строго только media
             'wheel': ['js/wheel.js'],
             'tts': ['js/tts.js'],
             'pet': ['js/pet.js'],
@@ -124,7 +123,7 @@
         // Всегда грузим countdown, так как он завязан на сцену
         myScripts.push("js/countdown.js");
 
-        // Убираем дубликаты (если были alias-ы) и загружаем
+        // Убираем дубликаты и загружаем
         [...new Set(myScripts)].forEach(src => {
             document.write(`<script src="${src}?v=${cacheBuster}"><\/script>`);
         });

@@ -1,7 +1,7 @@
 /* ФАЙЛ: js/system-manager.js */
-/* ================= МЕНЕДЖЕР СИСТЕМЫ И ВИДЖЕТОВ (DOM DESTRUCTION) ================= */
+/* ================= МЕНЕДЖЕР СИСТЕМЫ И ВИДЖЕТОВ (STRICT WHITELIST ARCHITECTURE) ================= */
 window.SystemManager = {
-    // Карта: ключ (из URL) -> ID элемента в DOM
+    // Единый словарь: Имя виджета -> DOM ID контейнера
     widgetMap: { 
         'chat': 'chat-container', 
         'music': 'widget-container', 
@@ -16,64 +16,53 @@ window.SystemManager = {
         'tts': 'tts-container', 
         'blur': 'screen-blur-overlay', 
         'wheel': 'wheel-overlay', 
-        'cam': 'webcam-frame', // Управляем только рамкой, контейнер общий с петом
+        'cam': 'webcam-frame', 
         'media': 'media-info-container', 
-        'pet': 'pet-container',
-        'gameinfo': 'media-info-container' // Алиас для совместимости
+        'pet': 'pet-container'
+    },
+
+    // СТРОГИЕ БЕЛЫЕ СПИСКИ: Что ИМЕЕТ ПРАВО жить на конкретных сценах.
+    // Если сцены тут нет (например, 'chatting'), разрешено всё, что запрошено в URL.
+    sceneRules: {
+        'starting': ['goal', 'socials', 'ticker'], // Только 3 виджета могут существовать на старте
+        'ending': ['socials']                      // На эндинге выживут только соцсети
     },
 
     init: function() {
         const urlParams = new URLSearchParams(window.location.search);
-        const activeWidgetsParam = urlParams.get('widgets'); 
+        let requestedWidgets = urlParams.get('widgets') ? urlParams.get('widgets').split(',').map(w => w.trim().toLowerCase()) : Object.keys(this.widgetMap);
         const sceneParam = urlParams.get('scene');
 
-        // 1. Устанавливаем сцену в body для базовых CSS стилей
+        // 1. Устанавливаем класс сцены
         if (sceneParam) document.body.classList.add(`scene-${sceneParam}`);
 
-        // 2. ЖЕСТКАЯ ЗАЧИСТКА ДОМА ДЛЯ СЦЕН (Без CSS-костылей)
-        // На сценах старта и конца удаляем всё, что может мешать
-        if (sceneParam === 'starting' || sceneParam === 'ending') {
-            const removeIds = [
-                'chat-container', 'webcam-container', 'widget-container', 
-                'deaths-container', 'alert-container', 'media-info-container', 
-                'pet-container', 'emotes-container', 'tts-container'
-            ];
-            removeIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.remove();
-            });
+        // 2. ДЕЛАЕМ ПЕРЕСЕЧЕНИЕ ПРАВИЛ (Intersection)
+        // Если для текущей сцены есть строгие правила — обрезаем хотелки пользователя в OBS.
+        if (sceneParam && this.sceneRules[sceneParam]) {
+            const allowedByScene = this.sceneRules[sceneParam];
+            // Оставляем только те виджеты, которые запрошены в URL И разрешены правилами сцены
+            requestedWidgets = requestedWidgets.filter(w => allowedByScene.includes(w));
         }
 
-        // 3. ИЗОЛИРОВАННЫЙ РЕЖИМ ВИДЖЕТОВ (Разделение по ссылкам в OBS)
-        if (activeWidgetsParam) {
-            // Делаем фон прозрачным для оверлеев
-            document.body.style.setProperty('background', 'transparent', 'important');
-            document.documentElement.style.setProperty('background', 'transparent', 'important');
-            
-            const activeWidgets = activeWidgetsParam.split(',').map(w => w.trim().toLowerCase());
-            
-            // Собираем Set уникальных ID элементов, которые ДОЛЖНЫ остаться
-            const allowedIds = new Set();
-            activeWidgets.forEach(w => {
-                if (this.widgetMap[w]) allowedIds.add(this.widgetMap[w]);
-            });
+        // 3. ФИЗИЧЕСКОЕ УНИЧТОЖЕНИЕ DOM
+        document.body.style.setProperty('background', 'transparent', 'important');
+        document.documentElement.style.setProperty('background', 'transparent', 'important');
+        
+        const finalAllowedIds = new Set(requestedWidgets.map(w => this.widgetMap[w]));
 
-            // Перебираем все известные виджеты
-            for (const [key, id] of Object.entries(this.widgetMap)) {
-                // Если элемент НЕ в списке разрешенных - УДАЛЯЕМ ЕГО ФИЗИЧЕСКИ ИЗ HTML
-                if (!allowedIds.has(id)) {
-                    const el = document.getElementById(id);
-                    if (el) el.remove();
-                }
+        for (const [widgetName, domId] of Object.entries(this.widgetMap)) {
+            if (!finalAllowedIds.has(domId)) {
+                const el = document.getElementById(domId);
+                if (el) el.remove(); // Хирургическое удаление
             }
+        }
 
-            // Специфичная логика для контейнера вебки (он хранит и рамку, и питомца)
-            const camFrame = document.getElementById('webcam-frame');
-            const petCont = document.getElementById('pet-container');
-            if (!camFrame && !petCont) {
-                const mainCamCont = document.getElementById('webcam-container');
-                if (mainCamCont) mainCamCont.remove();
-            }
+        // 4. ОСОБЫЙ СЛУЧАЙ: Контейнер веб-камеры
+        // Рамка (cam) и Питомец (pet) лежат в одном <div id="webcam-container">. 
+        // Если удалены оба, нужно удалить и родителя, чтобы он не перекрывал клики.
+        if (!finalAllowedIds.has(this.widgetMap['cam']) && !finalAllowedIds.has(this.widgetMap['pet'])) {
+            const mainCamCont = document.getElementById('webcam-container');
+            if (mainCamCont) mainCamCont.remove();
         }
 
         this.bindEvents();
@@ -85,7 +74,7 @@ window.SystemManager = {
         window.AppEvents.listen('CORE_REBOOT_START', () => this.triggerCoreRefreshUI('start'));
         window.AppEvents.listen('CORE_REBOOT_DONE', () => this.triggerCoreRefreshUI('done'));
         
-        // Ручное переключение через команды чата (!widget chat off)
+        // Управление через команды чата (!widget chat off)
         window.AppEvents.listen('WIDGET_TOGGLE', (data) => {
             const elId = this.widgetMap[data.widget];
             if (elId) {
@@ -95,7 +84,6 @@ window.SystemManager = {
                         el.style.setProperty('display', 'none', 'important');
                     } else if (data.state === 'on' || data.state === 'show') {
                         el.style.removeProperty('display');
-                        // Специфика чата
                         if (elId === 'chat-container') el.style.setProperty('display', 'flex', 'important');
                     }
                 }
