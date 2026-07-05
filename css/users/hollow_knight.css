@@ -1,69 +1,44 @@
 /* ==========================================================
-   КАСТОМНЫЙ СТИЛЬ: hollow_knight
+   КАСТОМНЫЙ СТИЛЬ: hollow_knight (TITANIUM SKELETON EDITION)
    ========================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap');
 
-/* Внешние отступы (обнулены боковые) */
+/* Внешние отступы: даем 30px сверху для выступающей аватарки */
 .chat-block[data-style="hollow_knight"] {
-    margin: 20px 0 15px 0; 
-    display: flex;
-    flex-direction: column;
+    margin: 30px 0 15px 0; 
+}
+
+/* Полностью отключаем заднее свечение (убираем оранжевую грязь) */
+.chat-block[data-style="hollow_knight"] .chat-fx-backdrop {
+    display: none !important;
 }
 
 /* ==============================================
-   БЛОК МЕТА-ДАННЫХ (Реплаи и Бейджи над баблом)
-   ============================================== */
-.chat-block[data-style="hollow_knight"] .chat-meta {
-    margin-bottom: 25px; /* Отступ для аватарки */
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
-    z-index: 1; /* Опустили слой, чтобы свет был ЗА баблом */
-    position: relative; /* ВАЖНО: якорь для источника света */
-}
-
-/* Оранжевая лучезарность (Объемный свет) */
-.chat-block[data-style="hollow_knight"] .chat-meta::after {
-    content: '';
-    position: absolute;
-    bottom: -25px; /* Ровно компенсирует margin-bottom, касаясь верхней кромки бабла! */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 360px; /* Сделали значительно шире */
-    height: 150px; /* Подняли выше, чтобы обволакивало текст */
-    
-    /* Более плотное, насыщенное оранжевое ядро света */
-    background: radial-gradient(ellipse at bottom center, rgba(255, 100, 0, 0.85) 0%, rgba(230, 80, 0, 0.4) 50%, transparent 80%);
-    filter: blur(16px);
-    z-index: -1; /* ЗА текстом, но ПЕРЕД фоном стрима */
-    pointer-events: none;
-    animation: orangeRadiance 3s infinite alternate ease-in-out;
-}
-
-@keyframes orangeRadiance {
-    0% { opacity: 0.7; transform: translateX(-50%) scale(0.95); }
-    100% { opacity: 1; transform: translateX(-50%) scale(1.1); filter: blur(20px); box-shadow: 0 -10px 30px rgba(255, 100, 0, 0.3); }
-}
-
-/* ==============================================
-   БАЗОВЫЙ БАБЛ (ФОН И ДЫХАНИЕ ДУШИ)
+   ПЕРЕСТРОЙКА СЕТКИ ПУЗЫРЯ (МОНОЛИТ ПО ЦЕНТРУ)
    ============================================== */
 .chat-block[data-style="hollow_knight"] .chat-bubble {
-    background: radial-gradient(circle at top, #141c2c 0%, #06080d 90%);
-    border: 1px solid rgba(147, 184, 214, 0.3);
-    border-radius: 6px;
-    
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    overflow: visible !important; 
-    
-    padding: 30px 20px 30px 20px; 
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    /* Идеальный отступ для завитушки и текста */
+    padding: 34px 20px 30px 20px !important; 
     min-width: 260px; 
-    position: relative;
-    z-index: 5; /* Бабл перекрывает источник света снизу */
+    text-align: center;
+}
+
+/* ==============================================
+   ФОН ПУЗЫРЯ (ДЫХАНИЕ ДУШИ)
+   ============================================== */
+.chat-block[data-style="hollow_knight"] .chat-bubble-bg {
+    background: radial-gradient(circle at top, #141c2c 0%, #06080d 90%) !important;
+    border: 1px solid rgba(147, 184, 214, 0.3) !important;
+    border-radius: 6px !important;
     
-    animation: soulBreathe 4s infinite alternate ease-in-out;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    
+    animation: soulBreathe 4s infinite alternate ease-in-out !important;
 }
 
 @keyframes soulBreathe {
@@ -71,83 +46,106 @@
     100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 1), inset 0 0 25px rgba(147, 184, 214, 0.15); border-color: rgba(147, 184, 214, 0.5); }
 }
 
-/* ==============================================
-   ИЗЯЩНЫЕ ЗАВИТУШКИ (ВЕРХ И НИЗ)
-   ============================================== */
-.chat-block[data-style="hollow_knight"] .chat-bubble::before,
-.chat-block[data-style="hollow_knight"] .chat-bubble::after {
+/* Изящные завитушки (Привязаны к фону бабла) */
+.chat-block[data-style="hollow_knight"] .chat-bubble-bg::before,
+.chat-block[data-style="hollow_knight"] .chat-bubble-bg::after {
     content: '';
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     width: 180px; 
     height: 24px; 
+    /* Дефолтный синий цвет: %2393b8d6 */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%2393b8d6'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2393b8d6'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%2393b8d6'/%3E%3C/svg%3E");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     filter: drop-shadow(0 0 8px rgba(147, 184, 214, 0.6));
-    pointer-events: none;
-    z-index: 1;
 }
 
-.chat-block[data-style="hollow_knight"] .chat-bubble::before { top: 6px; }
-.chat-block[data-style="hollow_knight"] .chat-bubble::after { bottom: 6px; transform: translateX(-50%) rotate(180deg); }
+/* Завитушка ровно у верхней границы */
+.chat-block[data-style="hollow_knight"] .chat-bubble-bg::before { top: 0px; } 
+.chat-block[data-style="hollow_knight"] .chat-bubble-bg::after { bottom: 8px; transform: translateX(-50%) rotate(180deg); }
 
 /* ==============================================
-   АВАТАРКА (АМУЛЕТ) И ШАПКА
+   АВАТАРКА (АМУЛЕТ)
    ============================================== */
-.chat-block[data-style="hollow_knight"] .chat-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border-bottom: none !important; 
-    padding-bottom: 0px;
-    margin-bottom: 12px;
-    position: static; 
+.chat-block[data-style="hollow_knight"] .chat-avatar-slot {
+    position: absolute !important;
+    top: -24px !important; 
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
 }
 
 .chat-block[data-style="hollow_knight"] .chat-avatar {
-    position: absolute;
-    top: -24px; 
-    left: 50%;
-    transform: translateX(-50%);
-    width: 48px; 
-    height: 48px;
-    border-radius: 50%;
+    width: 48px !important; 
+    height: 48px !important;
+    border-radius: 50% !important;
     
-    border: 2px solid rgba(147, 184, 214, 0.9);
-    background: #06080d;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(147, 184, 214, 0.5), inset 0 0 10px #000;
-    filter: grayscale(70%) sepia(30%) hue-rotate(180deg) brightness(1.1) contrast(1.2);
-    z-index: 10;
-    margin: 0;
-    transition: all 0.5s ease;
-}
-
-.chat-block[data-style="hollow_knight"] .chat-user {
-    color: #ffffff !important;
-    font-family: 'Cinzel', serif;
-    font-size: 18px; 
-    letter-spacing: 2.5px;
-    text-shadow: 0 0 12px rgba(147, 184, 214, 0.9), 0 2px 4px rgba(0,0,0,1);
-    font-weight: 800;
-    text-transform: uppercase;
-    margin-top: 6px; 
+    border: 2px solid rgba(147, 184, 214, 0.9) !important;
+    background-color: #06080d !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), 0 0 15px rgba(147, 184, 214, 0.5), inset 0 0 10px #000 !important;
+    
+    filter: grayscale(70%) sepia(30%) hue-rotate(180deg) brightness(1.1) contrast(1.2) !important;
 }
 
 /* ==============================================
-   ЛИНИЯ СО ВРЕМЕНЕМ ПО ЦЕНТРУ
+   КОНТЕНТ (ШАПКА И ЛОР)
    ============================================== */
+.chat-block[data-style="hollow_knight"] .chat-content {
+    align-items: center !important;
+    width: 100% !important;
+    padding: 0 !important;
+}
+
+.chat-block[data-style="hollow_knight"] .chat-header {
+    flex-direction: column !important;
+    justify-content: center !important;
+    border-bottom: none !important;
+    margin-bottom: 2px !important;
+    gap: 0 !important;
+}
+
+.chat-block[data-style="hollow_knight"] .chat-header-info {
+    flex-direction: column !important;
+    align-items: center !important;
+    overflow: visible !important; 
+}
+
+/* Никнейм */
+.chat-block[data-style="hollow_knight"] .chat-user {
+    color: #ffffff !important;
+    font-family: 'Cinzel', serif !important;
+    font-size: 18px !important; 
+    letter-spacing: 2.5px !important;
+    text-shadow: 0 0 12px rgba(147, 184, 214, 0.9), 0 2px 4px rgba(0,0,0,1) !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    line-height: 1 !important; 
+    
+    margin-top: 0 !important; 
+    margin-bottom: 6px !important; 
+    padding-bottom: 0 !important;
+    
+    overflow: visible !important;
+    white-space: normal !important; 
+    background: transparent !important;
+    
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Линия со временем по центру */
 .chat-block[data-style="hollow_knight"] .chat-header-right {
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px; 
-    margin-top: 10px; 
-    opacity: 0.8;
+    width: 100% !important;
+    justify-content: center !important;
+    gap: 12px !important; 
+    opacity: 0.8 !important;
+    
+    height: auto !important;
+    margin: 2px 0 4px 0 !important;
 }
 
 .chat-block[data-style="hollow_knight"] .chat-header-right::before,
@@ -155,38 +153,37 @@
     content: '';
     flex-grow: 1; 
     height: 1px;
-    transition: background 0.5s ease;
 }
-.chat-block[data-style="hollow_knight"] .chat-header-right::before {
-    background: linear-gradient(90deg, transparent, rgba(147, 184, 214, 0.3));
-}
-.chat-block[data-style="hollow_knight"] .chat-header-right::after {
-    background: linear-gradient(270deg, transparent, rgba(147, 184, 214, 0.3));
-}
+.chat-block[data-style="hollow_knight"] .chat-header-right::before { background: linear-gradient(90deg, transparent, rgba(147, 184, 214, 0.3)); }
+.chat-block[data-style="hollow_knight"] .chat-header-right::after { background: linear-gradient(270deg, transparent, rgba(147, 184, 214, 0.3)); }
 
 .chat-block[data-style="hollow_knight"] .chat-time {
-    color: rgba(147, 184, 214, 0.8);
-    font-family: 'Cinzel', serif;
-    font-weight: 600;
-    font-size: 11px; 
-    letter-spacing: 2px;
+    color: rgba(147, 184, 214, 0.8) !important;
+    font-family: 'Cinzel', serif !important;
+    font-weight: 600 !important;
+    font-size: 11px !important; 
+    letter-spacing: 2px !important;
+    line-height: 1 !important;
 }
 
-/* ==============================================
-   ТЕКСТ ЛОРА
-   ============================================== */
-.chat-block[data-style="hollow_knight"] .chat-text {
-    font-family: 'Cormorant Garamond', serif;
-    color: #c5deef;
-    font-weight: 600;
-    font-size: 20px; 
-    line-height: 1.35;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
-    text-align: center; 
-    padding: 0px 5px 10px 5px;
+/* Текст сообщения */
+.chat-block[data-style="hollow_knight"] .chat-text-inner {
+    font-family: 'Cormorant Garamond', serif !important;
+    color: #c5deef !important;
+    font-weight: 600 !important;
+    font-size: 20px !important; 
+    line-height: 1.35 !important;
+    letter-spacing: 0.5px !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.9) !important;
+    text-align: center !important; 
+    padding: 0 !important;
 }
 
+/* Бейджи центрируем */
+.chat-block[data-style="hollow_knight"] .chat-badges-wrap {
+    justify-content: center !important;
+    margin-bottom: 4px !important;
+}
 
 /* =========================================================================
    ИСПРАВЛЕННЫЕ МОДИФИКАТОРЫ TWITCH
@@ -196,101 +193,120 @@
    1. ОТВЕТ (REPLY) - "Озаренный шепот"
    ---------------------------------------------- */
 .chat-block[data-style="hollow_knight"] .chat-reply {
-    background: transparent !important;
+    background: radial-gradient(ellipse at center, rgba(255, 157, 0, 0.08) 0%, transparent 80%) !important;
     border: none !important;
-    padding: 0 !important;
-    text-align: center; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    position: relative; 
-    z-index: 1;
+    border-top: 1px solid rgba(255, 157, 0, 0.2) !important;
+    border-bottom: 1px solid rgba(255, 157, 0, 0.2) !important;
+    padding: 8px 15px !important;
+    margin-bottom: 10px !important; 
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 4px !important;
+    width: 90% !important;
 }
 
-/* Скрываем дефолтную розовую полоску */
 .chat-block[data-style="hollow_knight"] .chat-reply::before { display: none !important; }
+.chat-block[data-style="hollow_knight"] .reply-icon { display: none !important; }
 
-/* Имя того, кому отвечают */
 .chat-block[data-style="hollow_knight"] .chat-reply-user {
-    color: #ff9d00 !important; /* Яркий оранжевый */
+    color: #ff9d00 !important; 
     font-family: 'Cinzel', serif !important;
     font-size: 11px !important;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
     font-weight: 800 !important;
-    /* Легкая черная тень для контура + мощное оранжевое свечение */
-    text-shadow: 0 0 10px rgba(255, 100, 0, 1), 1px 1px 2px rgba(0,0,0,0.8) !important;
+    text-shadow: 0 0 10px rgba(255, 157, 0, 0.8), 1px 1px 2px rgba(0,0,0,0.8) !important;
 }
 
-/* Текст на который отвечают */
+.chat-block[data-style="hollow_knight"] .chat-reply-user::before {
+    content: '✧ ';
+    color: #ff9d00;
+    opacity: 0.7;
+}
+
 .chat-block[data-style="hollow_knight"] .chat-reply-text {
-    color: #ffd099 !important; /* Насыщенный персиковый (убрали прозрачность) */
+    color: #ffd099 !important; 
     font-family: 'Cormorant Garamond', serif !important;
     font-style: italic !important;
-    font-size: 15px !important;
+    font-size: 15px !important; 
     font-weight: 600 !important;
     white-space: normal !important; 
-    max-width: 280px;
-    /* Черная тень-подложка гарантирует читаемость на белом фоне */
-    text-shadow: 0 0 12px rgba(255, 80, 0, 0.9), 1px 1px 3px rgba(0,0,0,0.9) !important;
-}
-
-/* Иконка ответа */
-.chat-block[data-style="hollow_knight"] .reply-icon { 
-    color: #ff9d00 !important; 
-    width: 10px !important; 
-    height: 10px !important;
-    filter: drop-shadow(0 0 4px rgba(255, 100, 0, 0.8));
+    max-width: 280px !important;
+    text-shadow: 0 0 12px rgba(255, 157, 0, 0.6), 1px 1px 3px rgba(0,0,0,0.9) !important;
+    text-align: center !important;
 }
 
 /* ----------------------------------------------
-   2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "Чума"
+   2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "Чума" (Цвет #e95b07)
    ---------------------------------------------- */
-.chat-block.is-highlighted[data-style="hollow_knight"] .chat-bubble {
-    border-left: 1px solid rgba(211, 84, 0, 0.5) !important; 
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-bubble-bg {
+    border-color: rgba(233, 91, 7, 0.3) !important;
     animation: plagueBreathe 4s infinite alternate ease-in-out !important;
 }
 
 @keyframes plagueBreathe {
-    0% { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(211, 84, 0, 0.1); border-color: rgba(211, 84, 0, 0.3); }
-    100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 1), inset 0 0 30px rgba(211, 84, 0, 0.3); border-color: rgba(211, 84, 0, 0.6); }
+    0% { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(233, 91, 7, 0.15); border-color: rgba(233, 91, 7, 0.3); }
+    100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 1), inset 0 0 30px rgba(233, 91, 7, 0.4); border-color: rgba(233, 91, 7, 0.6); }
 }
 
 .chat-block.is-highlighted[data-style="hollow_knight"] .chat-avatar {
-    border-color: #e67e22 !important;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), 0 0 20px rgba(230, 126, 34, 0.6), inset 0 0 10px #000 !important;
-    filter: sepia(100%) hue-rotate(340deg) saturate(200%) brightness(1.2) contrast(1.2) !important;
+    border-color: #e95b07 !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), 0 0 20px rgba(233, 91, 7, 0.7), inset 0 0 10px #000 !important;
+    filter: sepia(100%) hue-rotate(345deg) saturate(300%) brightness(1.1) contrast(1.2) !important;
+}
+
+.chat-block.is-highlighted[data-style="hollow_knight"] .badge-star { 
+    display: none !important; 
+    width: 0 !important; 
+    height: 0 !important; 
 }
 
 .chat-block.is-highlighted[data-style="hollow_knight"] .chat-badge-highlight {
     background: transparent !important;
     border: none !important;
-    border-bottom: 1px solid rgba(230, 126, 34, 0.4) !important;
-    border-radius: 0 !important;
-    box-shadow: 0 5px 5px -5px rgba(230, 126, 34, 0.5) !important;
-    color: #e67e22 !important;
+    color: #e95b07 !important;
     font-family: 'Cinzel', serif !important;
-    font-size: 10px !important;
-    letter-spacing: 3px !important;
-    padding: 0 10px 4px 10px !important;
-    margin-bottom: 5px !important;
+    font-size: 11px !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    text-shadow: 0 0 10px rgba(233, 91, 7, 0.5) !important;
 }
 
-.chat-block.is-highlighted[data-style="hollow_knight"] .badge-star {
-    color: #e67e22 !important;
-    filter: drop-shadow(0 0 4px rgba(230, 126, 34, 0.6)) !important;
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-badge-highlight span::before { content: '✦ '; opacity: 0.8; }
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-badge-highlight span::after { content: ' ✦'; opacity: 0.8; }
+
+/* ИСПРАВЛЕНО: Завитушки заменены на новую SVG с точным цветом #e95b07 (без кривых фильтров) */
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-bubble-bg::before,
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-bubble-bg::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%23e95b07'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%23e95b07' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%23e95b07' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%23e95b07'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%23e95b07'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%23e95b07' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%23e95b07' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%23e95b07'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%23e95b07'/%3E%3C/svg%3E") !important;
+    filter: drop-shadow(0 0 8px rgba(233, 91, 7, 0.8)) !important;
 }
 
-.chat-block.is-highlighted[data-style="hollow_knight"] .chat-bubble::before,
-.chat-block.is-highlighted[data-style="hollow_knight"] .chat-bubble::after {
-    filter: drop-shadow(0 0 8px rgba(211, 84, 0, 0.6)) hue-rotate(160deg) saturate(200%) !important;
+/* ПУЛЬСИРУЮЩИЕ ЗВЕЗДЫ ПО БОКАМ ОТ ИМЕНИ (#e95b07) */
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-user::before,
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-user::after {
+    content: '✦';
+    display: inline-block;
+    color: #e95b07;
+    font-size: 16px;
+    animation: hkStarPulse 1s infinite alternate ease-in-out;
+}
+
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-user::before { margin-right: 10px; }
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-user::after { margin-left: 10px; }
+
+@keyframes hkStarPulse {
+    0% { opacity: 0.5; transform: scale(0.8); text-shadow: 0 0 5px rgba(233, 91, 7, 0.4); }
+    100% { opacity: 1; transform: scale(1.2); text-shadow: 0 0 15px rgba(233, 91, 7, 1), 0 0 5px rgba(255, 255, 255, 0.8); }
 }
 
 /* ----------------------------------------------
    3. ПИНГ СТРИМЕРА (MENTION) - "Пламя Кошмара"
    ---------------------------------------------- */
-.chat-block.is-mention[data-style="hollow_knight"] .chat-bubble {
+.chat-block.is-mention[data-style="hollow_knight"] .chat-bubble-bg {
     border-right: 1px solid rgba(147, 184, 214, 0.3) !important;
 }
 
@@ -302,14 +318,13 @@
 .chat-block.is-mention[data-style="hollow_knight"] .chat-ping {
     background: transparent !important; 
     border: none !important;
-    border-bottom: 1px solid #e74c3c !important; 
-    border-radius: 0 !important; 
+    text-decoration: none !important;
     color: #f1c40f !important; 
     font-family: 'Cinzel', serif !important;
     font-weight: 800 !important;
-    padding: 0 2px !important;
-    box-shadow: 0 4px 6px -4px rgba(231, 76, 60, 0.8) !important;
-    text-shadow: 0 0 8px rgba(231, 76, 60, 0.6) !important;
+    padding: 0 4px !important;
+    box-shadow: none !important;
+    text-shadow: 0 0 10px rgba(231, 76, 60, 0.8), 1px 1px 2px #000 !important;
     letter-spacing: 1px !important;
 }
 
@@ -337,7 +352,6 @@
 /* =========================================================================
    5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Шепот Пустоты"
    ========================================================================= */
-
 #tts-container[data-style="hollow_knight"] {
     background: radial-gradient(circle at right, #141c2c 0%, #06080d 100%) !important;
     border: 1px solid rgba(147, 184, 214, 0.3) !important;
@@ -352,10 +366,6 @@
 
 #tts-container[data-style="hollow_knight"].tts-in {
     animation: ttsSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, soulBreatheTTS 4s 0.5s infinite alternate ease-in-out !important;
-}
-
-#tts-container[data-style="hollow_knight"].tts-out {
-    animation: ttsSlideOut 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) forwards !important;
 }
 
 @keyframes soulBreatheTTS {
