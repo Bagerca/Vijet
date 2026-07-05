@@ -75,6 +75,14 @@ window.GamesDatabase = {
         title: "S.T.A.L.K.E.R.: Тень Чернобыля", cover: "img/covers/stalker.png", themeColor: "#EAB308", type: "game",
         tags: ["Шутер / Выживание", "9.0 / 10"], details: { "Разработчик": "GSC Game World", "Год": "2007", "Платформа": "PC" }
     },
+    "delivery & beyond": { 
+        title: "Delivery & Beyond", 
+        cover: "img/covers/delivery_beyond.jpeg", 
+        themeColor: "#FF9F43", 
+        type: "game",
+        tags: ["Кооп / Физика", "Симулятор"], 
+        details: { "Разработчик": "Студия", "Год": "2024", "Платформа": "PC" }
+    },
 
     // === ФИЛЬМЫ И СЕРИАЛЫ ===
     "digital circus": {
