@@ -1,68 +1,34 @@
-/* ================= EVENT BUS 3.0 (Синхронная Шина с отпиской) ================= */
+/* ================= EVENT BUS (ШИНА СОБЫТИЙ С ЛОГАМИ И ЛОКАЛЬНЫМ ЭХО) ================= */
 window.StreamBus = new BroadcastChannel('ultimate_overlay_channel');
 
 window.AppEvents = {
-    _history: [], 
-    _listeners: {}, // Храним ссылки на функции-обработчики
-
     emit: function(eventName, payload = {}) {
-        this._history.push({ time: Date.now(), event: eventName, payload });
-        if (this._history.length > 50) this._history.shift();
-
         console.log(`%c[BUS 📤] ${eventName}`, 'color: #FF4477; font-weight: bold;', payload);
         
-        // Отправляем в другие вкладки
+        // 1. Отправляем сигнал в ДРУГИЕ вкладки (index.html)
         window.StreamBus.postMessage({ event: eventName, payload: payload });
         
-        // Отправляем локально
+        // 2. Отправляем сигнал САМИМ СЕБЕ (внутри core.html)
         window.dispatchEvent(new CustomEvent('local_bus', { 
             detail: { event: eventName, payload: payload } 
         }));
     },
     
     listen: function(eventName, callback) {
-        if (!this._listeners[eventName]) {
-            this._listeners[eventName] = [];
-        }
-
-        // Внешний обработчик (BroadcastChannel)
-        const extHandler = (e) => {
+        // Слушаем другие вкладки
+        window.StreamBus.addEventListener('message', (e) => {
             if (e.data.event === eventName) {
-                try { callback(e.data.payload); } 
-                catch (err) { console.error(`[BUS ❌ EXT] Ошибка в ${eventName}:`, err); }
+                console.log(`%c[BUS 📥] ${eventName}`, 'color: #00E5FF; font-weight: bold;', e.data.payload);
+                try { callback(e.data.payload); } catch (err) { console.error(`[BUS ❌] Ошибка:`, err); }
             }
-        };
-
-        // Локальный обработчик (CustomEvent)
-        const locHandler = (e) => {
-            if (e.detail.event === eventName) {
-                try { callback(e.detail.payload); } 
-                catch (err) { console.error(`[BUS ❌ LOC] Ошибка в ${eventName}:`, err); }
-            }
-        };
-
-        // Сохраняем ссылки для возможности отписки
-        this._listeners[eventName].push({ 
-            originalCb: callback, 
-            extHandler: extHandler, 
-            locHandler: locHandler 
         });
 
-        window.StreamBus.addEventListener('message', extHandler);
-        window.addEventListener('local_bus', locHandler);
-    },
-
-    unlisten: function(eventName, callback) {
-        if (!this._listeners[eventName]) return;
-
-        this._listeners[eventName] = this._listeners[eventName].filter(listener => {
-            if (listener.originalCb === callback) {
-                // Удаляем слушателей из браузера
-                window.StreamBus.removeEventListener('message', listener.extHandler);
-                window.removeEventListener('local_bus', listener.locHandler);
-                return false; // Удаляем из массива
+        // Слушаем соседние скрипты внутри этой же вкладки
+        window.addEventListener('local_bus', (e) => {
+            if (e.detail.event === eventName) {
+                console.log(`%c[BUS 🏠 LOCAL] ${eventName}`, 'color: #00FF7F; font-weight: bold;', e.detail.payload);
+                try { callback(e.detail.payload); } catch (err) { console.error(`[BUS ❌ LOCAL] Ошибка:`, err); }
             }
-            return true;
         });
     }
 };

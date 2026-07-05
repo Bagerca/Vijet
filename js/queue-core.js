@@ -1,93 +1,95 @@
-/* ================= ОЧЕРЕДЬ МУЗЫКИ (SINGLE SOURCE OF TRUTH) ================= */
+/* ================= ОЧЕРЕДЬ МУЗЫКИ ================= */
 window.AppQueueCore = {
+    items: [],
     isPlaying: false,
-    isAutoPlay: true, 
 
     init: function() {
-        // Мы больше не читаем localStorage! Все данные лежат в AppCoreState.queue
+        const saved = localStorage.getItem('uso_queue');
+        if (saved) { try { this.items = JSON.parse(saved); } catch(e) { this.items = []; } }
 
         window.AppEvents.listen('QUEUE_ADD', d => this.add(d.url, d.user));
-        
         window.AppEvents.listen('QUEUE_CMD', d => {
             if (d.cmd === 'next') this.next();
             if (d.cmd === 'clear') this.clear();
-            if (d.cmd === 'autoplay_off') this.isAutoPlay = false;
-            if (d.cmd === 'autoplay_on') { 
-                this.isAutoPlay = true; 
-                if (!this.isPlaying && window.AppCoreState.queue.length > 0) this.next(); 
-            }
         });
 
         window.AppEvents.listen('YT_ENDED', () => this.next());
         
         window.AppEvents.listen('YT_CORE_READY', () => {
-            if (window.AppCoreState.queue.length > 0 && !this.isPlaying && this.isAutoPlay) {
-                console.log("🔄 [QUEUE] Визуал готов, восстанавливаем очередь...");
+            if (this.items.length > 0 && !this.isPlaying) {
+                console.log("🔄 [QUEUE] Восстанавливаем треки из памяти...");
                 this.next();
             }
         });
+        
+        setTimeout(() => this.broadcastState(), 2000);
     },
 
     extractData: function(url) {
         if (!url) return null;
         let str = url.trim();
+        
+        // Поиск плейлиста
         const listMatch = str.match(/[?&]list=([^#&?]+)/);
         if (listMatch) return { type: 'playlist', id: listMatch[1] };
+        
+        // Поиск стандартного видео
         let cleanUrl = str.replace(/.*?http/, 'http');
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = cleanUrl.match(regExp);
         if (match && match[2].length === 11) return { type: 'video', id: match[2] };
+        
+        // Если скинули просто 11-значный ID
         if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return { type: 'video', id: str };
+        
         return null;
     },
 
-    add: async function(url, user) {
+    add: function(url, user) {
         console.log(`📥 [QUEUE] Запрос от ${user}: ${url}`);
         const ytData = this.extractData(url);
         
         if (ytData) {
-            if (ytData.type === 'video') {
-                try {
-                    const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${ytData.id}&format=json`);
-                    const data = await response.json();
-                    ytData.title = data.title;
-                } catch (e) { ytData.title = `YouTube Video [${ytData.id}]`; }
-            } else {
-                ytData.title = `Плейлист [${ytData.id}]`;
-            }
-
-            // Добавляем трек в глобальное состояние и оповещаем все виджеты
-            const newQueue = [...window.AppCoreState.queue, { type: ytData.type, id: ytData.id, user: user, title: ytData.title }];
-            window.AppCoreState.update({ queue: newQueue });
-            
+            console.log(`✅ [QUEUE] Распознан формат: ${ytData.type}, ID: ${ytData.id}`);
+            this.items.push({ type: ytData.type, id: ytData.id, user: user });
+            this.save();
             window.AppEvents.emit('TICKER_MUSIC', { data: ytData, user: user });
             
-            if (!this.isPlaying && this.isAutoPlay) {
-                this.next();
-            }
+            if (!this.isPlaying) this.next();
+        } else {
+            console.error(`❌ [QUEUE] Ошибка: Не удалось распознать ссылку "${url}"`);
         }
     },
 
     next: function() {
-        if (window.AppCoreState.queue.length > 0) {
+        if (this.items.length > 0) {
             this.isPlaying = true;
-            
-            const nextQueue = [...window.AppCoreState.queue];
-            const nextItem = nextQueue.shift();
-            
-            window.AppCoreState.update({ queue: nextQueue });
-            
-            console.log(`▶️ [QUEUE] Запуск трека:`, nextItem);
+            const nextItem = this.items.shift();
+            this.save();
+            console.log(`▶️ [QUEUE] Отправляем трек/плейлист в плеер:`, nextItem);
             window.AppEvents.emit('YT_CORE_PLAY', nextItem);
         } else {
             console.log("📭 [QUEUE] Очередь пуста.");
             this.isPlaying = false;
+            this.save();
             window.AppEvents.emit('YT_CORE_HIDE');
         }
     },
 
     clear: function() {
-        window.AppCoreState.update({ queue: [] });
+        console.log("🧹 [QUEUE] Очередь очищена!");
+        this.items = [];
+        this.save();
         this.next(); 
+    },
+
+    save: function() {
+        localStorage.setItem('uso_queue', JSON.stringify(this.items));
+        this.broadcastState();
+    },
+
+    broadcastState: function() {
+        window.AppEvents.emit('QUEUE_STATE', { count: this.items.length });
     }
 };
+window.AppQueueCore.init();

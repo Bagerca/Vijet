@@ -1,93 +1,63 @@
-<!-- ================= core.html ================= -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>USO CORE (ЯДРО)</title>
-    <!-- Внешние библиотеки -->
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     
     <script>
+        // Умный загрузчик для обхода кэша
         const v = new URLSearchParams(window.location.search).get('nocache') || Date.now();
         document.write(`<script src="js/config.js?v=${v}"><\/script>`);
         document.write(`<script src="js/event-bus.js?v=${v}"><\/script>`);
     </script>
 </head>
 <body>
-    <!-- Физический аудио-вывод для Ядра -->
     <div id="yt-player-core" style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode');
         const cacheVersion = params.get('nocache') || Date.now();
-        
-        const coreScripts = [
-            'js/services/avatar-manager.js', 
-            'js/services/chat-filter.js',
-            'js/audio-core.js', 
-            'js/tts-core.js', 
-            'js/youtube-core.js', 
-            'js/queue-core.js',
-            // --- РАСЩЕПЛЕННОЕ ЯДРО ---
-            'js/core/state.js',
-            'js/core/commands.js',
-            'js/core/interactions.js',
-            'js/core/chat.js',
-            'js/core/controllers.js',
-            'js/core/twitch.js',
-            'js/core/main.js' 
-        ];
+        const scriptsToLoad = [];
 
-        // Элегантная загрузка через Promise
-        const loadScript = (src) => {
-            return new Promise((resolve, reject) => {
-                const s = document.createElement('script');
-                s.src = `${src}?v=${cacheVersion}`;
-                s.onload = resolve;
-                s.onerror = () => reject(new Error(`Failed to load ${src}`));
-                document.body.appendChild(s);
-            });
-        };
-
-        const bootCore = async () => {
-            console.log("%c[BOOTLOADER] Загрузка модулей ядра...", "color: #FEE101; font-weight: bold;");
-            
-            try {
-                // Ждем последовательной загрузки всех скриптов
-                for (const script of coreScripts) {
-                    await loadScript(script);
-                }
-
-                console.log("%c[BOOTLOADER] Зависимости загружены. Инициализация...", "color: #00FF7F; font-weight: bold;");
-                
-                const modules = [
-                    window.AvatarManager,
-                    window.AppAudioCore,
-                    window.AppTTSCore,
-                    window.AppPlayerCore,
-                    window.AppQueueCore,
-                    window.AppInteractions,
-                    window.AppCoreMain
-                ];
-
-                modules.forEach(mod => {
-                    if (mod && typeof mod.init === 'function' && !mod.isInitialized) {
-                        try {
-                            mod.init();
-                            mod.isInitialized = true;
-                        } catch (e) { console.error("[BOOTLOADER] Сбой инициализации:", e); }
-                    }
-                });
-                
-                window.AppEvents.emit('CORE_READY');
-
-            } catch (error) {
-                console.error("%c[BOOTLOADER] Критическая ошибка загрузки ядра:", "color: #FF0050;", error);
+        if (!mode) {
+            scriptsToLoad.push(
+                'js/services/avatar-manager.js', 'js/services/chat-filter.js',
+                'js/core.js', 'js/audio-core.js', 'js/tts-core.js', 'js/queue-core.js', 'js/youtube-core.js'
+            );
+        } else {
+            if (mode === 'master') {
+                scriptsToLoad.push('js/services/avatar-manager.js', 'js/services/chat-filter.js', 'js/core.js', 'js/queue-core.js', 'js/youtube-core.js');
             }
-        };
+            if (mode === 'tts') {
+                scriptsToLoad.push('js/tts-core.js');
+            }
+            if (mode === 'alerts' || mode === 'deaths') {
+                const originalListen = window.AppEvents.listen;
+                window.AppEvents.listen = function(eventName, callback) {
+                    if (eventName === 'PLAY_SOUND') {
+                        originalListen.call(window.AppEvents, eventName, (d) => {
+                            const isDeathSound = d.path.includes('death');
+                            if (mode === 'deaths' && !isDeathSound) return;
+                            if (mode === 'alerts' && isDeathSound) return;
+                            callback(d);
+                        });
+                    } else {
+                        originalListen.call(window.AppEvents, eventName, callback);
+                    }
+                };
+                scriptsToLoad.push('js/audio-core.js');
+            }
+        }
 
-        document.addEventListener("DOMContentLoaded", bootCore);
+        // Загружаем скрипты с обходом кэша
+        scriptsToLoad.forEach(src => {
+            const s = document.createElement('script');
+            s.src = `${src}?v=${cacheVersion}`;
+            document.body.appendChild(s);
+        });
     </script>
 </body>
 </html>

@@ -1,50 +1,31 @@
-/* ================= YOUTUBE CORE ПЛЕЕР (ИСТОЧНИК ЗВУКА) ================= */
+/* ================= YOUTUBE CORE ПЛЕЕР ================= */
 window.AppPlayerCore = {
     yt: null,
     isReady: false,
-    currentVol: window.AppConfig.defaultVolume || 30,
-    
-    // Новая система Audio Ducking
-    duckCount: 0, 
-    isDucking: false, 
-    restoreVolTimeout: null, 
-    
+    currentVol: window.AppConfig.defaultVolume,
+    isDucking: false, // Флаг сайдчейна (приглушения)
     progressInterval: null,
     currentItem: null,
-    pendingData: null,
+    currentVisualId: null,
 
     init: function() {
         window.AppEvents.listen('YT_CORE_PLAY', d => this.play(d));
         window.AppEvents.listen('YT_CORE_HIDE', () => this.hide());
         window.AppEvents.listen('PLAYER_VOL', d => this.setVolume(d.vol));
         
-        // === АУДИО САЙДЧЕЙН (Reference Counting) ===
+        // === АУДИО САЙДЧЕЙН (Audio Ducking) ===
         window.AppEvents.listen('AUDIO_DUCK_START', () => {
-            this.duckCount++;
             this.isDucking = true;
-            
-            if (this.restoreVolTimeout) clearTimeout(this.restoreVolTimeout);
-            
-            // Глушим звук мгновенно
             if (this.isReady && this.yt) {
+                // Приглушаем до 15% от ТЕКУЩЕЙ громкости, минимум 1%
                 this.yt.setVolume(Math.max(1, this.currentVol * 0.15));
             }
         });
-
         window.AppEvents.listen('AUDIO_DUCK_STOP', () => {
-            this.duckCount = Math.max(0, this.duckCount - 1);
-            
-            // Если больше нет активных звуков (алертов/TTS)
-            if (this.duckCount === 0) {
-                if (this.restoreVolTimeout) clearTimeout(this.restoreVolTimeout);
-                
-                // Возвращаем звук с небольшой задержкой (послезвучие)
-                this.restoreVolTimeout = setTimeout(() => {
-                    if (this.duckCount === 0) { // Двойная проверка
-                        this.isDucking = false;
-                        if (this.isReady && this.yt) this.yt.setVolume(this.currentVol);
-                    }
-                }, 2000); 
+            this.isDucking = false;
+            if (this.isReady && this.yt) {
+                // Возвращаем исходную громкость
+                this.yt.setVolume(this.currentVol);
             }
         });
 
@@ -87,34 +68,19 @@ window.AppPlayerCore = {
     createPlayer: function() {
         if (!document.getElementById('yt-player-core')) return;
         
-        let safeOrigin = window.location.origin;
-        if (!safeOrigin || safeOrigin === 'null' || safeOrigin.startsWith('file')) {
-            safeOrigin = 'https://www.youtube.com'; 
-        }
-        
         this.yt = new YT.Player('yt-player-core', {
-            playerVars: { 
-                'autoplay': 1, 
-                'controls': 0, 
-                'origin': safeOrigin 
-            },
+            playerVars: { 'autoplay': 1, 'controls': 0, 'origin': window.location.origin },
             events: {
                 'onReady': () => {
                     this.isReady = true;
                     this.setVolume(this.currentVol);
-                    console.log("%c[YT CORE] 🔊 Звуковой плеер готов!", "color: #FEE101;");
-                    
                     window.AppEvents.emit('YT_CORE_READY');
-                    
-                    if (this.pendingData) {
-                        this.play(this.pendingData);
-                        this.pendingData = null;
-                    }
                 },
                 'onStateChange': this.handleStateChange.bind(this),
                 'onError': (e) => {
                     let reason = "Ограничения правообладателя или видео удалено";
                     console.error(`❌ [YT CORE] Ошибка: ${reason} (Код ${e.data})`);
+                    
                     window.AppEvents.emit('TICKER_REWARD', { user: "Система", reward: "Трек недоступен", message: reason });
                     
                     if (this.currentItem && this.currentItem.type === 'playlist') {
@@ -130,25 +96,16 @@ window.AppPlayerCore = {
     },
 
     play: function(data) {
-        if (!this.isReady) {
-            this.pendingData = data;
-            return;
-        }
+        if (!this.isReady) return;
         this.currentItem = data;
-        
-        window.AppEvents.emit('YT_VISUAL_PLAY', { 
-            id: data.id, type: data.type, user: data.user, vol: this.currentVol 
-        });
+        this.currentVisualId = null; 
         
         if (data.type === 'playlist') this.yt.loadPlaylist({ list: data.id });
         else this.yt.loadVideoById(data.id);
-
+        
         setTimeout(() => {
-            if (this.yt && typeof this.yt.playVideo === 'function') {
-                this.yt.unMute();
-                this.yt.setVolume(this.isDucking ? Math.max(1, this.currentVol * 0.15) : this.currentVol);
-                this.yt.playVideo();
-            }
+            this.yt.unMute();
+            this.yt.playVideo();
         }, 300);
     },
 
@@ -163,24 +120,39 @@ window.AppPlayerCore = {
             this.currentVol = Math.max(0, Math.min(100, parseInt(vol) || window.AppConfig.defaultVolume));
             this.yt.unMute();
             
-            if (!this.isDucking) this.yt.setVolume(this.currentVol);
-            
+            // Если сейчас идет сайдчейн (говорят алерты), сохраняем новую громкость, но не применяем её к плееру
+            if (!this.isDucking) {
+                this.yt.setVolume(this.currentVol);
+            }
             window.AppEvents.emit('YT_VISUAL_VOL', { vol: this.currentVol });
         }
     },
 
     handleStateChange: function(event) {
-        if (event.data === 1 || event.data === 3) { 
-            if (event.data === 1) {
-                this.startProgress();
-                window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: true });
-                window.AppEvents.emit('YT_VISUAL_STATE', { state: 'playing' });
+        if (event.data === 1) { // PLAYING
+            let actualVidId = this.yt.getVideoData().video_id;
+            
+            if (actualVidId !== this.currentVisualId && this.currentItem) {
+                this.currentVisualId = actualVidId;
+                window.AppEvents.emit('YT_VISUAL_PLAY', { 
+                    id: actualVidId, 
+                    user: this.currentItem.user, 
+                    vol: this.currentVol 
+                });
             }
-        } else if (event.data === 2) { 
+            
+            this.startProgress();
+            // Отправляем базовое состояние танца в СТЕК питомца
+            window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: true });
+            window.AppEvents.emit('YT_VISUAL_STATE', { state: 'playing' });
+            
+        } else if (event.data === 2) { // PAUSED
             this.stopProgress();
+            // Удаляем танец из стека
             window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: false });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'paused' });
-        } else if (event.data === 0) { 
+            
+        } else if (event.data === 0) { // ENDED
             window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: false });
             if (this.currentItem && this.currentItem.type === 'playlist') {
                 let pl = this.yt.getPlaylist();
@@ -198,9 +170,7 @@ window.AppPlayerCore = {
             if (this.yt && this.yt.getCurrentTime && this.yt.getDuration) {
                 const cur = this.yt.getCurrentTime();
                 const tot = this.yt.getDuration();
-                if (tot > 0) {
-                    window.AppEvents.emit('YT_VISUAL_PROGRESS', { percent: (cur / tot) * 100, currentTime: cur });
-                }
+                if (tot > 0) window.AppEvents.emit('YT_VISUAL_PROGRESS', { percent: (cur / tot) * 100, currentTime: cur });
             }
         }, 500);
     },
@@ -209,3 +179,4 @@ window.AppPlayerCore = {
         if (this.progressInterval) clearInterval(this.progressInterval);
     }
 };
+window.AppPlayerCore.init();

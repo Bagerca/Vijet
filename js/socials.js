@@ -1,11 +1,9 @@
-/* ================= js/socials.js ================= */
-
 window.AppSocials = {
     container: document.getElementById('social-rotator'),
     currentIndex: 0,
     intervalId: null,
-    isInitialized: false, // Флаг инициализации
     
+    // Векторные иконки, чтобы они были идеально четкими и красились в любой цвет
     icons: {
         telegram: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.222 1.462l4.552 1.42 10.532-6.645c.498-.303.953-.14.579.192l-8.533 7.701h-.002l.002.001-.314 4.692c.46 0 .663-.211.921-.46l2.211-2.15 4.599 3.397c.848.467 1.457.227 1.668-.785l3.019-14.228c.309-1.239-.473-1.8-1.282-1.434z"/></svg>`,
         vk: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.162 18.994c.609 0 .858-.406.851-.915-.031-1.917.714-2.949 2.059-1.604 1.488 1.488 1.796 2.519 3.603 2.519h3.2c.808 0 1.126-.26 1.126-.668 0-.863-1.421-2.386-2.625-3.504-1.686-1.565-1.765-1.602-.313-3.486 1.801-2.339 2.583-3.929 2.378-4.542-.187-.557-1.126-.64-1.126-.64h-3.834c-.421 0-.693.208-.858.557C17.07 7.79 16.037 10.272 14.548 11.53c-.886.745-1.162.775-1.162.24V6.853c0-.609-.26-1.02-1.02-1.02h-4.382c-.378 0-.609.183-.609.431 0 .431.64.557.858 1.801.328 1.884.281 3.513-.378 3.96-.543.368-1.503-.178-3.324-3.535C3.763 7.028 3.42 6.13 3.056 6.13H-.26c-.457 0-.583.218-.583.473 0 .473.858 2.059 4.148 6.551 2.859 3.896 5.86 6.175 9.07 6.175h.787z"/></svg>`,
@@ -13,10 +11,6 @@ window.AppSocials = {
     },
 
     init: function() {
-        // Защита от двойного запуска
-        if (this.isInitialized) return;
-        this.isInitialized = true;
-
         if (!window.AppConfig.socialNetworks || window.AppConfig.socialNetworks.length === 0) return;
         
         setTimeout(() => {
@@ -45,6 +39,7 @@ window.AppSocials = {
         const iconSvg = this.icons[data.id] || this.icons.telegram; 
 
         this.container.style.setProperty('--social-color', data.color);
+        // Добавляем '26' к HEX коду (это 15% непрозрачности) для очень мягкого красивого свечения
         this.container.style.setProperty('--social-glow', data.color + '26'); 
 
         this.container.innerHTML = `
@@ -61,4 +56,5 @@ window.AppSocials = {
         `;
     }
 };
-// УДАЛЕНО: window.AppSocials.init();
+
+window.AppSocials.init();

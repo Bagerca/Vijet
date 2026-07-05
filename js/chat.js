@@ -1,7 +1,6 @@
-/* ================= ЧАТ (ПРОДВИНУТАЯ АРХИТЕКТУРА + ДЕДУПЛИКАТОР) ================= */
+/* ================= ЧАТ (ПРОДВИНУТАЯ АРХИТЕКТУРА) ================= */
 window.AppChat = {
     container: document.getElementById('chat-messages'),
-    renderedMessageIds: new Set(), // Кэш ID для предотвращения дублирования
 
     init: function() {
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', (data) => this.renderMessage(data));
@@ -11,24 +10,11 @@ window.AppChat = {
     },
 
     renderMessage: function(data) {
-        // ДЕДУПЛИКАЦИЯ: Если сообщение с таким ID уже отрисовано на экране — жестко игнорируем дубликат
-        if (data.id) {
-            if (this.renderedMessageIds.has(data.id)) {
-                console.log(`[DEDUPLICATOR 🛑] Дубликат сообщения отсечен: ${data.user} - ID: ${data.id}`);
-                return; 
-            }
-            this.renderedMessageIds.add(data.id);
-            
-            // Очищаем старые записи кэша, чтобы не росла память
-            if (this.renderedMessageIds.size > 100) {
-                this.renderedMessageIds = new Set(Array.from(this.renderedMessageIds).slice(-50));
-            }
-        }
-
         let metaHTML = '';
         let extraClasses = '';
         let bellHTML = '';
 
+        // 1. Формируем Мета-блок (Бейджи и Реплаи над сообщением)
         if (data.replyData) {
             metaHTML += `
                 <div class="chat-reply">
@@ -66,16 +52,19 @@ window.AppChat = {
             bellHTML = `<svg class="chat-ping-bell" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>`;
         }
 
+        // 2. Создаем Внешний невидимый блок с поддержкой СТИЛЕЙ
         const blockDiv = document.createElement('div');
         blockDiv.className = `chat-block${extraClasses}`;
         blockDiv.setAttribute('data-user', data.user.toLowerCase());
         
+        // Вешаем кастомный стиль, если он есть
         if (data.styleName) {
             blockDiv.setAttribute('data-style', data.styleName);
         }
         
         blockDiv.style.setProperty('--user-color', data.color);
         
+        // 3. Собираем HTML (Мета-блок отдельно, Бабл отдельно)
         blockDiv.innerHTML = `
             ${metaHTML ? `<div class="chat-meta">${metaHTML}</div>` : ''}
             
@@ -94,6 +83,7 @@ window.AppChat = {
         
         this.container.appendChild(blockDiv);
 
+        // 4. Очистка старых
         const activeMessages = Array.from(this.container.children).filter(el => !el.classList.contains('chat-out'));
         if (activeMessages.length > window.AppConfig.maxChatMessages) {
             const oldestMsg = activeMessages[0];

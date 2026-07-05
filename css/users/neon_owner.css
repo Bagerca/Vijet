@@ -1,395 +1,373 @@
-/* ================= users/neon_owner.css ================= */
+/* ==========================================================
+   КАСТОМНЫЙ СТИЛЬ: neon_owner (РЕМАСТЕР: Владелец Канала / Neon Premium)
+   ========================================================== */
 
-/* =====================================================================
-   КАСТОМНЫЙ СТИЛЬ: neon_owner (РЕМАСТЕР V9: Cyber-Queen Ultimate Harmony)
-   Полностью устранены конфликты рендеринга. Стабильный золото-розовый неон.
-   ===================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;800;900&display=swap');
-
-/* --- 1. СТРУКТУРНЫЕ НАСТРОЙКИ СТИЛЯ --- */
+/* Внешние отступы (обнулены боковые) */
 .chat-block[data-style="neon_owner"] {
-    --c-bg: rgba(22, 14, 30, 0.92); /* Насыщенное темное стекло */
-    --c-border: 2px solid #FF007F;  /* Базовый неоновый розовый (БЕЗ !important) */
-    --c-radius: 16px; /* Мягкое бабло */
-    --c-padding: 14px 18px;
-    --c-min-width: 280px;
-    --c-margin-bottom: 8px; 
-    
-    --c-font-user: 'Outfit', sans-serif;
-    --c-font-text: 'Outfit', sans-serif;
-    --c-color-text: #ffffff;
-    
-    margin: 8px 0; 
-    z-index: 50;
+    margin: 20px 0 20px 0; 
+    z-index: 50; 
 }
 
-/* Игнорируем бейдж "Впервые в чате" */
-.chat-block[data-style="neon_owner"] .chat-badge-first {
-    display: none !important;
-}
-
-/* Полностью убираем значок треугольника перед ником бродкастера */
-.chat-block[data-style="neon_owner"] .tw-badge {
-    display: none !important;
-}
-
-
-/* --- 2. ГЕОМЕТРИЯ И АНИМАЦИЯ ПЕРЕЛИВА (BULL OUTLINE) --- */
+/* ==============================================
+   БАЗОВЫЙ БАБЛ (ТЕМНОЕ СТЕКЛО + ГРАДИЕНТНАЯ РАМКА)
+   ============================================== */
 .chat-block[data-style="neon_owner"] .chat-bubble {
-    display: grid;
-    grid-template-areas: 
-        "avatar header right"
-        "avatar text text";
-    grid-template-columns: 44px 1fr auto;
-    grid-column-gap: 14px;
-    grid-row-gap: 6px;
-    align-items: start;
+    box-sizing: border-box !important;
+    width: 100% !important;
     
-    border: var(--c-border); /* БЕЗ !important для плавной работы анимации */
-    border-radius: var(--c-radius) !important;
-    backdrop-filter: blur(20px) !important; 
+    background-image: 
+        linear-gradient(135deg, rgba(20, 15, 25, 0.95), rgba(10, 5, 15, 0.98)),
+        linear-gradient(60deg, #FF4477, #00FF7F, #FF4477, #FF0050) !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    background-size: 100% 100%, 300% 300% !important;
+    
+    border: 2px solid transparent !important;
+    border-radius: 16px 16px 16px 4px !important; 
+    
+    backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    position: relative; 
-    overflow: visible !important; 
     
-    /* Анимация перелива контура бабла */
-    animation: neonShiftSmooth 4s infinite alternate ease-in-out;
-}
-
-/* Перелив контура (Сверхнасыщенный Розовый -> Кислотный Зеленый) */
-@keyframes neonShiftSmooth {
-    0% {
-        border-color: #FF007F;
-        box-shadow: 0 0 18px rgba(255, 0, 127, 0.45), inset 0 0 15px rgba(255, 0, 127, 0.15);
-    }
-    100% {
-        border-color: #00FF66;
-        box-shadow: 0 0 25px rgba(0, 255, 102, 0.55), inset 0 0 20px rgba(0, 255, 102, 0.25);
-    }
-}
-
-
-/* --- 3. ВНУТРЕННИЕ ЭЛЕМЕНТЫ --- */
-
-/* Аватарка (Квадратная с мягкими углами 12px) */
-.chat-block[data-style="neon_owner"] .chat-avatar { 
-    grid-area: avatar;
-    align-self: start; 
-    margin-top: 3px;
-    width: 44px !important; height: 44px !important; 
-    border-radius: 12px !important; 
-    border: 2px solid #FF007F; /* БЕЗ !important для синхронной анимации */
-    padding: 0 !important; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important; 
+    box-shadow: 
+        0 0 25px rgba(255, 68, 119, 0.15),
+        0 0 25px rgba(0, 255, 127, 0.15),
+        0 15px 30px rgba(0, 0, 0, 0.6) !important;
     
-    /* Анимация рамки аватарки синхронно с баблом */
-    animation: neonShiftSmooth 4s infinite alternate ease-in-out;
+    padding: 16px 20px !important;
+    position: relative;
+    overflow: hidden !important; 
+    
+    animation: ownerNeonBorder 4s linear infinite !important;
 }
 
-/* Шапка */
-.chat-block[data-style="neon_owner"] .chat-header { 
-    grid-area: header;
-    border-bottom: none !important; margin-bottom: 0 !important; padding-bottom: 0 !important; 
-    align-items: center;
+/* ВНУТРЕННЕЕ СВЕЧЕНИЕ (Мягкие неоновые углы под стеклом) */
+.chat-block[data-style="neon_owner"] .chat-bubble::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: inherit;
+    
+    background: 
+        radial-gradient(circle at 0% 0%, rgba(255, 68, 119, 0.25) 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(0, 255, 127, 0.15) 0%, transparent 60%);
+    
+    pointer-events: none;
+    z-index: 1; 
 }
 
-/* Никнейм (Бесконечный розово-зеленый перелив) */
-.chat-block[data-style="neon_owner"] .chat-user { 
-    display: inline-block !important; /* Включает перелив в браузере */
-    font-size: 16px !important; 
-    font-weight: 900 !important; 
+/* ==============================================
+   ШАПКА (ИДЕАЛЬНОЕ ВЫРАВНИВАНИЕ)
+   ============================================== */
+.chat-block[data-style="neon_owner"] .chat-header {
+    display: flex !important;
+    align-items: center !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important; 
+    padding-bottom: 10px !important;
+    margin-bottom: 10px !important;
+    position: relative;
+    z-index: 3; 
+}
+
+/* АВАТАРКА */
+.chat-block[data-style="neon_owner"] .chat-avatar {
+    width: 38px !important; 
+    height: 38px !important;
+    border-radius: 10px !important;
+    
+    border: 2px solid #fff !important;
+    padding: 2px !important;
+    background: linear-gradient(135deg, #FF4477, #00FF7F) !important;
+    
+    box-shadow: 0 0 10px rgba(255, 68, 119, 0.5) !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
+    
+    animation: ownerAvatarPulse 2s infinite alternate ease-in-out;
+}
+
+/* ИМЯ ПОЛЬЗОВАТЕЛЯ */
+.chat-block[data-style="neon_owner"] .chat-user {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 19px !important;
+    font-weight: 800 !important;
+    
+    background: linear-gradient(90deg, #FF4477 0%, #00FF7F 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    text-shadow: 0 2px 8px rgba(255, 68, 119, 0.2) !important;
     letter-spacing: 0.5px;
-    background-image: linear-gradient(90deg, #FF007F, #00FF66, #FF007F); 
-    background-size: 200% auto;
-    -webkit-background-clip: text; 
-    -webkit-text-fill-color: transparent; 
-    animation: textGradientMove 4s linear infinite !important; 
-    text-shadow: none !important; 
-    line-height: 1.2 !important; 
-    text-transform: uppercase;
+    
+    margin-right: 10px !important;
+    line-height: 1.2 !important;
 }
 
-@keyframes textGradientMove {
+/* ПРАВЫЙ БЛОК (ТОЛЬКО БЕЙДЖ, БЕЗ ВРЕМЕНИ) */
+.chat-block[data-style="neon_owner"] .chat-header-right {
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+}
+
+/* БЕЙДЖ "OWNER" */
+.chat-block[data-style="neon_owner"] .chat-header-right::before {
+    content: 'OWNER';
+    font-family: 'Outfit', sans-serif;
+    background: #FF4477;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 3px 6px;
+    border-radius: 6px;
+    letter-spacing: 1.5px;
+    box-shadow: 0 2px 8px rgba(255, 68, 119, 0.5);
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ПОЛНОСТЬЮ ВЫРЕЗАЕМ ВРЕМЯ ИМЕННО ИЗ ЭТОГО БАБЛА */
+.chat-block[data-style="neon_owner"] .chat-time {
+    display: none !important;
+}
+
+/* ==============================================
+   ТЕКСТ СООБЩЕНИЯ
+   ============================================== */
+.chat-block[data-style="neon_owner"] .chat-text {
+    font-family: 'Outfit', sans-serif !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    position: relative;
+    z-index: 3;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+    letter-spacing: 0.3px;
+    word-break: break-word !important; 
+}
+
+/* ==============================================
+   АНИМАЦИИ
+   ============================================== */
+@keyframes ownerNeonBorder {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
 
-/* Розовый ярлык OWNER */
-.chat-block[data-style="neon_owner"] .chat-header-right { grid-area: right; }
-.chat-block[data-style="neon_owner"] .chat-time { display: none !important; } 
-
-.chat-block[data-style="neon_owner"] .chat-header-right::before { 
-    content: 'OWNER'; 
-    font-family: 'Outfit', sans-serif; 
-    background: rgba(255, 0, 127, 0.15); 
-    color: #FF007F; 
-    border: 1.5px solid #FF007F;
-    font-size: 9px; font-weight: 900; 
-    
-    height: 18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 8px; 
-    border-radius: 6px; 
-    
-    letter-spacing: 1.5px; 
-    line-height: 1; 
-    margin-top: 1px;
+@keyframes ownerAvatarPulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 68, 119, 0.4); }
+    100% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 68, 119, 0.8), 0 0 10px rgba(0, 255, 127, 0.4); }
 }
 
-/* Текст сообщения */
-.chat-block[data-style="neon_owner"] .chat-text { 
-    grid-area: text;
-    font-size: 15px !important; 
-    font-weight: 600 !important; 
-    line-height: 1.45 !important; 
-    color: #ffffff !important;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important; 
-}
+/* =========================================================================
+   ПРЕМИУМ МОДИФИКАТОРЫ (REPLY, HIGHLIGHT, MENTION, CENSURE, TTS)
+   ========================================================================= */
 
-
-/* --- 4. СОЧНЫЙ РОЗОВЫЙ РЕПЛЕЙ (REPLY) --- */
-.chat-block[data-style="neon_owner"] .chat-reply { 
-    background: rgba(22, 14, 30, 0.95) !important; 
-    border: 1px solid rgba(255, 0, 127, 0.3) !important; 
-    border-left: 3px solid #FF007F !important; 
-    border-radius: 12px !important; 
-    padding: 8px 12px !important; 
-    margin-bottom: 6px !important; 
-    box-shadow: 0 4px 15px rgba(255, 0, 127, 0.15) !important;
+/* ----------------------------------------------
+   1. ОТВЕТ (REPLY) - "Связанные данные (Linked Data)"
+   ---------------------------------------------- */
+.chat-block[data-style="neon_owner"] .chat-reply {
+    background: rgba(10, 5, 15, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-left: 3px solid #00FF7F !important; /* Неоново-зеленый коннект */
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    margin-bottom: 12px !important;
     backdrop-filter: blur(10px) !important;
 }
 
 .chat-block[data-style="neon_owner"] .chat-reply::before { display: none !important; }
 
-/* Фикс стрелочки */
+/* Перекрашиваем стрелочку в зеленый неон */
 .chat-block[data-style="neon_owner"] .reply-icon { 
-    width: 13px !important; 
-    height: 13px !important; 
-    min-width: 13px !important;
-    min-height: 13px !important;
-    color: #FF007F !important; 
-    filter: drop-shadow(0 0 4px rgba(255, 0, 127, 0.5)) !important; 
-    display: inline-block !important;
-    margin-right: 4px !important;
-    vertical-align: middle !important;
+    color: #00FF7F !important; 
+    filter: drop-shadow(0 0 5px rgba(0, 255, 127, 0.6)) !important;
+    opacity: 1 !important;
 }
 
-.chat-block[data-style="neon_owner"] .chat-reply-user { 
-    color: #FF007F !important; 
-    font-family: 'Outfit', sans-serif !important; 
-    font-size: 11px !important; 
-    letter-spacing: 1px !important; 
-    text-transform: uppercase !important;
-    text-shadow: none !important;
-}
-.chat-block[data-style="neon_owner"] .chat-reply-text { 
-    color: rgba(255, 255, 255, 0.85) !important; 
-    font-family: 'Outfit', sans-serif !important; 
-    font-size: 13px !important; 
-    font-weight: 500;
-    margin-top: 2px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important; 
+.chat-block[data-style="neon_owner"] .chat-reply-user {
+    color: #00FF7F !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 12px !important;
+    letter-spacing: 1px !important;
+    text-shadow: 0 0 8px rgba(0, 255, 127, 0.4) !important;
 }
 
-
-/* --- 5. ЗОЛОТОЙ ПРЕМИУМ-БАБЛ (HIGHLIGHT) --- */
-/* Табличка сверху полностью убрана */
-.chat-block[data-style="neon_owner"] .chat-badge-highlight { 
-    display: none !important;
+.chat-block[data-style="neon_owner"] .chat-reply-text {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 14px !important;
 }
 
-/* Весь бабл золотой с переливом в розово-золотых тонах */
-.chat-block[data-msg-type="highlight"][data-style="neon_owner"] .chat-bubble { 
-    background: rgba(30, 20, 10, 0.95); /* Убран костыльный !important */
-    border: 2px solid #FFD700; /* Базовый золотой контур без !important */
-    box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 25px rgba(255, 215, 0, 0.25), inset 0 0 30px rgba(255, 215, 0, 0.15); /* Убран костыльный !important */
-    background-image: repeating-linear-gradient(-45deg, rgba(255, 215, 0, 0.03) 0, rgba(255, 215, 0, 0.03) 2px, transparent 2px, transparent 10px); 
-    
-    /* Запуск золотой анимации без блокирующих !important */
-    animation: goldPinkShiftSmooth 4s infinite alternate ease-in-out;
+/* ----------------------------------------------
+   2. ВЫДЕЛЕНИЕ ЗА БАЛЛЫ (HIGHLIGHT) - "SYSTEM OVERRIDE"
+   ---------------------------------------------- */
+/* Ускоряем вращение рамки и усиливаем свечение */
+.chat-block.is-highlighted[data-style="neon_owner"] .chat-bubble {
+    animation: ownerNeonBorder 1.5s linear infinite !important; /* Быстрее! */
+    box-shadow: 
+        0 0 40px rgba(255, 68, 119, 0.3),
+        0 0 40px rgba(0, 255, 127, 0.3),
+        0 15px 30px rgba(0, 0, 0, 0.8) !important;
 }
 
-/* ИСПРАВЛЕНО: Рамка аватарки в хайлайте тоже переливается в золото-розовых тонах */
-.chat-block[data-msg-type="highlight"][data-style="neon_owner"] .chat-avatar {
-    border: 2px solid #FFD700; /* Без блокирующего !important */
-    animation: goldPinkShiftSmooth 4s infinite alternate ease-in-out;
+.chat-block.is-highlighted[data-style="neon_owner"] .chat-text {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
 }
 
-/* ИСПРАВЛЕНО: Ник Ксюши плавно перетекает из золота в розовую неонку */
-.chat-block[data-msg-type="highlight"][data-style="neon_owner"] .chat-user {
-    display: inline-block !important; 
-    background-image: linear-gradient(90deg, #FFD700, #FF007F, #FFD700) !important; 
-    background-size: 200% auto !important;
-    -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
-    animation: textGradientMove 4s linear infinite !important;
+/* Премиальный бейдж приоритета */
+.chat-block.is-highlighted[data-style="neon_owner"] .chat-badge-highlight {
+    background: linear-gradient(90deg, rgba(255, 68, 119, 0.2), rgba(0, 255, 127, 0.2)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 10px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 15px rgba(0, 255, 127, 0.2) !important;
+    letter-spacing: 2px !important;
 }
-.chat-block[data-msg-type="highlight"][data-style="neon_owner"] .chat-header-right::before {
-    background: rgba(255, 215, 0, 0.15) !important;
-    color: #FFD700 !important;
-    border-color: #FFD700 !important;
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.2) !important;
+.chat-block.is-highlighted[data-style="neon_owner"] .badge-star { 
+    color: #00FF7F !important;
+    filter: drop-shadow(0 0 5px #00FF7F) !important;
+}
+.chat-block.is-highlighted[data-style="neon_owner"] .chat-badge-highlight::before { content: 'PRIORITY'; font-weight: 900; }
+
+/* ----------------------------------------------
+   3. ПИНГ СТРИМЕРА (MENTION) - "Direct Comms"
+   ---------------------------------------------- */
+.chat-block.is-mention[data-style="neon_owner"] .chat-bubble {
+    border-right: 4px solid #FF4477 !important;
 }
 
-/* ИСПРАВЛЕНО: Убраны блокирующие !important из кадров золотой анимации */
-@keyframes goldPinkShiftSmooth {
-    0% { 
-        border-color: #FFD700; /* Золото */
-        box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 18px rgba(255, 215, 0, 0.45), inset 0 0 15px rgba(255, 215, 0, 0.15);
-    }
-    100% { 
-        border-color: #FF007F; /* Розовая неонка */
-        box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 25px rgba(255, 0, 127, 0.5), inset 0 0 20px rgba(255, 0, 127, 0.25);
-    }
+.chat-block.is-mention[data-style="neon_owner"] .chat-ping-bell { display: none !important; }
+
+/* Неоновая светящаяся таблетка */
+.chat-block.is-mention[data-style="neon_owner"] .chat-ping {
+    background: linear-gradient(90deg, #FF4477, #FF0050) !important;
+    color: #ffffff !important;
+    font-family: 'Outfit', sans-serif !important;
+    border: none !important;
+    border-radius: 20px !important; /* Pill shape */
+    padding: 2px 10px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 15px rgba(255, 68, 119, 0.6) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
 }
 
+/* ----------------------------------------------
+   4. ЦЕНЗУРА (МАТ) - "ACCESS DENIED / ЗАСЕКРЕЧЕНО"
+   ---------------------------------------------- */
+.chat-block[data-style="neon_owner"] .censured-badge {
+    background: #000000 !important;
+    color: #FF4477 !important;
+    border: 1px solid #FF4477 !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 10px !important;
+    border-radius: 4px !important;
+    box-shadow: 0 0 10px rgba(255, 68, 119, 0.3) !important;
+}
+.chat-block[data-style="neon_owner"] .censured-badge::before { content: 'RESTRICTED'; }
 
-/* --- 6. ПИНГ / УПОМИНАНИЕ (MENTION) --- */
-.chat-block[data-mention="true"][data-style="neon_owner"] .chat-ping-bell { 
-    display: none !important; 
+.chat-block[data-style="neon_owner"] .censured-message {
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(10, 5, 15, 0.9),
+        rgba(10, 5, 15, 0.9) 10px,
+        rgba(255, 68, 119, 0.1) 10px,
+        rgba(255, 68, 119, 0.1) 20px
+    ) !important;
+    border: 1px solid rgba(255, 68, 119, 0.5) !important;
+    border-radius: 8px !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    letter-spacing: 4px !important;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8) !important;
 }
-.chat-block[data-mention="true"][data-style="neon_owner"] .chat-bubble {
-    animation: pingPulseSmooth 1.5s infinite alternate ease-in-out !important;
-}
-@keyframes pingPulseSmooth {
-    0% {
-        border-color: #FF0050;
-        box-shadow: 0 0 15px rgba(255, 0, 80, 0.4), inset 0 0 15px rgba(255, 0, 80, 0.1);
-    }
-    100% {
-        border-color: #ff668f;
-        box-shadow: 0 0 30px rgba(255, 0, 80, 0.8), inset 0 0 25px rgba(255, 0, 80, 0.3);
-    }
-}
-.chat-block[data-mention="true"][data-style="neon_owner"] .chat-ping { 
-    background: rgba(255, 0, 80, 0.2) !important; 
-    color: #ffffff !important; 
-    border: 1.5px solid #FF0050 !important; 
-    border-radius: 6px !important; 
-    font-family: 'Outfit', sans-serif !important; 
-    font-weight: 800 !important; 
-    padding: 2px 8px !important; 
-    box-shadow: 0 0 8px rgba(255, 0, 80, 0.4) !important;
-}
+.chat-block[data-style="neon_owner"] .censured-message::before { content: '[ ИНФОРМАЦИЯ ЗАСЕКРЕЧЕНА ]'; color: #FF4477; text-shadow: 0 0 8px rgba(255, 68, 119, 0.5); }
 
+/* =========================================================================
+   5. ВИДЖЕТ ОЗВУЧКИ (TTS) - "Holo-Voice Module"
+   ========================================================================= */
 
-/* --- 7. ЦЕНЗУРА (RESTRICTED) --- */
-.chat-block[data-style="neon_owner"] .censured-badge { 
-    background: #000000 !important; color: #FF0050 !important; 
-    border: 1px solid #FF0050 !important; font-family: 'Outfit', sans-serif !important; 
-    font-size: 10px !important; border-radius: 6px !important; box-shadow: 0 0 10px rgba(255, 0, 80, 0.2) !important; 
-}
-.chat-block[data-style="neon_owner"] .censured-badge::before { content: 'SYS_BLOCK'; }
-
-.chat-block[data-style="neon_owner"] .censured-message { 
-    background: repeating-linear-gradient(-45deg, rgba(0,0,0,0.9), rgba(0,0,0,0.9) 10px, rgba(255, 0, 80, 0.15) 10px, rgba(255, 0, 80, 0.15) 20px) !important; 
-    border: 1px solid rgba(255, 0, 80, 0.5) !important; border-radius: 12px !important; 
-    color: #FF0050 !important; font-family: 'Outfit', sans-serif !important; 
-    font-size: 14px !important; font-weight: 800 !important; letter-spacing: 2px !important; 
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.8) !important; padding: 12px !important;
-    text-align: center;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-.chat-block[data-style="neon_owner"] .censured-message::before { 
-    content: '[ DATA EXPUNGED ]'; 
-    color: #fff; margin-right: 8px; text-shadow: 0 0 5px rgba(255,255,255,0.5);
-    display: block;
-    margin-bottom: 4px;
-}
-
-
-/* --- 8. УНИКАЛЬНЫЙ И ИСПРАВЛЕННЫЙ TTS-ВИДЖЕТ ДЛЯ КСЮШИ --- */
+/* Контейнер повторяет дизайн главного бабла (стекло + градиент) */
 #tts-container[data-style="neon_owner"] {
-    background: rgba(14, 10, 18, 0.95) !important;
-    border: 2px solid #FF007F !important;
+    background-image: 
+        linear-gradient(135deg, rgba(20, 15, 25, 0.95), rgba(10, 5, 15, 0.98)),
+        linear-gradient(60deg, #FF4477, #00FF7F, #FF4477, #FF0050) !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    background-size: 100% 100%, 300% 300% !important;
+    
+    border: 2px solid transparent !important;
     border-radius: 16px !important; 
-    padding: 12px 24px !important;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 0, 127, 0.1) !important;
+    
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     
-    animation: ttsNeonShiftSmooth 4s infinite alternate ease-in-out !important;
+    box-shadow: 
+        0 0 20px rgba(255, 68, 119, 0.2),
+        0 0 20px rgba(0, 255, 127, 0.2),
+        0 10px 20px rgba(0, 0, 0, 0.6) !important;
+        
+    animation: ownerNeonBorder 4s linear infinite !important;
 }
 
-@keyframes ttsNeonShiftSmooth {
-    0% {
-        border-color: #FF007F;
-        box-shadow: 0 0 18px rgba(255, 0, 127, 0.4), 0 15px 35px rgba(0, 0, 0, 0.5) !important;
-    }
-    100% {
-        border-color: #00FF66;
-        box-shadow: 0 0 25px rgba(0, 255, 102, 0.6), 0 0 35px rgba(0, 255, 102, 0.1) !important;
-    }
+/* Голографическое неоновое кольцо вместо микрофона */
+#tts-container[data-style="neon_owner"] .tts-icon {
+    font-size: 0 !important; 
+    filter: none !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    background: linear-gradient(135deg, #140f19, #0a050f) padding-box, linear-gradient(135deg, #FF4477, #00FF7F) border-box;
+    box-shadow: 0 0 15px rgba(255, 68, 119, 0.5), inset 0 0 10px rgba(0, 255, 127, 0.5) !important;
+    animation: holoRingPulse 1.5s infinite alternate ease-in-out !important;
+    margin-right: 8px;
 }
 
-/* Квадратный аватар со скруглением в TTS (Squircle 12px) */
-#tts-container[data-style="neon_owner"] .tts-avatar-wrap {
-    width: 52px !important; 
-    height: 52px !important; 
-    margin: 0 !important;
-    border-radius: 12px !important; /* Углы 12px */
-    background: #000 !important;
-    border: 2px solid #FF007F; /* Начинается с розового контура */
-    box-shadow: 0 0 15px rgba(255, 0, 127, 0.3) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    overflow: hidden !important;
-    
-    /* Синхронная с контейнером анимация перелива */
-    animation: ttsNeonShiftSmooth 4s infinite alternate ease-in-out;
+@keyframes holoRingPulse {
+    0% { transform: scale(0.9) rotate(0deg); opacity: 0.8; }
+    100% { transform: scale(1.2) rotate(180deg); opacity: 1; box-shadow: 0 0 25px rgba(0, 255, 127, 0.8), inset 0 0 15px rgba(255, 68, 119, 0.8) !important; }
 }
 
-#tts-container[data-style="neon_owner"] #tts-avatar {
-    width: 100% !important; 
-    height: 100% !important;
-    border: none !important; /* Убрана белая рамка */
-    border-radius: 10px !important; /* Скругленный квадрат */
-    object-fit: cover !important;
-    opacity: 1 !important; 
-    filter: contrast(1.1) brightness(1.1) !important; 
-}
-
-#tts-container[data-style="neon_owner"] .tts-avatar-ring { 
-    display: none !important; 
-}
-
-/* Динамическое дыхание аватарки в TTS (Squircle) */
-#tts-container.tts-in[data-style="neon_owner"] .tts-avatar-wrap {
-    animation: ttsAvatarPulseSmooth 1.5s infinite alternate ease-in-out !important;
-}
-@keyframes ttsAvatarPulseSmooth {
-    0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 0, 127, 0.4) !important; }
-    100% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 0, 127, 0.8), 0 0 10px rgba(0, 255, 102, 0.4) !important; }
-}
-
-/* Текст "озвучка сообщения" над ником (сверхчитаемый неоново-розовый) */
+/* Название ивента */
 #tts-container[data-style="neon_owner"] .tts-title {
-    color: #FF007F !important;
     font-family: 'Outfit', sans-serif !important;
+    color: rgba(255, 255, 255, 0.4) !important;
     font-size: 10px !important;
-    font-weight: 800 !important;
-    letter-spacing: 1.5px !important;
-    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
 }
+#tts-container[data-style="neon_owner"] .tts-title::before { content: 'SYSTEM.AUDIO // '; }
 
+/* Имя пользователя (Фирменный градиент Владельца) */
 #tts-container[data-style="neon_owner"] .tts-user {
     font-family: 'Outfit', sans-serif !important;
-    background: linear-gradient(90deg, #FF4477, #00FF7F);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 900 !important;
-    text-transform: uppercase;
+    background: linear-gradient(90deg, #FF4477 0%, #00FF7F 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    text-shadow: 0 2px 8px rgba(255, 68, 119, 0.2) !important;
+    letter-spacing: 0.5px !important;
 }
 
+/* Эквалайзер (Градиентные неоновые столбцы) */
 #tts-container[data-style="neon_owner"] .tts-bar {
-    background: #00FF7F !important;
+    background: linear-gradient(to top, rgba(255, 68, 119, 0.4), #FF4477) !important;
+    border-radius: 4px !important;
+    width: 5px !important;
+    box-shadow: 0 0 8px rgba(255, 68, 119, 0.3) !important;
 }
 #tts-container[data-style="neon_owner"] .tts-bar.active-spike {
-    background: #FF4477 !important;
-    box-shadow: 0 0 10px #FF4477 !important;
+    background: linear-gradient(to top, #00FF7F, #fff) !important; /* На пике становится зеленым/белым */
+    box-shadow: 0 0 15px rgba(0, 255, 127, 0.8), 0 0 5px #fff !important;
 }

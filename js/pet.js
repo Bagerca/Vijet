@@ -1,46 +1,52 @@
-/* ================= js/pet.js ================= */
-
 window.AppPet = {
     container: document.getElementById('pet-container'),
+    
+    // Новая система: СТЕК БАЗОВЫХ СОСТОЯНИЙ. Питомец всегда возвращается к верхнему стейту в массиве.
     baseStack: ['idle'], 
-    activeState: null,      
-    currentPriority: 0,     
+    
+    activeState: null,      // Временная эмоция (love, angry, scared и тд)
+    currentPriority: 0,     // Вес текущей временной эмоции
+    
     particleInterval: null,
     emotionTimeout: null,
     sleepTimer: null,
-    isInitialized: false,
 
+    // Веса временных эмоций (чем выше цифра, тем сложнее перебить)
     priorities: {
-        'angry': 10, 'scared': 9, 'nom': 8, 
-        'love': 5,                          
-        'greet': 4, 'bye': 4,               
-        'alert': 3,                         
-        'hype': 1                           
+        'angry': 10, 'scared': 9, 'nom': 8, // Мат, смерть, еда - перебить нельзя
+        'love': 5,                          // Подписки, донаты, VIP
+        'greet': 4, 'bye': 4,               // Ручные команды модеров
+        'alert': 3,                         // Реакция пробуждения / блюр
+        'hype': 1                           // Смайлы в чате
     },
 
     init: function() {
-        if (this.isInitialized) return;
-        this.isInitialized = true;
-
         if (!window.AppConfig.petEnabled || !this.container) {
             if(this.container) this.container.style.display = 'none';
             return;
         }
 
+        // Подписка на временные эмоции
         window.AppEvents.listen('PET_EMOTION', d => this.setEmotion(d.emotion, d.duration));
         
+        // Подписка на базовые состояния (запись в стек)
         window.AppEvents.listen('PET_BASE_STATE', d => {
             if (d.active) {
+                // Если состояние активировано, кладем его наверх стека
                 if (!this.baseStack.includes(d.state)) this.baseStack.push(d.state);
             } else {
+                // Если отключено - удаляем из стека
                 this.baseStack = this.baseStack.filter(s => s !== d.state);
             }
+            
+            // Если сейчас нет временной эмоции, сразу рисуем верхнее состояние стека
             if (!this.activeState) {
                 this.applyVisualState(this.baseStack[this.baseStack.length - 1]);
             }
         });
 
         this.resetSleepTimer();
+        // Запуск слушателя на любые клики (для ручного пробуждения)
         window.addEventListener('click', () => this.wakeUp());
     },
 
@@ -48,27 +54,33 @@ window.AppPet = {
         if (!this.container) return;
         this.resetSleepTimer();
 
+        // Если это ВРЕМЕННАЯ эмоция
         const incomingPriority = this.priorities[state] || 1;
 
+        // Если текущая проигрываемая эмоция ВАЖНЕЕ (или такая же), игнорируем новую
         if (this.activeState && incomingPriority <= this.currentPriority) {
             return; 
         }
 
+        // В противном случае - перебиваем старую эмоцию новой
         clearTimeout(this.emotionTimeout);
         this.activeState = state;
         this.currentPriority = incomingPriority;
 
         this.applyVisualState(state);
 
+        // Устанавливаем таймер возврата к стеку
         if (durationMs > 0) {
             this.emotionTimeout = setTimeout(() => {
                 this.activeState = null;
                 this.currentPriority = 0;
+                // Возвращаемся к фоновому состоянию (читаем вершину стека)
                 this.applyVisualState(this.baseStack[this.baseStack.length - 1]);
             }, durationMs);
         }
     },
 
+    // Функция, которая только меняет CSS и частицы
     applyVisualState: function(state) {
         clearInterval(this.particleInterval);
         
@@ -111,6 +123,7 @@ window.AppPet = {
         const timeoutSec = window.AppConfig.petSleepTimeout || 120;
         
         this.sleepTimer = setTimeout(() => {
+            // Лиса засыпает ТОЛЬКО если на вершине стека 'idle' и нет временных эмоций
             if (this.baseStack[this.baseStack.length - 1] === 'idle' && !this.activeState) {
                 window.AppEvents.emit('PET_BASE_STATE', { state: 'sleep', active: true });
             }
@@ -131,3 +144,5 @@ window.AppPet = {
         setTimeout(() => p.remove(), 2000);
     }
 };
+
+setTimeout(() => window.AppPet.init(), 1000);

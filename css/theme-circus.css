@@ -1,203 +1,325 @@
 /* ==========================================================
-   ГЛОБАЛЬНАЯ ТЕМА: УДИВИТЕЛЬНЫЙ ЦИФРОВОЙ ЦИРК (УЦЦ)
-   Полный ремастер V2. 
-   Шаг 1: Прогресс-бар подписчиков (Goal)
-   Шаг 2: Идеальная анимированная рамка (Webcam Frame - OBS Fix)
-   ========================================================= */
+   ГЛОБАЛЬНАЯ ТЕМА: УДИВИТЕЛЬНЫЙ ЦИФРОВОЙ ЦИРК (!протокол цирк)
+   Палитра: Красный (#E52521), Синий (#004CB8), Желтый (#FEE101)
+   ========================================================== */
 
-/* Конфигурация палитры частиц для темы УЦЦ (Передается в JS) */
-body.theme-circus {
-    --particle-color-1: 229, 37, 33 !important; /* Красный */
-    --particle-color-2: 0, 76, 184 !important;  /* Синий */
+/* ==============================================
+   1. ФОНЫ СЦЕН (Вращающийся шатер цирка)
+   ============================================== */
+body.theme-circus.scene-chatting,
+body.theme-circus.scene-starting,
+body.theme-circus.scene-ending {
+    background: #C21A16 !important;
 }
 
-/* --- 1. ШКАЛА ЦЕЛЕЙ / ПОДПИСЧИКОВ (THEMED GOAL BAR) --- */
+body.theme-circus.scene-chatting::before,
+body.theme-circus.scene-starting::before,
+body.theme-circus.scene-ending::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: repeating-conic-gradient(from 0deg, #E52521 0deg 15deg, #C21A16 15deg 30deg);
+    z-index: -999;
+    animation: circusTentSpin 120s linear infinite;
+}
+
+body.theme-circus.scene-chatting::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, transparent 30%, rgba(0, 76, 184, 0.8) 100%);
+    z-index: -998;
+    pointer-events: none;
+}
+
+@keyframes circusTentSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ==============================================
+   2. СЦЕНЫ НАЧАЛА И КОНЦА (СТАРТ / ЭНДИНГ)
+   ============================================== */
+body.theme-circus .starting-glass-card, 
+body.theme-circus .ending-glass-card {
+    background: #ffffff !important;
+    border: 8px solid #004CB8 !important;
+    border-radius: 40px !important;
+    box-shadow: 20px 20px 0 #E52521 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+}
+
+body.theme-circus .starting-title, 
+body.theme-circus .ending-title {
+    color: #E52521 !important;
+    text-shadow: 5px 5px 0 #FEE101 !important;
+    letter-spacing: 4px;
+}
+
+body.theme-circus .starting-subtitle, 
+body.theme-circus .ending-subtitle {
+    color: #004CB8 !important;
+    font-weight: 900 !important;
+}
+
+body.theme-circus .status-dot, 
+body.theme-circus .status-dot-offline {
+    background-color: #FEE101 !important;
+    box-shadow: 0 0 15px #FEE101 !important;
+}
+
+/* ==============================================
+   3. РАМКА ВЕБКАМЕРЫ
+   ============================================== */
+body.theme-circus #webcam-frame {
+    border-radius: 20px !important;
+    box-shadow: 12px 12px 0 rgba(0, 76, 184, 0.9) !important;
+}
+
+body.theme-circus #webcam-frame::before {
+    background: repeating-linear-gradient(
+        45deg,
+        #E52521, 
+        #E52521 25px,
+        #004CB8 25px, 
+        #004CB8 50px
+    ) !important;
+    animation: circusSpin 2s linear infinite !important;
+}
+
+@keyframes circusSpin {
+    0% { background-position: 0 0; }
+    100% { background-position: 70px 0; }
+}
+
+/* ==============================================
+   4. ЧАТ И СООБЩЕНИЯ (МУЛЬТЯШНЫЕ)
+   ============================================== */
+body.theme-circus.scene-chatting #chat-container {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 6px solid #004CB8 !important;
+    box-shadow: 15px 15px 0 #FEE101 !important;
+    border-radius: 30px !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+    z-index: 50 !important;
+}
+
+/* Дефолтные сообщения зрителей.
+   ВАЖНО: Исключаем ВСЕХ твоих кастомных юзеров из списка! */
+body.theme-circus .chat-block:not([data-user="bagercaa"]):not([data-user="kiriika1"]):not([data-user="kiriika11"]):not([data-user="to_be_ang"]):not([data-user="dragonsmaddison"]):not([data-user="tetlabot"]):not([data-user="ksusha__sher"]):not([data-user="darkl1us"]) .chat-bubble {
+    background: #ffffff !important;
+    border: 4px solid #004CB8 !important;
+    border-left: 14px solid #E52521 !important;
+    border-radius: 12px 24px 12px 24px !important; /* Ломаная форма */
+    box-shadow: 6px 6px 0 #FEE101 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+}
+
+body.theme-circus .chat-block:not([data-user="bagercaa"]):not([data-user="kiriika1"]):not([data-user="kiriika11"]):not([data-user="to_be_ang"]):not([data-user="dragonsmaddison"]):not([data-user="tetlabot"]):not([data-user="ksusha__sher"]):not([data-user="darkl1us"]) .chat-header {
+    border-bottom: 3px dotted #004CB8 !important;
+}
+
+body.theme-circus .chat-block:not([data-user="bagercaa"]):not([data-user="kiriika1"]):not([data-user="kiriika11"]):not([data-user="to_be_ang"]):not([data-user="dragonsmaddison"]):not([data-user="tetlabot"]):not([data-user="ksusha__sher"]):not([data-user="darkl1us"]) .chat-time {
+    color: #E52521 !important;
+}
+
+/* ==============================================
+   5. ПЛЕЕР YOUTUBE
+   ============================================== */
+body.theme-circus #player-wrapper {
+    border: 6px solid #FEE101 !important;
+    box-shadow: 10px 10px 0 #004CB8 !important;
+    border-radius: 20px !important;
+}
+
+body.theme-circus #info-bar {
+    background: #ffffff !important;
+    border: 4px solid #E52521 !important;
+    box-shadow: 8px 8px 0 #004CB8 !important;
+    border-radius: 20px !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+}
+
+body.theme-circus #yt-progress-bar { 
+    background: #E52521 !important; 
+    box-shadow: 0 0 15px #E52521 !important; 
+}
+
+/* ==============================================
+   6. ПЛАШКА МЕДИА (Media Info)
+   ============================================== */
+body.theme-circus #media-info-container {
+    background: #ffffff !important;
+    border: 5px solid #004CB8 !important;
+    box-shadow: 12px 12px 0 #FEE101 !important;
+    border-radius: 24px !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+}
+
+body.theme-circus #mi-title { 
+    color: #E52521 !important; 
+    text-transform: uppercase;
+}
+
+body.theme-circus .mi-poster-breakout {
+    border: 3px dashed #E52521 !important;
+}
+
+/* ==============================================
+   7. КОЛЕСО ФОРТУНЫ
+   ============================================== */
+body.theme-circus .wheel-wrapper {
+    border: 15px dashed #FEE101 !important;
+    background: #004CB8 !important;
+    box-shadow: 0 0 0 8px #E52521, 0 30px 60px rgba(0,0,0,0.8) !important;
+}
+
+body.theme-circus #wheel-center {
+    background: #FEE101 !important;
+    border: 6px solid #E52521 !important;
+}
+
+body.theme-circus #wheel-pointer {
+    background: #E52521 !important;
+    filter: drop-shadow(0 10px 0 #004CB8) !important;
+}
+
+body.theme-circus #wheel-winner {
+    background: #ffffff !important;
+    border: 8px solid #004CB8 !important;
+    box-shadow: 15px 15px 0 #E52521 !important;
+    border-radius: 40px !important;
+}
+
+body.theme-circus #winner-name {
+    background: none !important;
+    -webkit-text-fill-color: #E52521 !important;
+    text-shadow: 4px 4px 0 #FEE101 !important;
+}
+
+/* ==============================================
+   8. АЛЕРТЫ, ЦЕЛИ, БЕГУЩАЯ СТРОКА
+   ============================================== */
+body.theme-circus .alert-card {
+    background: #004CB8 !important;
+    border: 5px solid #FEE101 !important;
+    box-shadow: 10px 10px 0 #E52521 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+}
+body.theme-circus .alert-title { color: #ffffff !important; }
+body.theme-circus .alert-message { color: #FEE101 !important; }
 
 body.theme-circus #goal-container {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    transform: none !important;
+    border: 4px solid #004CB8 !important;
+    box-shadow: 10px 10px 0 #FEE101 !important;
+    background: #ffffff !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+}
+body.theme-circus #goal-bar-bg { background: #FEE101 !important; }
+body.theme-circus #goal-bar-fill { background: #E52521 !important; box-shadow: none !important; }
+body.theme-circus #goal-title, body.theme-circus #goal-count { color: #004CB8 !important; }
+
+body.theme-circus #ticker-container {
+    border: 4px solid #E52521 !important;
+    background: #FEE101 !important;
+    box-shadow: 10px 10px 0 #004CB8 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+}
+body.theme-circus #ticker-text { color: #004CB8 !important; }
+
+body.theme-circus #tts-container {
+    background: #ffffff !important;
+    border: 4px solid #004CB8 !important;
+    border-left: 12px solid #FEE101 !important;
+    box-shadow: 8px 8px 0 #E52521 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+}
+body.theme-circus .tts-bar { background: #E52521 !important; }
+
+body.theme-circus #social-rotator {
+    background: #ffffff !important;
+    border: 4px solid #E52521 !important;
+    box-shadow: 8px 8px 0 #004CB8 !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
 }
 
-body.theme-circus .goal-light-glass {
+/* ==============================================
+   9. ПРИВАТНЫЙ РЕЖИМ (ЭКРАН БЛОКИРОВКИ !blur)
+   ============================================== */
+body.theme-circus #screen-blur-overlay.blur-active {
+    /* Меняем темный фон на глубокий синий */
+    background: radial-gradient(circle at center, #004CB8 0%, #001A44 100%) !important;
+}
+
+body.theme-circus .blur-pattern {
+    /* Желтая сетка */
+    background-image: 
+        linear-gradient(rgba(254, 225, 1, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(254, 225, 1, 0.15) 1px, transparent 1px) !important;
+}
+
+body.theme-circus .blur-pattern::after {
+    /* Красный сканер */
+    background: linear-gradient(to bottom, transparent, rgba(229, 37, 33, 0.3), transparent) !important;
+}
+
+body.theme-circus .blur-card {
+    background: #ffffff !important;
+    border: 8px solid #E52521 !important;
+    border-radius: 40px !important;
+    box-shadow: 20px 20px 0 #FEE101, inset 0 0 30px rgba(0, 76, 184, 0.1) !important;
+}
+
+body.theme-circus .blur-icon-wrapper {
     background: #FEE101 !important;
     border: 4px solid #004CB8 !important;
-    border-radius: 28px !important;
-    padding: 6px 16px !important;
-    box-sizing: border-box !important;
-    box-shadow: 
-        0 10px 0px rgba(0, 0, 0, 0.15), 
-        0 8px 20px rgba(0, 0, 0, 0.3),
-        0 0 0 4px #E52521, 
-        inset 0 4px 0 rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 20px rgba(254, 225, 1, 0.8) !important;
+    animation: circusLockPulse 1.5s infinite alternate ease-in-out !important;
 }
 
-body.theme-circus .goal-content {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    height: 100% !important;
-    box-sizing: border-box !important;
-    padding: 0 8px 0 10px !important;
-    top: 0 !important;
+body.theme-circus .blur-icon-wrapper svg {
+    color: #E52521 !important;
+    filter: drop-shadow(0 0 5px #E52521) !important;
 }
 
-body.theme-circus .goal-label {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
+body.theme-circus .blur-title {
+    color: #004CB8 !important;
+    text-shadow: 3px 3px 0 #FEE101 !important;
+    letter-spacing: 6px !important;
 }
 
-/* Золотой бубенчик */
-body.theme-circus .goal-icon {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-shrink: 0 !important;
-    width: 14px !important;
-    height: 14px !important;
-    padding: 6px !important;
-    margin: 0 !important;
-    background: radial-gradient(circle at 35% 35%, #FFF677 0%, #D4AF37 60%, #8B6508 100%) !important;
-    border: 2px solid #004CB8 !important;
-    border-radius: 50% !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), inset 0 2px 2px rgba(255, 255, 255, 0.6) !important;
-}
-
-body.theme-circus .goal-icon svg {
-    width: 12px !important;
-    height: 12px !important;
-    margin: 0 !important;
-    display: block !important;
-    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)) !important;
-}
-
-/* ШАХМАТНЫЙ ТРЕК: Сдвинут вправо от круга */
-body.theme-circus .goal-track {
-    position: absolute !important;
-    top: 6px !important; 
-    bottom: 6px !important;
-    left: 44px !important; 
-    right: 6px !important;
-    height: auto !important;
-    box-sizing: border-box !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    background-color: #1e1e1e !important;
-    background-image: 
-        linear-gradient(45deg, #0d0d0d 25%, transparent 25%), 
-        linear-gradient(-45deg, #0d0d0d 25%, transparent 25%), 
-        linear-gradient(45deg, transparent 75%, #0d0d0d 75%), 
-        linear-gradient(-45deg, transparent 75%, #0d0d0d 75%) !important;
-    background-size: 16px 16px !important;
-    background-position: 0 0, 0 8px, 8px -8px, -8px 0px !important;
-    border: 2px solid #004CB8 !important;
-    border-radius: 14px !important;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.8) !important;
-    overflow: hidden !important;
-}
-
-/* КРАСНАЯ ШКАЛА */
-body.theme-circus .goal-fill {
-    height: 100% !important;
-    box-sizing: border-box !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    background-color: #E52521 !important;
-    background-image: 
-        radial-gradient(circle, #ffffff 18%, transparent 18%),
-        radial-gradient(circle, #ffffff 18%, transparent 18%),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.45) 0%, transparent 45%, rgba(0, 0, 0, 0.25) 100%) !important;
-    background-size: 18px 18px, 18px 18px, 100% 100% !important;
-    background-position: 0 0, 9px 9px, 0 0 !important;
-    border-radius: 12px !important; 
-    box-shadow: inset 0 3px 0 rgba(255,255,255,0.4), inset 0 -3px 4px rgba(0,0,0,0.2) !important;
-    transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1) !important;
-}
-
-/* Название шкалы */
-body.theme-circus .goal-label span {
-    font-family: 'Montserrat', sans-serif !important;
+body.theme-circus .blur-subtitle {
+    color: #E52521 !important;
     font-weight: 900 !important;
-    color: #ffffff !important;
-    letter-spacing: 1.5px !important;
-    margin: 0 !important;
-    line-height: 1 !important;
-    text-shadow: 2.5px 2px 0 #004CB8, -2.5px -2.5px 0 #004CB8, 2.5px -2.5px 0 #004CB8, -2.5px 2px 0 #004CB8, 3px 3px 0 rgba(0,0,0,0.15) !important;
 }
 
-/* Капсула статистики */
-body.theme-circus .goal-stats {
-    background: #ffffff !important;
-    border: 2px solid #004CB8 !important;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.15), inset 0 2px 3px rgba(0,0,0,0.05) !important;
+@keyframes circusLockPulse {
+    0% { transform: scale(1) rotate(-10deg); box-shadow: 0 0 20px rgba(254, 225, 1, 0.8); }
+    100% { transform: scale(1.1) rotate(10deg); box-shadow: 0 0 40px rgba(254, 225, 1, 1), 0 0 20px #E52521; }
+}
+
+/* ТЕМА ЦИРК: Бегущая строка */
+body.theme-circus #ticker-container {
+    background: #FEE101 !important;
+    border: 4px solid #E52521 !important;
     border-radius: 20px !important;
-    padding: 4px 14px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    height: 22px !important;
+    box-shadow: 10px 10px 0 #004CB8 !important;
+    backdrop-filter: none !important;
 }
-
-body.theme-circus .goal-current { color: #E52521 !important; font-weight: 900 !important; line-height: 1 !important; }
-body.theme-circus .goal-divider { color: #004CB8 !important; font-weight: 900 !important; line-height: 1 !important; margin: 0 4px !important; }
-body.theme-circus .goal-max { color: #888888 !important; font-weight: 900 !important; line-height: 1 !important; }
-
-
-/* --- 2. РАМКА ВЕБКАМЕРЫ (CIRCUS STRIPES) --- */
-
-body.theme-circus #webcam-frame {
-    border: 6px solid transparent !important;
-    border-radius: 20px !important;
-    background: transparent !important;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45) !important;
-}
-
-/* УБИВАЕМ дефолтную неоновую рамку из webcam.css, чтобы она не блокировала анимацию */
-body.theme-circus #webcam-frame::before {
-    display: none !important;
-}
-
-/* Создаем рамку Цирка с чистого листа на свободном слое ::after */
-body.theme-circus #webcam-frame::after {
-    content: '';
-    position: absolute;
-    top: -6px; left: -6px; right: -6px; bottom: -6px;
-    padding: 6px; /* Это задает толщину рамки */
-    border-radius: 20px;
-    
-    /* Идеальные диагональные полосы */
-    background-image: repeating-linear-gradient(
-        -45deg,
-        #E52521 0px, #E52521 16px,
-        #ffffff 16px, #ffffff 18px,
-        #004CB8 18px, #004CB8 34px,
-        #ffffff 34px, #ffffff 36px
-    ) !important;
-    
-    /* Вычисленный размер раппорта для бесшовного движения */
-    background-size: 50.91px 50.91px !important;
-    will-change: background-position;
-    
-    /* Классическая безотказная маска: вырезает прозрачную дырку по границе padding */
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
-    -webkit-mask-composite: xor !important;
-    mask-composite: exclude !important;
-    
-    /* Анимация теперь не заблокирована !important из базового CSS */
-    animation: circusFrameAnts 1.5s linear infinite !important;
-    pointer-events: none;
-    z-index: 2;
-}
-
-/* Бесконечное скольжение текстуры */
-@keyframes circusFrameAnts {
-    0% { background-position: 0px 0px; }
-    100% { background-position: 50.91px 50.91px; }
-}
-
-/* ==========================================================
-   КОНЕЦ БЛОКА WEBCAM.
-   ========================================================= */
+body.theme-circus #ticker-badge { background: #E52521 !important; border-right: 4px solid #004CB8 !important; }
+body.theme-circus #ticker-badge-text { color: #ffffff !important; font-size: 14px !important; }
+body.theme-circus .t-dot { background: #FEE101 !important; }
+body.theme-circus #ticker-text { color: #004CB8 !important; font-weight: 900 !important; font-size: 18px !important; }
+body.theme-circus .t-highlight { background: #004CB8 !important; color: #ffffff !important; }

@@ -36,14 +36,26 @@ body.scene-chatting #chat-container {
     padding: 20px; -webkit-mask-image: none; 
     overflow-y: hidden; overflow-x: hidden; 
 }
-body.scene-chatting .chat-block { width: auto !important; align-self: stretch !important; max-width: none !important; }
-body.scene-chatting .chat-bubble { width: 100% !important; box-sizing: border-box !important; }
+body.scene-chatting .chat-block { 
+    width: auto !important; 
+    align-self: stretch !important; 
+    max-width: none !important; 
+}
+body.scene-chatting .chat-bubble {
+    width: 100% !important; 
+    box-sizing: border-box !important;
+}
 
 /* Алерты */
 body.scene-chatting #alert-container { top: 100px; left: 600px; transform: translateX(-50%) translateZ(0) !important; }
 
 /* Смерти (Внутри вебки, правый верхний угол, отступ 25px) */
-body.scene-chatting #deaths-container { top: 65px; left: auto; right: 785px; transform: translateZ(0) !important; }
+body.scene-chatting #deaths-container { 
+    top: 65px; 
+    left: auto; 
+    right: 785px; 
+    transform: translateZ(0) !important; 
+}
 body.scene-chatting .deaths-title { font-size: 16px; letter-spacing: 6px; margin-right: -6px; }
 body.scene-chatting #deaths-count { font-size: 64px; }
 
@@ -72,97 +84,34 @@ body.scene-chatting #media-info-container.pop-anim {
     100% { transform: translateX(0) scale(1); }
 }
 
-/* 2. Музыкальный плеер (Левый нижний угол) */
+/* 2. Музыкальный плеер (Внутри вебки, левый нижний угол) */
 body.scene-chatting #widget-container { 
     top: auto; 
-    bottom: 40px; 
-    left: 40px;    
+    bottom: 225px; 
+    left: 65px;    
     right: auto; 
     transform: translateZ(0) !important; 
     z-index: 10;
 }
 body.scene-chatting #widget-container.hidden { 
-    transform: translateY(20px); 
+    transform: translateX(-20px); 
     opacity: 0; 
     pointer-events: none; 
 }
 
-/* 3. Умная бегущая строка (Расширяется, если плеер скрыт) */
+/* 3. Бегущая строка (В самом низу, выровнена строго под вебкой) */
 body.scene-chatting #ticker-container { 
     bottom: 40px; 
-    /* По умолчанию плеер скрыт, растягиваем на всё свободное левое пространство */
     left: 40px; 
-    right: auto;
-    margin: 0;
     width: 1120px; 
-    /* Добавляем плавность для изменения ширины и позиции */
-    transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                opacity 0.6s;
     transform: translateZ(0) !important; 
 }
 
-/* CSS-Магия: Если плеер НЕ спрятан, строка плавно отъезжает вправо и сжимается */
-body.scene-chatting #widget-container:not(.hidden) ~ #ticker-container {
-    /* Отступ: левый край 40px + плеер 384px + отступ 20px */
-    left: 444px; 
-    /* Ширина: Базовая 1120px - плеер 384px - отступ 20px */
-    width: 716px; 
-}
-
-/* 4. Расширенный блок Соцсетей (Ровно под чатом) */
+/* 4. Соцсети (В самом низу, выровнены строго под чатом) */
 body.scene-chatting #social-rotator { 
     top: auto; 
     bottom: 40px; 
     left: auto; 
     right: 40px;  
-    width: 680px;  /* Ширина чата */
-    height: 140px; /* Идеально заполняет высоту до чата */
-    padding: 0 40px; 
-    border-radius: 20px;
-    box-sizing: border-box;
     transform: translateZ(0) !important; 
-}
-
-/* Увеличиваем внутренности соцсетей для сцены чатинга */
-body.scene-chatting .social-icon-wrapper {
-    width: 80px; height: 80px; border-radius: 24px;
-}
-body.scene-chatting .social-icon-wrapper svg {
-    width: 40px; height: 40px;
-}
-body.scene-chatting .social-info {
-    gap: 4px; margin-left: 10px;
-}
-body.scene-chatting .social-badge {
-    font-size: 14px; letter-spacing: 2px;
-}
-body.scene-chatting .social-dot {
-    width: 10px; height: 10px;
-}
-body.scene-chatting .social-handle {
-    font-size: 32px;
-}
-
-/* 5. Идеальное позиционирование TTS (Сцена Chatting) */
-body.scene-chatting #tts-container {
-    top: 100px;
-    /* Чат (680) + правый отступ (40) + зазор (20) = 740px. Выезжает слева от чата */
-    right: 740px; 
-    bottom: auto;
-    left: auto;
-    transform-origin: right center;
-}
-
-/* Меняем анимацию: на сцене чатинга виджет выезжает горизонтально прямо "из-под" чата */
-body.scene-chatting .tts-in { animation: ttsSlideFromChat 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-body.scene-chatting .tts-out { animation: ttsSlideToChat 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
-
-@keyframes ttsSlideFromChat { 
-    0% { opacity: 0; transform: translateX(60px) scale(0.9); } 
-    100% { opacity: 1; transform: translateX(0) scale(1); } 
-}
-@keyframes ttsSlideToChat { 
-    0% { opacity: 1; transform: translateX(0) scale(1); } 
-    100% { opacity: 0; transform: translateX(60px) scale(0.9); } 
 }

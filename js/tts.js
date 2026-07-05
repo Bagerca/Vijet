@@ -1,23 +1,16 @@
-/* ================= js/tts.js ================= */
-
+/* ================= ВИЗУАЛ TTS (ГЛУПЫЙ ВИДЖЕТ) ================= */
 window.AppTTS = {
     container: document.getElementById('tts-container'),
     userText: document.getElementById('tts-user'),
-    avatarImg: document.getElementById('tts-avatar'),
     eqInterval: null, 
-    isInitialized: false,
 
     init: function() {
-        if (this.isInitialized) return;
-        this.isInitialized = true;
-
         if (!window.AppConfig.ttsEnabled) {
             if(this.container) this.container.style.display = 'none';
             return;
         }
 
-        // ИСПРАВЛЕНИЕ: Теперь принимаем объект с данными целиком, а не просто строку
-        window.AppEvents.listen('TTS_VISUAL_SHOW', d => this.showVisual(d));
+        window.AppEvents.listen('TTS_VISUAL_SHOW', d => this.showVisual(d.user));
         window.AppEvents.listen('TTS_VISUAL_HIDE', () => this.hideVisual());
         window.AppEvents.listen('TTS_EQ_START', () => this.startEqualizer());
         window.AppEvents.listen('TTS_EQ_SPIKE', () => this.spikeEqualizer());
@@ -39,7 +32,7 @@ window.AppTTS = {
     spikeEqualizer: function() {
         const bars = document.querySelectorAll('.tts-bar');
         bars.forEach(bar => {
-            bar.style.height = `${60 + Math.random() * 40}%`;
+            bar.style.height = `${70 + Math.random() * 30}%`;
             bar.classList.add('active-spike');
         });
     },
@@ -52,38 +45,25 @@ window.AppTTS = {
         });
     },
 
-    showVisual: async function(data) {
+    showVisual: function(user) {
         if (!this.container) return;
-        
-        // Извлекаем никнейм
-        const user = data.user;
         this.userText.innerText = user;
         
-        if (this.avatarImg && window.AvatarManager) {
-            try {
-                const avatarUrl = await window.AvatarManager.get(user, '#1a1a1a');
-                this.avatarImg.src = avatarUrl;
-            } catch (err) {
-                console.error("[TTS VISUAL] Ошибка получения аватара:", err);
-            }
-        }
-
+        // Устанавливаем юзера
         this.container.setAttribute('data-user', user.toLowerCase());
         
-        // ИСПРАВЛЕНИЕ: Проверяем, был ли запрошен дефолтный стиль
-        if (data.forceDefault) {
-            this.container.removeAttribute('data-style'); // Очищаем кастомку
-        } else {
-            const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[user.toLowerCase()]) || null;
-            if (userStyle) {
-                this.container.setAttribute('data-style', userStyle);
-            } else {
-                this.container.removeAttribute('data-style');
-            }
+        // НОВОЕ: Ищем стиль и вешаем его на контейнер
+        const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[user.toLowerCase()]) || null;
+        if (userStyle) {
+            this.container.setAttribute('data-style', userStyle);
         }
         
+        // Сбрасываем классы ухода
         this.container.classList.remove('hidden', 'tts-out');
+        
+        // ФИКС АНИМАЦИИ: Принудительно заставляем браузер пересчитать DOM
         void this.container.offsetWidth; 
+        
         this.container.classList.add('tts-in');
     },
 
@@ -91,13 +71,18 @@ window.AppTTS = {
         if (!this.container) return;
         
         this.container.classList.remove('tts-in');
+        
+        // ФИКС АНИМАЦИИ: Снова форсируем перерисовку
         void this.container.offsetWidth; 
+        
         this.container.classList.add('tts-out');
         
         setTimeout(() => {
             this.container.classList.add('hidden');
             this.container.removeAttribute('data-user');
-            this.container.removeAttribute('data-style'); 
+            this.container.removeAttribute('data-style'); // Очищаем стиль
         }, 500);
     }
 };
+
+setTimeout(() => window.AppTTS.init(), 1000);

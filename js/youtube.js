@@ -1,24 +1,23 @@
-/* ================= YOUTUBE ВИДЖЕТ (MUTED VISUAL ONLY) ================= */
+/* ================= YOUTUBE ВИДЖЕТ ================= */
 window.AppPlayer = {
     yt: null,
-    isReady: false,
-    
     container: document.getElementById('widget-container'),
     nameLabel: document.getElementById('requester-name'),
     avatarEl: document.getElementById('requester-avatar'), 
     volLabel: document.getElementById('volume-level'),
     queueCount: document.getElementById('queue-count'),
     progressBar: document.getElementById('yt-progress-bar'), 
-    
-    pendingData: null, 
+    isReady: false,
 
     init: function() {
         window.AppEvents.listen('YT_VISUAL_PLAY', d => this.play(d));
         window.AppEvents.listen('YT_VISUAL_HIDE', () => this.hide());
-        window.AppEvents.listen('YT_VISUAL_VOL', d => this.updateVolUI(d.vol));
+        window.AppEvents.listen('YT_VISUAL_VOL', d => this.updateVol(d.vol));
         window.AppEvents.listen('YT_VISUAL_STATE', d => this.updateState(d.state));
-        window.AppEvents.listen('YT_VISUAL_PROGRESS', d => this.syncProgress(d));
-        window.AppEvents.listen('QUEUE_STATE', d => this.updateQueueUI(d.count));
+        
+        // НОВОЕ: Теперь мы передаем весь объект даты целиком, чтобы получить точное время
+        window.AppEvents.listen('YT_VISUAL_PROGRESS', d => this.updateProgress(d));
+        window.AppEvents.listen('QUEUE_STATE', d => this.updateQueue(d.count));
 
         this.loadYouTubeAPI();
     },
@@ -44,11 +43,6 @@ window.AppPlayer = {
     createPlayer: function() {
         if (!document.getElementById('yt-player')) return;
         
-        let safeOrigin = window.location.origin;
-        if (!safeOrigin || safeOrigin === 'null' || safeOrigin.startsWith('file')) {
-            safeOrigin = 'https://www.youtube.com'; 
-        }
-        
         this.yt = new YT.Player('yt-player', {
             playerVars: { 
                 'autoplay': 1, 
@@ -56,43 +50,77 @@ window.AppPlayer = {
                 'disablekb': 1, 
                 'modestbranding': 1, 
                 'playsinline': 1, 
-                'mute': 1, // ВИЗУАЛ ВСЕГДА В МУТЕ!
-                'origin': safeOrigin 
+                'mute': 1, // Виджет ВСЕГДА в муте (звук идет из Ядра)
+                'origin': window.location.origin 
             },
             events: {
                 'onReady': () => { 
                     this.isReady = true;
                     this.yt.mute(); 
-                    console.log("%c[YT VISUAL] 📺 Визуальный плеер загружен!", "color: #00FF7F");
-                    
-                    if (this.pendingData) {
-                        this.play(this.pendingData);
-                        this.pendingData = null;
-                    }
+                    console.log("📺 [YT VISUAL] Визуальный плеер успешно загружен!");
                 }
             }
         });
     },
 
     play: function(data) {
-        if (this.container) this.container.classList.remove('hidden');
+        if (!this.isReady) return;
+        
+        // 1. Обновляем Имя
         if (this.nameLabel) this.nameLabel.innerText = data.user;
-        if (this.progressBar) this.progressBar.style.width = '0%';
-        this.updateVolUI(data.vol);
-        this.updateAvatar(data.user);
+        
+        // 2. УМНАЯ АВАТАРКА (С поиском и автоматическим скачиванием)
+        if (this.avatarEl) {
+            const setAvatar = (url) => {
+                this.avatarEl.src = url;
+                this.avatarEl.classList.remove('pop-avatar');
+                void this.avatarEl.offsetWidth; 
+                this.avatarEl.classList.add('pop-avatar');
+            };
 
-        if (!this.isReady) {
-            this.pendingData = data;
-            return;
+            let safeName = encodeURIComponent(data.user);
+            let fallbackUrl = `https://ui-avatars.com/api/?name=${safeName}&background=FF4477&color=fff&size=64&bold=true`;
+            let foundAvatar = null;
+            
+            // Шаг А: Ищем в кэше БЕЗ УЧЕТА РЕГИСТРА
+            try {
+                const cachedAvatars = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
+                const searchName = data.user.toLowerCase();
+                for (let key in cachedAvatars) {
+                    if (key.toLowerCase() === searchName) {
+                        foundAvatar = cachedAvatars[key];
+                        break;
+                    }
+                }
+            } catch(e) {}
+
+            if (foundAvatar) {
+                // Если нашли в кэше — ставим сразу
+                setAvatar(foundAvatar);
+            } else {
+                // Шаг Б: Если не нашли — ставим заглушку, но МГНОВЕННО скачиваем реальную с Twitch API
+                setAvatar(fallbackUrl);
+                fetch(`https://api.ivr.fi/v2/twitch/user?login=${data.user.toLowerCase()}`)
+                    .then(res => res.json())
+                    .then(apiData => {
+                        if (apiData && apiData.length > 0 && apiData[0].logo) {
+                            setAvatar(apiData[0].logo);
+                            // И сразу сохраняем её в кэш на будущее!
+                            try {
+                                let cache = JSON.parse(localStorage.getItem('uso_avatars') || '{}');
+                                cache[data.user] = apiData[0].logo;
+                                localStorage.setItem('uso_avatars', JSON.stringify(cache));
+                            } catch(e) {}
+                        }
+                    }).catch(e => console.warn("[YT VISUAL] Ошибка скачивания аватарки", e));
+            }
         }
+
+        this.updateVol(data.vol);
+        if (this.container) this.container.classList.remove('hidden');
+        if (this.progressBar) this.progressBar.style.width = '0%';
         
-        if (data.type === 'playlist') {
-            this.yt.loadPlaylist({ list: data.id });
-        } else {
-            this.yt.loadVideoById(data.id);
-        }
-        
-        // Жёстко мутим
+        this.yt.loadVideoById(data.id);
         this.yt.mute(); 
         this.yt.playVideo(); 
     },
@@ -102,12 +130,10 @@ window.AppPlayer = {
             this.container.classList.add('hidden');
             this.container.classList.remove('is-playing');
         }
-        if (this.isReady && this.yt && typeof this.yt.stopVideo === 'function') {
-            this.yt.stopVideo();
-        }
+        if (this.isReady) this.yt.stopVideo();
     },
 
-    updateVolUI: function(vol) {
+    updateVol: function(vol) {
         if(!this.volLabel) return;
         this.volLabel.innerText = vol;
         this.volLabel.classList.remove('animate-pop');
@@ -121,45 +147,37 @@ window.AppPlayer = {
         else this.container.classList.remove('is-playing');
     },
 
-    syncProgress: function(data) {
-        if(this.progressBar) this.progressBar.style.width = `${data.percent}%`;
+    updateProgress: function(data) {
+        // Поддержка и старого, и нового формата данных
+        let percent = data.percent !== undefined ? data.percent : data;
+        if(this.progressBar) this.progressBar.style.width = `${percent}%`;
 
-        // СИНХРОНИЗАЦИЯ: Визуал догоняет Ядро
+        // =========================================================
+        // УЛЬТРА-СИНХРОНИЗАЦИЯ: Если картинка отстала от звука
+        // =========================================================
         if (this.isReady && this.yt && typeof this.yt.getCurrentTime === 'function' && data.currentTime !== undefined) {
             const visualState = this.yt.getPlayerState();
             
+            // Если видео сейчас идет (1) или грузится (3)
             if (visualState === 1 || visualState === 3) { 
                 const visualTime = this.yt.getCurrentTime();
                 const diff = Math.abs(visualTime - data.currentTime);
                 
-                // Если картинка отстала/убежала от звука больше чем на 1 секунду — перематываем картинку
+                // Если разница больше 1.0 секунды — жестко перематываем картинку на время звука!
                 if (diff > 1.0) {
-                    console.log(`[YT VISUAL 🔄] Выравниваем картинку под звук! Разница: ${diff.toFixed(2)}с`);
+                    console.log(`[YT VISUAL 🔄] Выравниваем рассинхрон с Ядром! Разница: ${diff.toFixed(2)}с`);
                     this.yt.seekTo(data.currentTime, true);
                 }
             }
         }
     },
     
-    updateQueueUI: function(count) {
+    updateQueue: function(count) {
         if (!this.queueCount) return;
         this.queueCount.innerText = count;
         this.queueCount.classList.remove('animate-pop');
         void this.queueCount.offsetWidth;
         this.queueCount.classList.add('animate-pop');
-    },
-
-    updateAvatar: async function(user) {
-        if (!this.avatarEl || !window.AvatarManager) return;
-
-        try {
-            const avatarUrl = await window.AvatarManager.get(user, '#FF4477');
-            this.avatarEl.src = avatarUrl;
-            this.avatarEl.classList.remove('pop-avatar');
-            void this.avatarEl.offsetWidth; 
-            this.avatarEl.classList.add('pop-avatar');
-        } catch (err) {
-            console.error("[YT VISUAL] Ошибка получения аватара:", err);
-        }
     }
 };
+window.AppPlayer.init();

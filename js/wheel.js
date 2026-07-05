@@ -1,4 +1,3 @@
-/* ================= КОЛЕСО ФОРТУНЫ (DUMB WIDGET) ================= */
 window.AppWheel = {
     overlay: document.getElementById('wheel-overlay'),
     canvas: document.getElementById('wheel-canvas'),
@@ -21,15 +20,18 @@ window.AppWheel = {
         this.canvas.height = 600 * dpr;
         this.ctx.scale(dpr, dpr);
 
-        // Больше никакого localStorage. Ждем команды от Ядра!
-        window.AppEvents.listen('WHEEL_UPDATE_UI', d => {
-            this.items = d.items || [];
-            this.draw();
-        });
+        const saved = localStorage.getItem('uso_wheel_items');
+        if (saved) {
+            try { this.items = JSON.parse(saved); } catch(e) { this.items = []; }
+        }
 
+        // Подписка на события
+        window.AppEvents.listen('WHEEL_ADD', d => this.add(d.text));
         window.AppEvents.listen('WHEEL_TOGGLE', d => this.toggle(d.state));
         window.AppEvents.listen('WHEEL_CMD', d => { 
-            if(d.cmd === 'spin') this.spin(); 
+            if(d.cmd==='clear') this.clear(); 
+            else if(d.cmd==='spin') this.spin(); 
+            else if(d.cmd==='remove') this.remove(d.val); 
         });
 
         this.draw();
@@ -52,6 +54,35 @@ window.AppWheel = {
             this.overlay.classList.add('hidden');
             this.winnerEl.classList.add('hidden');
         }
+    },
+
+    save: function() {
+        localStorage.setItem('uso_wheel_items', JSON.stringify(this.items));
+        this.draw();
+    },
+
+    add: function(text) {
+        if (!text || text.trim() === "") return;
+        const max = window.AppConfig.wheelMaxItems || 15;
+        if (this.items.length >= max) return;
+        this.items.push(text.trim());
+        this.save();
+    },
+
+    remove: function(indexOrText) {
+        let num = parseInt(indexOrText);
+        if (!isNaN(num) && num > 0 && num <= this.items.length) {
+            this.items.splice(num - 1, 1);
+        } else {
+            const idx = this.items.findIndex(i => i.toLowerCase() === indexOrText.toLowerCase());
+            if (idx !== -1) this.items.splice(idx, 1);
+        }
+        this.save();
+    },
+
+    clear: function() {
+        this.items = [];
+        this.save();
     },
 
     draw: function() {
@@ -132,10 +163,9 @@ window.AppWheel = {
         this.winnerName.innerText = winnerText;
         this.winnerEl.classList.remove('hidden');
 
-        // Отправляем сигнал Ядру установить эту игру в плашку медиа
-        setTimeout(() => {
-            // Чтобы обновить Ядро, вызываем команду через Event Bus (эмуляция команды чата)
-            window.AppCommands.execute("СИСТЕМА", "game", winnerText, {broadcaster: true});
-        }, 1000); 
+        // Отправляем сигнал карточке показать игру-победителя
+        setTimeout(() => window.AppEvents.emit('MEDIA_SET', { type: 'game', query: winnerText }), 1000); 
     }
 };
+
+setTimeout(() => window.AppWheel.init(), 1000);
