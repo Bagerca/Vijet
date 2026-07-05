@@ -55,7 +55,6 @@
     transform: translateX(-50%);
     width: 180px; 
     height: 24px; 
-    /* Дефолтный синий цвет: %2393b8d6 */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%2393b8d6'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2393b8d6'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%2393b8d6' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%2393b8d6' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%2393b8d6'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%2393b8d6'/%3E%3C/svg%3E");
     background-size: contain;
     background-repeat: no-repeat;
@@ -179,6 +178,13 @@
     padding: 0 !important;
 }
 
+/* ИСПРАВЛЕНИЕ: Жёстко ограничиваем размер смайлов Twitch в этом стиле */
+.chat-block[data-style="hollow_knight"] .chat-emote {
+    height: 22px !important;
+    margin: -4px 2px !important;
+    vertical-align: middle !important;
+}
+
 /* Бейджи центрируем */
 .chat-block[data-style="hollow_knight"] .chat-badges-wrap {
     justify-content: center !important;
@@ -256,29 +262,16 @@
     filter: sepia(100%) hue-rotate(345deg) saturate(300%) brightness(1.1) contrast(1.2) !important;
 }
 
-.chat-block.is-highlighted[data-style="hollow_knight"] .badge-star { 
-    display: none !important; 
-    width: 0 !important; 
-    height: 0 !important; 
-}
-
+/* ПОЛНОСТЬЮ СКРЫВАЕМ ПЛАШКУ ВЫДЕЛЕНИЯ И ЕЕ КОНТЕНТ */
 .chat-block.is-highlighted[data-style="hollow_knight"] .chat-badge-highlight {
-    background: transparent !important;
-    border: none !important;
-    color: #e95b07 !important;
-    font-family: 'Cinzel', serif !important;
-    font-size: 11px !important;
-    letter-spacing: 2px !important;
-    text-transform: uppercase !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    text-shadow: 0 0 10px rgba(233, 91, 7, 0.5) !important;
+    display: none !important; 
 }
 
-.chat-block.is-highlighted[data-style="hollow_knight"] .chat-badge-highlight span::before { content: '✦ '; opacity: 0.8; }
-.chat-block.is-highlighted[data-style="hollow_knight"] .chat-badge-highlight span::after { content: ' ✦'; opacity: 0.8; }
+/* ИСПРАВЛЕНИЕ ДЫРЫ: Если плашка удалена, подтягиваем ник чуть выше, чтобы компенсировать отступ */
+.chat-block.is-highlighted[data-style="hollow_knight"] .chat-user {
+    margin-top: -6px !important;
+}
 
-/* ИСПРАВЛЕНО: Завитушки заменены на новую SVG с точным цветом #e95b07 (без кривых фильтров) */
 .chat-block.is-highlighted[data-style="hollow_knight"] .chat-bubble-bg::before,
 .chat-block.is-highlighted[data-style="hollow_knight"] .chat-bubble-bg::after {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpath d='M150 2 L158 20 L150 38 L142 20 Z' fill='%23e95b07'/%3E%3Cpath d='M135 20 Q 90 0, 40 20 T 5 20' fill='none' stroke='%23e95b07' stroke-width='3'/%3E%3Cpath d='M125 25 Q 90 40, 60 25' fill='none' stroke='%23e95b07' stroke-width='2'/%3E%3Ccircle cx='40' cy='20' r='3' fill='%23e95b07'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%23e95b07'/%3E%3Cpath d='M165 20 Q 210 0, 260 20 T 295 20' fill='none' stroke='%23e95b07' stroke-width='3'/%3E%3Cpath d='M175 25 Q 210 40, 240 25' fill='none' stroke='%23e95b07' stroke-width='2'/%3E%3Ccircle cx='260' cy='20' r='3' fill='%23e95b07'/%3E%3Ccircle cx='290' cy='20' r='2' fill='%23e95b07'/%3E%3C/svg%3E") !important;
