@@ -24,7 +24,7 @@ window.DeckWidgets = {
         const grid = document.getElementById('widget-master-grid');
         if (!grid) return;
 
-        // Генерируем сгруппированный HTML
+        // Генерируем сгруппированный HTML для Мастера Виджетов
         grid.innerHTML = this.groups.map(group => `
             <div class="widget-group">
                 <div class="widget-group-title">${group.title}</div>
@@ -37,15 +37,22 @@ window.DeckWidgets = {
             </div>
         `).join('');
 
+        // Вешаем обработчики на ВСЕ тумблеры в панели
         document.querySelectorAll('.widget-toggle').forEach(toggle => {
             toggle.addEventListener('change', (e) => {
                 const widgetName = e.target.getAttribute('data-widget');
                 const state = e.target.checked ? 'on' : 'off';
-                window.DeckAuth.sendCommand(`!widget ${widgetName} ${state}`);
+                
+                // ИСПРАВЛЕНИЕ: Возвращаем правильные команды для уникальных виджетов
+                if (widgetName === 'cam') window.DeckAuth.sendCommand(`!cam ${state}`);
+                else if (widgetName === 'blur') window.DeckAuth.sendCommand(`!blur ${state}`);
+                else if (widgetName === 'deaths') window.DeckAuth.sendCommand(`!death ${state === 'on' ? 'show' : 'hide'}`);
+                else window.DeckAuth.sendCommand(`!widget ${widgetName} ${state}`);
             });
         });
     },
 
+    // ИСПРАВЛЕНИЕ: Возвращаем правильную прослушку обратной связи из чата
     syncToggleFromChat(command, message) {
         const cmd = command.toLowerCase();
         const arg = message.trim().toLowerCase();
@@ -58,6 +65,11 @@ window.DeckWidgets = {
         if (cmd === 'widget' || cmd === 'виджет') {
             const parts = arg.split(' ');
             if (parts.length >= 2) setToggle(parts[0], parts[1]);
+        }
+        else if (cmd === 'cam') setToggle('cam', arg);
+        else if (cmd === 'blur' || cmd === 'блюр') setToggle('blur', arg);
+        else if (['death', 'deaths', 'смерть'].includes(cmd)) {
+            if (['show', 'on', 'hide', 'off'].includes(arg)) setToggle('deaths', arg);
         }
     }
 };
