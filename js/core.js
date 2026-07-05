@@ -14,35 +14,50 @@ window.AppCore = {
             else if (arg === "отмена" || arg === "off" || arg === "default") { window.AppEvents.emit('THEME_CHANGE', { theme: 'default' }); window.AppEvents.emit('PET_EMOTION', { emotion: 'idle', duration: 2000 }); }
         },
         "protocol": (arg) => window.AppCore.CommandRouter["протокол"](arg),
+        
+        // ==============================================================
+        // КНОПКИ РЕФРЕША И ПАНИКИ
+        // ==============================================================
         "refresh": (arg) => {
             if (arg === "core") { 
+                // 1. Показываем загрузочный экран на стриме
                 window.AppEvents.emit('CORE_REBOOT_START');
 
-                // --- ЗАВОДСКИЕ НАСТРОЙКИ (ХАРД-РЕСЕТ) ---
+                // 2. ХАРД-РЕСЕТ: Принудительно отключаем всё на визуле
                 window.AppEvents.emit('THEME_CHANGE', { theme: 'default' });
                 window.AppEvents.emit('MEDIA_SET', { type: 'off' });
-                window.AppEvents.emit('DEATHS_CMD', { cmd: 'hide' });
+                window.AppEvents.emit('DEATHS_CMD', { cmd: 'reset' }); // ИСПРАВЛЕНО: Сброс в 0
                 window.AppEvents.emit('WHEEL_TOGGLE', { state: false });
                 window.AppEvents.emit('BLUR_TOGGLE', { state: 'off' });
                 window.AppEvents.emit('MEDIA_CAM', { state: 'on' });
                 
-                // Останавливаем аудио и очищаем очередь
+                // 3. Останавливаем аудио и TTS
                 window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' });
                 window.AppEvents.emit('TTS_CMD', { cmd: 'stop' });
 
-                // Полная зачистка памяти
-                localStorage.removeItem('uso_global_state');
-                localStorage.removeItem('uso_current_media');
+                // 4. ЖЕСТКАЯ ЗАЧИСТКА ПАМЯТИ
+                // Уничтожаем все сохраненные данные, чтобы Ядро запустилось чистым.
+                // Оставляем только настройки авторизации Mod Deck и кэш аватарок.
+                const keysToNuke = [
+                    'uso_global_state', 'uso_current_media', 'uso_deaths', 
+                    'uso_queue', 'uso_wheel_items', 'uso_current_theme'
+                ];
+                keysToNuke.forEach(k => localStorage.removeItem(k));
 
+                // 5. Перезагрузка самого файла Ядра (core.html)
+                // Даем 800мс, чтобы визуальные эффекты закрытия успели отыграть
                 setTimeout(() => { 
                     const u = new URL(window.location.href); 
                     u.searchParams.set('nocache', Date.now()); 
                     window.location.href = u.toString(); 
-                }, 600); // Даем 600мс чтобы анимации скрытия успели проиграть
+                }, 800); 
             } else {
+                // ПЕРЕЗАГРУЗКА ВИЗУАЛА (ОБС браузеров)
+                // Ядро работает дальше, музыка играет. Перезагрузятся только картинки.
                 window.AppEvents.emit('FORCE_RELOAD_VISUAL');
             }
         },
+
         "wheel": (arg) => {
             if (arg === "show" || arg === "on") window.AppEvents.emit('WHEEL_TOGGLE', { state: true });
             else if (arg === "hide" || arg === "off") window.AppEvents.emit('WHEEL_TOGGLE', { state: false });
@@ -99,6 +114,9 @@ window.AppCore = {
             if (window.AppConfig.botChannel && window.AppConfig.botChannel.trim() !== "") channelsToListen.push(window.AppConfig.botChannel);
             ComfyJS.Init(null, null, channelsToListen);
             this.setupEvents();
+            
+            // Если Ядро только что загрузилось после Хард-Ресета, 
+            // отправляем сигнал визуалам убрать заглушку "Перезагрузка ядра..."
             setTimeout(() => window.AppEvents.emit('CORE_REBOOT_DONE'), 1000);
         } else { console.warn("[CORE ❌] Имя канала не настроено в config.js!"); }
     },
@@ -201,23 +219,19 @@ window.AppCore = {
             const argLow = arg.toLowerCase(); 
             const cmdKey = command.toLowerCase();
 
-            // Кулдауны на тяжелые команды
             if (['media', 'game', 'игра', 'so', 'shoutout'].includes(cmdKey)) {
                 const now = Date.now();
                 if (this.commandCooldowns[cmdKey] && now - this.commandCooldowns[cmdKey] < 2000) return;
                 this.commandCooldowns[cmdKey] = now;
             }
 
-            // Открытые команды
             if (["sr", "play"].includes(cmdKey) && message !== "") { window.AppEvents.emit('QUEUE_ADD', { user, url: message }); return; }
 
-            // Выполнение роутера
             if (hasPermission && this.CommandRouter[cmdKey]) {
                 this.CommandRouter[cmdKey](argLow, message);
                 return;
             }
 
-            // Специфичные команды, требующие асинхронности (аватарки)
             if (hasPermission && cmdKey.startsWith('test')) {
                 let testAvatar = await window.AvatarManager.get(user, '#FF4477');
                 if (cmdKey === "testfirst") this.handleTestCommand(user, "#FF4477", testAvatar, "Привет, я впервые на этом крутом стриме!", "-first " + arg);

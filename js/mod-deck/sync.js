@@ -28,12 +28,29 @@ window.DeckSync = {
             }
         };
 
-        // 1. Тумблеры
+        // 1. Уникальные Тумблеры
         setToggle('blur', state.blur);
         setToggle('cam', state.cam);
-        setToggle('deaths', state.deaths > 0); // Упрощенная логика смертей
+        setToggle('deaths', state.deaths > 0);
         
-        // 2. Громкость
+        // НОВОЕ: Синхронизируем тумблер Колеса Фортуны
+        // Если модер в чате пишет !wheel show - тумблер в панели включится
+        const wheelBtnShow = document.querySelector('[data-cmd="!wheel show"]');
+        if (wheelBtnShow) {
+            // Визуально подсвечиваем кнопку, если колесо сейчас на экране
+            if (state.wheelVisible) wheelBtnShow.style.boxShadow = 'inset 0 0 10px var(--c-green)';
+            else wheelBtnShow.style.boxShadow = 'none';
+        }
+
+        // 2. ДИНАМИЧЕСКИЙ МАСТЕР ВИДЖЕТОВ
+        // Пробегаемся по всему реестру скрытых/показанных виджетов
+        if (state.widgets) {
+            for (const [widgetId, isVisible] of Object.entries(state.widgets)) {
+                setToggle(widgetId, isVisible);
+            }
+        }
+        
+        // 3. Громкость музыки
         const volSlider = document.getElementById('input-vol');
         const volLabel = document.getElementById('vol-label');
         if (volSlider && volSlider.value != state.youtube.volume) {
@@ -42,24 +59,24 @@ window.DeckSync = {
             if (volLabel) volLabel.innerText = state.youtube.volume + '%';
         }
 
-        // 3. Селект Темы
+        // 4. Селект Темы
         if (window.DeckUI && state.theme) {
             window.DeckUI.setSelectValue('custom-theme-select', state.theme);
         }
 
-        // 4. НОВОЕ: Плашка Медиа (Игры и YouTube)
+        // 5. Плашка Медиа (Игры и YouTube)
         if (state.media && window.DeckUI) {
             const ytInput = document.getElementById('input-media-yt');
             
             if (state.media.type === 'game' || state.media.type === 'series') {
                 window.DeckUI.setSelectValue('custom-game-select', state.media.query);
-                if (ytInput) ytInput.value = ''; // Очищаем поле ютуба
+                if (ytInput) ytInput.value = ''; 
             } 
             else if (state.media.type === 'yt') {
-                window.DeckUI.setSelectValue('custom-game-select', 'off'); // Выключаем игры
+                window.DeckUI.setSelectValue('custom-game-select', 'off'); 
                 if (ytInput) ytInput.value = `https://youtube.com/watch?v=${state.media.query}`;
             } 
-            else { // 'off'
+            else { 
                 window.DeckUI.setSelectValue('custom-game-select', 'off');
                 if (ytInput) ytInput.value = '';
             }

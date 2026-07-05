@@ -83,6 +83,14 @@ window.GamesDatabase = {
         tags: ["Кооп / Физика", "Симулятор"], 
         details: { "Разработчик": "Студия", "Год": "2026", "Платформа": "PC" }
     },
+    "tomodachi life": { 
+        title: "Tomodachi Life: Living the Dream", 
+        cover: "img/covers/tomodachi.png", 
+        themeColor: "#00CED1", 
+        type: "game",
+        tags: ["Симулятор жизни", "Nintendo"], 
+        details: { "Разработчик": "Nintendo", "Год": "Новинка", "Платформа": "PC (Эмулятор)" }
+    },
 
     // === ФИЛЬМЫ И СЕРИАЛЫ ===
     "digital circus": {
