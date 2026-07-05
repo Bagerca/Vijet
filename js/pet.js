@@ -1,11 +1,15 @@
+/* ФАЙЛ: js/pet.js */
 window.AppPet = {
     container: document.getElementById('pet-container'),
     
-    // Новая система: СТЕК БАЗОВЫХ СОСТОЯНИЙ. Питомец всегда возвращается к верхнему стейту в массиве.
+    // Стек базовых фоновых состояний (idle, sleep, listen)
     baseStack: ['idle'], 
     
-    activeState: null,      // Временная эмоция (love, angry, scared и тд)
+    activeState: null,      // Текущая временная эмоция (love, angry, scared)
     currentPriority: 0,     // Вес текущей временной эмоции
+    
+    // Новое: Хранилище прерванной эмоции (чтобы вернуться к ней)
+    savedState: null,
     
     particleInterval: null,
     emotionTimeout: null,
@@ -29,13 +33,11 @@ window.AppPet = {
         // Подписка на временные эмоции
         window.AppEvents.listen('PET_EMOTION', d => this.setEmotion(d.emotion, d.duration));
         
-        // Подписка на базовые состояния (запись в стек)
+        // Подписка на базовые состояния (запись в фоновый стек)
         window.AppEvents.listen('PET_BASE_STATE', d => {
             if (d.active) {
-                // Если состояние активировано, кладем его наверх стека
                 if (!this.baseStack.includes(d.state)) this.baseStack.push(d.state);
             } else {
-                // Если отключено - удаляем из стека
                 this.baseStack = this.baseStack.filter(s => s !== d.state);
             }
             
@@ -46,7 +48,6 @@ window.AppPet = {
         });
 
         this.resetSleepTimer();
-        // Запуск слушателя на любые клики (для ручного пробуждения)
         window.addEventListener('click', () => this.wakeUp());
     },
 
@@ -54,33 +55,47 @@ window.AppPet = {
         if (!this.container) return;
         this.resetSleepTimer();
 
-        // Если это ВРЕМЕННАЯ эмоция
         const incomingPriority = this.priorities[state] || 1;
 
-        // Если текущая проигрываемая эмоция ВАЖНЕЕ (или такая же), игнорируем новую
+        // Если текущая эмоция ВАЖНЕЕ новой - просто игнорируем новую
         if (this.activeState && incomingPriority <= this.currentPriority) {
             return; 
         }
 
-        // В противном случае - перебиваем старую эмоцию новой
+        // Если мы перебиваем старую эмоцию новой - сохраняем остаток старой!
+        if (this.activeState && this.savedState === null && this.emotionTimeout) {
+            // Сохраняем предыдущую эмоцию, но даем ей стандартные 2 секунды "остатка", 
+            // чтобы не усложнять вычисление точных миллисекунд
+            this.savedState = { emotion: this.activeState, priority: this.currentPriority, timeLeft: 2000 };
+        }
+
         clearTimeout(this.emotionTimeout);
         this.activeState = state;
         this.currentPriority = incomingPriority;
 
         this.applyVisualState(state);
 
-        // Устанавливаем таймер возврата к стеку
         if (durationMs > 0) {
             this.emotionTimeout = setTimeout(() => {
-                this.activeState = null;
-                this.currentPriority = 0;
-                // Возвращаемся к фоновому состоянию (читаем вершину стека)
-                this.applyVisualState(this.baseStack[this.baseStack.length - 1]);
+                // Эмоция закончилась. Проверяем, есть ли сохраненная (прерванная) эмоция
+                if (this.savedState) {
+                    const nextState = this.savedState;
+                    this.savedState = null; // Очищаем хранилище
+                    this.activeState = null;
+                    this.currentPriority = 0;
+                    // Восстанавливаем прерванную эмоцию
+                    this.setEmotion(nextState.emotion, nextState.timeLeft);
+                } else {
+                    // Если возвращаться не к чему, падаем в фоновый стек
+                    this.activeState = null;
+                    this.currentPriority = 0;
+                    this.applyVisualState(this.baseStack[this.baseStack.length - 1]);
+                }
             }, durationMs);
         }
     },
 
-    // Функция, которая только меняет CSS и частицы
+    // Функция, которая только меняет CSS и спавнит частицы
     applyVisualState: function(state) {
         clearInterval(this.particleInterval);
         

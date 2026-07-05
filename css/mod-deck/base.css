@@ -1,0 +1,37 @@
+:root {
+    /* Base Colors */
+    --bg-main: #0B0811; 
+    --bg-panel: #110D18; 
+    --bg-card: #171221; 
+    --bg-input: #0E0A14; 
+    
+    /* Brand Palette */
+    --c-pink: #FF4477;
+    --c-pink-glow: rgba(255, 68, 119, 0.2);
+    --c-green: #00FF7F; 
+    --c-green-glow: rgba(0, 255, 127, 0.15);
+    
+    --gradient-primary: linear-gradient(135deg, #FF4477, #00FF7F);
+    
+    /* Utilities */
+    --border: rgba(255, 255, 255, 0.04);
+    --border-hover: rgba(255, 255, 255, 0.1);
+    
+    --text: #F8FAFC;
+    --text-muted: #94A3B8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+body { background: var(--bg-main); color: var(--text); height: 100vh; overflow: hidden; }
+
+/* Утилиты */
+.hidden { display: none !important; }
+.text-muted { color: var(--text-muted); }
+.mt-1 { margin-top: 12px; } 
+.mt-2 { margin-top: 24px; }
+.flex-grow { flex-grow: 1; }
+.full-width { width: 100%; }
+.flex-row { display: flex; gap: 12px; align-items: center; }
+
+/* Анимации */
+@keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }

@@ -1,8 +1,15 @@
+/* ФАЙЛ: js/deaths.js */
 window.AppDeaths = {
     container: document.getElementById('deaths-container'),
     countText: document.getElementById('deaths-count'),
+    comboEl: null,
+    
     count: 0,
     isVisible: false,
+    
+    // Переменные комбо-системы
+    comboCount: 0,
+    comboTimer: null,
 
     init: function() {
         const savedDeaths = localStorage.getItem('uso_deaths');
@@ -11,6 +18,12 @@ window.AppDeaths = {
             this.render();
             if (this.count > 0) this.toggle(true);
         }
+
+        // Создаем DOM-элемент для Комбо
+        this.comboEl = document.createElement('div');
+        this.comboEl.id = 'deaths-combo';
+        this.comboEl.className = 'hidden';
+        this.container.appendChild(this.comboEl);
 
         // Подписка на события
         window.AppEvents.listen('DEATHS_CMD', d => {
@@ -38,7 +51,10 @@ window.AppDeaths = {
     update: function(value, type = 'add') {
         const oldCount = this.count;
 
-        if (type === 'add') this.count += value;
+        if (type === 'add') {
+            this.count += value;
+            this.handleCombo(); // Вызов комбо
+        }
         else if (type === 'sub') this.count -= value;
         else if (type === 'set') this.count = value;
 
@@ -52,11 +68,12 @@ window.AppDeaths = {
         }
 
         if (this.count > oldCount) {
-            this.container.classList.remove('damage-shake');
-            void this.container.offsetWidth; 
-            this.container.classList.add('damage-shake');
+            // Безопасный перезапуск анимации тряски
+            window.AppUtils.restartAnimation(this.container, 'damage-shake');
 
-            if (window.AppPet) window.AppPet.setEmotion('scared', 3000);
+            // Чем выше комбо, тем сильнее пугается лиса!
+            const fearDuration = 3000 + (this.comboCount * 1000);
+            if (window.AppPet) window.AppPet.setEmotion('scared', Math.min(fearDuration, 8000));
 
             if (window.AppConfig.deathSound) {
                 window.AppEvents.emit('PLAY_SOUND', { path: window.AppConfig.deathSound });
@@ -64,11 +81,28 @@ window.AppDeaths = {
         }
     },
 
+    handleCombo: function() {
+        this.comboCount++;
+        
+        if (this.comboCount > 1) {
+            this.comboEl.innerText = `x${this.comboCount} COMBO!`;
+            this.comboEl.classList.remove('hidden');
+            // Безопасный перезапуск поп-апа комбо
+            window.AppUtils.restartAnimation(this.comboEl, 'combo-pop');
+        }
+
+        clearTimeout(this.comboTimer);
+        // Сброс комбо через 8 секунд
+        this.comboTimer = setTimeout(() => {
+            this.comboCount = 0;
+            this.comboEl.classList.add('hidden');
+        }, 8000);
+    },
+
     render: function() {
         this.countText.innerText = this.count;
-        this.countText.classList.remove('animate-pop-red');
-        void this.countText.offsetWidth; 
-        this.countText.classList.add('animate-pop-red');
+        // Безопасный перезапуск анимации увеличения красных цифр
+        window.AppUtils.restartAnimation(this.countText, 'animate-pop-red');
     }
 };
 

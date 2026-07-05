@@ -1,3 +1,4 @@
+/* ФАЙЛ: js/goal.js */
 /* ================= GOAL 11.1 (CRISP LIGHT UI) ================= */
 
 window.AppGoal = {
@@ -49,15 +50,14 @@ window.AppGoal = {
 
     fetchData: async function() {
         try {
-            const response = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${window.AppConfig.channelName}`);
-            const data = await response.json();
+            const data = await window.AppUtils.safeFetch(`https://api.ivr.fi/v2/twitch/user?login=${window.AppConfig.channelName}`);
             if (data && data.length > 0) {
                 const followers = data[0].followers || 0;
                 if (followers !== this.currentFollowers) {
                     this.animateValue(followers);
                 }
             }
-        } catch (err) { }
+        } catch (err) { console.warn("[Goal] Не удалось обновить фолловеров."); }
     },
 
     animateValue: function(targetValue) {
@@ -76,9 +76,8 @@ window.AppGoal = {
         else this.container.classList.remove('goal-completed');
 
         if (!isFirstLoad && this.displayFollowers < targetValue) {
-            elIcon.classList.remove('icon-beat');
-            void elIcon.offsetWidth;
-            elIcon.classList.add('icon-beat');
+            // ИСПОЛЬЗУЕМ БЕЗОПАСНЫЙ ПЕРЕЗАПУСК
+            window.AppUtils.restartAnimation(elIcon, 'icon-beat');
         }
 
         const startValue = this.displayFollowers;
@@ -101,7 +100,6 @@ window.AppGoal = {
                 this.displayFollowers = targetValue;
                 
                 if (!isFirstLoad) {
-                    // Оставили только увеличение размера (pop), без мыльного свечения
                     elCurrent.classList.add('pop-text');
                     setTimeout(() => elCurrent.classList.remove('pop-text'), 300);
                 }

@@ -1,9 +1,11 @@
-/* ================= УНИВЕРСАЛЬНАЯ МЕДИА-КАРТОЧКА ================= */
+/* ФАЙЛ: js/mediainfo.js */
+/* ================= УНИВЕРСАЛЬНАЯ МЕДИА-КАРТОЧКА (С ГЕНЕРАЦИЕЙ ПОСТЕРОВ) ================= */
 window.AppMediaInfo = {
     container: document.getElementById('media-info-container'),
+    posterBreakout: document.querySelector('.mi-poster-breakout'),
     coverEl: document.getElementById('mi-cover'),
     noMediaEl: document.getElementById('mi-no-media'),
-    ytPlayEl: document.getElementById('mi-yt-play'), // Новая иконка
+    ytPlayEl: document.getElementById('mi-yt-play'), 
     
     typeBadgeEl: document.getElementById('mi-type-badge'),
     titleWrapper: document.getElementById('mi-title-wrapper'),
@@ -35,6 +37,7 @@ window.AppMediaInfo = {
         if (type === 'game') {
             const gameKey = query.toLowerCase().trim();
             mediaData = this.findLocalGame(gameKey);
+            // Если игры нет в локальной базе - ищем в Steam
             if (!mediaData) mediaData = await this.fetchFromSteam(gameKey);
         }
         else if (type === 'yt') {
@@ -47,9 +50,8 @@ window.AppMediaInfo = {
             localStorage.setItem('uso_current_media', JSON.stringify({ type: type, query: query })); 
             
             if (!noAnim) {
-                this.container.classList.remove('pop-anim');
-                void this.container.offsetWidth; 
-                this.container.classList.add('pop-anim');
+                // Используем безопасный метод перезапуска анимации
+                window.AppUtils.restartAnimation(this.container, 'pop-anim');
             }
 
             setTimeout(() => this.checkMarquee(), 100);
@@ -82,26 +84,24 @@ window.AppMediaInfo = {
     fetchFromSteam: async function(gameName) {
         try {
             const url = encodeURIComponent(`https://store.steampowered.com/api/storesearch/?term=${gameName}&l=russian&cc=RU`);
-            const response = await fetch(`https://api.allorigins.win/get?url=${url}`);
-            if (!response.ok) throw new Error("Network error");
-            const proxyData = await response.json();
-            const data = JSON.parse(proxyData.contents);
+            const data = await window.AppUtils.safeFetch(`https://api.allorigins.win/get?url=${url}`);
+            const steamData = JSON.parse(data.contents);
             
-            if (data && data.items && data.items.length > 0) {
-                const game = data.items[0]; 
+            if (steamData && steamData.items && steamData.items.length > 0) {
+                const game = steamData.items[0]; 
                 const coverUrl = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.id}/library_600x900_2x.jpg`;
                 return { title: game.name, cover: coverUrl, themeColor: "#1B2838", type: "game", tags: ["Steam Game"], details: { "Платформа": "PC (Steam)" } };
             }
-        } catch (err) {}
-        return { title: gameName.toUpperCase(), cover: "", themeColor: "#FF4477", type: "game", tags: ["Пользовательская"], details: {} };
+        } catch (err) {
+            console.warn("[MediaInfo] Steam API недоступен, генерируем заглушку.");
+        }
+        // Если Steam не нашел игру, возвращаем специальный флаг cover: "generated"
+        return { title: gameName.toUpperCase(), cover: "generated", themeColor: "#FF4477", type: "game", tags: ["Пользовательская"], details: {} };
     },
 
     fetchFromYouTube: async function(videoId) {
         try {
-            const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Network error");
-            const data = await response.json();
+            const data = await window.AppUtils.safeFetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
             return {
                 title: data.title, cover: data.thumbnail_url, themeColor: "#FF0000", type: "youtube",
                 tags: ["YouTube", data.author_name], details: { "Платформа": "YouTube", "Канал": data.author_name }
@@ -109,37 +109,73 @@ window.AppMediaInfo = {
         } catch (err) { return null; }
     },
 
+    // Функция генерации красивого фона на основе строки
+    generateGradientPlaceholder: function(title) {
+        let hash = 0;
+        for (let i = 0; i < title.length; i++) hash = title.charCodeAt(i) + ((hash << 5) - hash);
+        const hue1 = Math.abs(hash % 360);
+        const hue2 = (hue1 + 40) % 360;
+        
+        // Очищаем старые стили
+        this.posterBreakout.style.background = `linear-gradient(135deg, hsl(${hue1}, 80%, 50%), hsl(${hue2}, 80%, 40%))`;
+        
+        // Достаем инициалы (первые 2 буквы или слова)
+        let initials = title.substring(0, 2).toUpperCase();
+        let words = title.split(' ');
+        if (words.length > 1) initials = (words[0][0] + words[1][0]).toUpperCase();
+
+        this.noMediaEl.innerHTML = `<div class="mi-generated-initials">${initials}</div>`;
+        this.noMediaEl.style.display = 'flex';
+        this.noMediaEl.style.background = 'transparent'; // Убираем темный фон
+    },
+
     render: function(data) {
         const color = data.themeColor || '#FF4477';
         this.container.style.setProperty('--media-color', color);
         this.container.style.setProperty('--media-glow', `${color}33`);
 
-        // Логика переключения режима "Горизонтальный/Вертикальный"
         if (data.type === 'youtube') {
             this.container.classList.add('is-youtube');
             this.typeBadgeEl.innerText = "РЕАКЦИЯ НА ВИДЕО";
-            if (data.cover && data.cover.trim() !== "") this.ytPlayEl.style.display = 'flex';
-            else this.ytPlayEl.style.display = 'none';
+            this.ytPlayEl.style.display = (data.cover && data.cover !== "generated") ? 'flex' : 'none';
         } else {
             this.container.classList.remove('is-youtube');
             this.ytPlayEl.style.display = 'none';
-            if (data.type === 'series') this.typeBadgeEl.innerText = "СЕЙЧАС СМОТРИМ";
-            else this.typeBadgeEl.innerText = "СЕЙЧАС ИГРАЕМ";
+            this.typeBadgeEl.innerText = data.type === 'series' ? "СЕЙЧАС СМОТРИМ" : "СЕЙЧАС ИГРАЕМ";
         }
 
         this.titleEl.innerText = data.title || "Неизвестно";
         this.titleEl.classList.remove('marquee-active');
 
-        if (data.cover && data.cover.trim() !== "") {
-            this.coverEl.onerror = () => { this.coverEl.classList.add('hidden'); this.noMediaEl.style.display = 'flex'; };
+        // СБРОС: Убираем градиентный фон по умолчанию
+        this.posterBreakout.style.background = '';
+
+        if (data.cover === "generated") {
+            // УМНАЯ ЗАГЛУШКА
+            this.coverEl.src = "";
+            this.coverEl.classList.add('hidden');
+            this.generateGradientPlaceholder(data.title);
+        } 
+        else if (data.cover && data.cover.trim() !== "") {
+            // ОБЫЧНАЯ КАРТИНКА
+            this.coverEl.onerror = () => { 
+                this.coverEl.classList.add('hidden'); 
+                this.generateGradientPlaceholder(data.title); 
+            };
             this.coverEl.src = data.cover;
             this.coverEl.classList.remove('hidden');
             this.noMediaEl.style.display = 'none';
-        } else {
+        } 
+        else {
+            // ПОЛНАЯ ПУСТОТА
             this.coverEl.src = "";
             this.coverEl.classList.add('hidden');
+            this.noMediaEl.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <div class="mi-no-text">NO SIGNAL</div>
+            `;
             this.noMediaEl.style.display = 'flex';
-            this.ytPlayEl.style.display = 'none'; // Скрываем Play если обложка не прогрузилась
+            this.noMediaEl.style.background = 'linear-gradient(135deg, #1a1a24, #0a0a0f)';
         }
 
         this.tagsContainer.innerHTML = '';

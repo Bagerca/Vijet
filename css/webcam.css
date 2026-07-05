@@ -1,3 +1,4 @@
+/* ФАЙЛ: css/webcam.css */
 /* ================= РАМКА ВЕБКИ (ФИРМЕННЫЙ РОЗОВЫЙ НЕОН) ================= */
 #webcam-container { 
     position: absolute; 
@@ -10,13 +11,18 @@
 }
 
 #webcam-frame { 
+    /* Вводим CSS-переменные для идеальной геометрии рамки */
+    --frame-thickness: 4px;
+    --frame-radius: 12px;
+
     position: absolute; 
     top: 0; 
     left: 0; 
     width: 100%; 
     height: 100%; 
-    border: 4px solid transparent; 
-    border-radius: 12px; 
+    
+    border: var(--frame-thickness) solid transparent; 
+    border-radius: var(--frame-radius); 
     box-sizing: border-box; 
     
     /* Тень от микрофона (mic.js) ложится сюда */
@@ -30,12 +36,17 @@
     content: '';
     position: absolute;
     
-    /* Выносим градиент ровно на толщину рамки */
-    top: -4px; left: -4px; right: -4px; bottom: -4px; 
-    border-radius: inherit; 
+    /* Динамически выносим градиент ровно на толщину рамки */
+    top: calc(var(--frame-thickness) * -1); 
+    left: calc(var(--frame-thickness) * -1); 
+    right: calc(var(--frame-thickness) * -1); 
+    bottom: calc(var(--frame-thickness) * -1); 
+    
+    /* ИДЕАЛЬНОЕ ЗАКРУГЛЕНИЕ: Внешний радиус = Внутренний радиус + Толщина рамки */
+    border-radius: calc(var(--frame-radius) + var(--frame-thickness)); 
     
     /* Указываем толщину выреза для маски */
-    padding: 4px; 
+    padding: var(--frame-thickness); 
     
     /* Убрал белые/светлые оттенки, оставил чистый розовый неон */
     background: linear-gradient(135deg, #FF4477, #FF0050, #D81B60, #FF4477);
@@ -50,12 +61,6 @@
     
     animation: frameGradientMove 5s linear infinite;
     pointer-events: none;
-}
-
-/* Адаптация под сцену Just Chatting, где рамка шире (5px) */
-body.scene-chatting #webcam-frame::before {
-    top: -5px; left: -5px; right: -5px; bottom: -5px;
-    padding: 5px;
 }
 
 /* Анимация переливания цветов градиента */

@@ -1,0 +1,33 @@
+/* Базовые стили карточек */
+.card { 
+    --theme-color: #fff;
+    --theme-glow: rgba(255,255,255,0.08);
+    position: relative; background: var(--bg-card); border: 1px solid var(--border); 
+    border-radius: 20px; padding: 24px; display: flex; flex-direction: column; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+}
+
+/* Темы карточек */
+.card-theme-pink { --theme-color: var(--c-pink); --theme-glow: var(--c-pink-glow); }
+.card-theme-green { --theme-color: var(--c-green); --theme-glow: var(--c-green-glow); }
+.card-theme-gradient { --theme-color: #fff; --theme-glow: rgba(255,255,255,0.08); }
+
+.card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 100px; 
+    background: radial-gradient(ellipse at top, var(--theme-glow), transparent 70%); 
+    border-radius: 20px 20px 0 0; pointer-events: none; opacity: 0.5;
+}
+
+.card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; z-index: 2;}
+.icon-wrap { 
+    width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+    background: color-mix(in srgb, var(--theme-color) 10%, transparent); 
+    color: var(--theme-color); 
+    border: 1px solid color-mix(in srgb, var(--theme-color) 20%, transparent); 
+}
+.icon-wrap svg { width: 18px; height: 18px; }
+.card-title { font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: var(--text); text-transform: uppercase; margin: 0; }
+
+.card-divider { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; text-align: center; position: relative; margin: 20px 0 12px 0;}
+.card-divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; border-bottom: 1px solid var(--border); z-index: 1;}
+.card-divider span { background: var(--bg-card); padding: 0 10px; position: relative; z-index: 2; }

@@ -1,236 +1,181 @@
-/* ================= ЧАТ (ПРЕМИАЛЬНЫЙ ДЕФОЛТ И АРХИТЕКТУРА) ================= */
+/* ФАЙЛ: css/chat.css */
+/* ====================================================================
+   ЧАТ (SKELETON & SKINS ARCHITECTURE)
+   ==================================================================== */
+
+/* --- КОНТЕЙНЕРЫ (Глобальные) --- */
 #chat-container { 
-    position: absolute; 
-    bottom: 140px; 
-    left: 20px; 
-    width: 380px; 
-    height: 450px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: flex-end; 
-    padding: 0 20px 20px 20px; 
-    box-sizing: border-box; 
-    
-    /* Идеальный градиент: текст плавно растворяется вверху */
-    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) calc(100% - 60px), transparent 100%); 
-    mask-image: linear-gradient(to top, rgba(0,0,0,1) calc(100% - 60px), transparent 100%);
-    
+    position: absolute; bottom: 140px; left: 20px; width: 380px; height: 450px; 
+    display: flex; flex-direction: column; justify-content: flex-end; padding: 0 20px 20px 20px; box-sizing: border-box; 
     transition: all 0.5s ease; 
 }
+#chat-messages { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; width: 100%; }
 
-#chat-messages { 
-    display: flex; 
-    flex-direction: column; 
-    align-items: flex-start; 
-    gap: 14px; /* Чуть увеличили отступ между сообщениями */
-    width: 100%; 
-}
+/* ====================================================================
+   СЛОЙ 1: СКЕЛЕТ (SKELETON)
+   Только структурные свойства: flex, margins, z-index, анимации.
+   ==================================================================== */
 
-/* --- 1. ВНЕШНИЙ БЛОК --- */
 .chat-block { 
-    position: relative; 
-    display: flex; 
-    flex-direction: column; 
-    width: fit-content; 
-    max-width: 100%;
+    position: relative; display: flex; flex-direction: column; width: fit-content; max-width: 100%;
     animation: slideInChat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
     transform-origin: left bottom; 
 }
 .chat-out { animation: slideOutChat 0.4s cubic-bezier(0.36, 0, 0.66, -0.56) forwards; }
 
-/* --- 2. МЕТА-ДАННЫЕ (Бейджи, реплаи над баблом) --- */
-.chat-meta { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 4px; 
-    margin-bottom: 6px; 
-    width: 100%; 
-}
+.chat-meta { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.chat-bubble { display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.chat-header { display: flex; align-items: center; width: 100%; position: relative; z-index: 2; }
+.chat-avatar { flex-shrink: 0; object-fit: cover; }
+.chat-header-right { margin-left: auto; display: flex; align-items: center; }
+.chat-text { position: relative; z-index: 2; word-wrap: break-word; max-width: 100%; }
+.chat-emote { vertical-align: baseline; display: inline-block; }
 
-.chat-badge {
-    display: inline-flex; 
-    align-items: center; 
-    gap: 6px; 
-    width: fit-content;
-    font-size: 9px; 
-    font-weight: 900; 
-    text-transform: uppercase; 
-    letter-spacing: 1.5px;
-    padding: 4px 10px; 
-    border-radius: 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
+/* Системная механика цензуры (работает поверх любого скина) */
+.censured-badge { display: inline-block; vertical-align: middle; user-select: none; }
+.censured-message { width: 100%; box-sizing: border-box; user-select: none; text-align: center; }
 
-.chat-badge-first { 
-    background: linear-gradient(90deg, #FF4477, #FF0050); 
-    color: #ffffff; 
-}
-
-.chat-badge-highlight { 
-    background: linear-gradient(90deg, #6c5ce7, #a29bfe); 
-    color: #ffffff; 
-}
-
-.chat-badge-first .badge-sparkle { width: 12px; height: 12px; color: #fff; animation: spinSparkle 4s linear infinite; }
-.chat-badge-highlight .badge-star { width: 12px; height: 12px; color: #fdcb6e; animation: pulseStar 2s infinite alternate; filter: drop-shadow(0 0 4px #fdcb6e); }
-
-@keyframes spinSparkle { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.15); } 100% { transform: rotate(360deg) scale(1); } }
-@keyframes pulseStar { 0% { transform: scale(0.9); opacity: 0.8; } 100% { transform: scale(1.15); opacity: 1; } }
-
-/* --- 3. СТАНДАРТНЫЙ БАБЛ (РЕДИЗАЙН: Premium iOS Glass) --- */
-.chat-bubble { 
-    position: relative;
-    /* Более плотное, чистое матовое стекло */
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 248, 252, 0.85) 100%); 
-    backdrop-filter: blur(24px); 
-    -webkit-backdrop-filter: blur(24px); 
-    
-    /* Хвостик сообщения слева вверху (а-ля iMessage/Telegram) */
-    border-radius: 4px 18px 18px 18px; 
-    
-    /* Изящная рамка */
-    border: 1px solid rgba(255, 255, 255, 1); 
-    
-    /* Цвет юзера теперь не толстая палка, а элегантная обводка слева */
-    border-left: 3px solid var(--user-color); 
-    
-    padding: 12px 16px; 
-    box-shadow: 
-        0 10px 25px rgba(0, 0, 0, 0.08), 
-        inset 0 1px 2px rgba(255, 255, 255, 0.8); 
-    overflow: hidden;
-}
-
-/* Мягкий цветной блик от цвета юзера внутри бабла */
-.chat-bubble::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; bottom: 0; width: 40px;
-    background: linear-gradient(90deg, var(--user-color), transparent);
-    opacity: 0.1;
-    pointer-events: none;
-    z-index: 1;
-}
-
-/* --- ВНУТРЕННОСТИ БАБЛА --- */
-.chat-header { 
-    display: flex; 
-    align-items: center; 
-    width: 100%; 
-    margin-bottom: 6px; 
-    position: relative; 
-    z-index: 2; 
-}
-
-/* Аватарка стала чуть больше и аккуратнее */
-.chat-avatar { 
-    width: 28px; 
-    height: 28px; 
-    border-radius: 50%; 
-    margin-right: 10px; 
-    object-fit: cover; 
-    background: #e0e0e0; 
-    flex-shrink: 0; 
-    border: 2px solid #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); 
-}
-
-/* Имя пользователя */
-.chat-user { 
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 800; 
-    font-size: 15px; 
-    letter-spacing: 0.2px; 
-    white-space: nowrap; 
-    /* Тень делает имя читаемым, если цвет юзера слишком светлый */
-    text-shadow: 0 1px 1px rgba(0,0,0,0.1); 
-}
-
-/* Время */
-.chat-header-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
-.chat-time { 
-    font-size: 11px; 
-    color: rgba(0, 0, 0, 0.35); 
-    font-weight: 700; 
-    letter-spacing: 0.5px;
-}
-
-/* Текст сообщения (Идеальное выравнивание) */
-.chat-text { 
-    position: relative; 
-    z-index: 2; 
-    font-size: 15px; 
-    line-height: 1.5; 
-    word-wrap: break-word; 
-    color: #2c2c2e; /* Мягкий темный цвет, приятнее чистого черного */
-    font-weight: 600; 
-    max-width: 100%; 
-}
-
-/* ИСПРАВЛЕНИЕ: Выравнивание смайлов Twitch в тексте */
-.chat-emote { 
-    vertical-align: baseline; /* Лучше выравнивает смайл по тексту */
-    height: 28px; 
-    margin: -6px 2px -4px 2px; 
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15)); 
-    display: inline-block;
-}
-
-/* --- РЕПЛАИ (ОТВЕТЫ) --- */
-.chat-reply {
-    display: flex; flex-direction: column; position: relative; z-index: 2;
-    background: rgba(0, 0, 0, 0.03); 
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    padding: 6px 12px 6px 16px; 
-    border-radius: 8px; 
-    width: 100%; box-sizing: border-box; overflow: hidden;
-}
-.chat-reply::before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 6px; width: 3px; background: #FF4477; border-radius: 3px; opacity: 0.8; }
-.chat-reply-user { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #FF4477; margin-bottom: 2px; text-transform: uppercase; }
-.reply-icon { width: 11px; height: 11px; fill: currentColor; opacity: 0.8; }
-.chat-reply-text { font-size: 13px; color: rgba(0, 0, 0, 0.5); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-
-/* --- ЦЕНЗУРА --- */
-.censured-badge { background: #FF0050; color: #ffffff !important; font-size: 10px !important; font-weight: 900 !important; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; vertical-align: middle; margin: 0 2px; box-shadow: 0 2px 8px rgba(255, 0, 80, 0.4); user-select: none; }
-.censured-message { background: rgba(255, 0, 80, 0.05); border: 1px dashed rgba(255, 0, 80, 0.4); color: #FF0050; font-size: 12px; font-weight: 900; padding: 8px 12px; border-radius: 8px; text-transform: uppercase; letter-spacing: 2px; text-align: center; width: 100%; box-sizing: border-box; user-select: none; }
-
-
-/* --- ЭФФЕКТЫ ПРЕМИУМ-СООБЩЕНИЙ (ДЛЯ ДЕФОЛТНЫХ ЮЗЕРОВ) --- */
-.chat-block.is-first-time:not([data-style]) .chat-bubble { 
-    border-color: rgba(255, 68, 119, 0.3); 
-    box-shadow: 0 12px 30px rgba(255, 68, 119, 0.15), 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-.chat-block.is-highlighted:not([data-style]) .chat-bubble { 
-    border-color: rgba(162, 155, 254, 0.5);
-    background: linear-gradient(135deg, rgba(245, 235, 255, 0.98) 0%, rgba(255, 240, 248, 0.95) 100%);
-    box-shadow: 0 12px 30px rgba(162, 155, 254, 0.25), inset 0 0 10px rgba(255, 255, 255, 1);
-}
-.chat-block.is-mention:not([data-style]) .chat-bubble { 
-    border-right: 3px solid #FF0050; 
-}
-
-/* Пинг стримера в тексте */
-.chat-ping {
-    background: #FF0050;
-    color: #ffffff; font-weight: 800; padding: 1px 6px; border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(255, 0, 80, 0.4);
-    display: inline-block; vertical-align: middle;
-}
-.chat-ping-bell { width: 14px; height: 14px; color: #FF0050; filter: drop-shadow(0 0 4px rgba(255,0,80,0.4)); animation: ringBell 2.5s infinite ease-in-out; }
-@keyframes ringBell { 0%, 100% { transform: rotate(0deg); } 10%, 30%, 50% { transform: rotate(15deg) scale(1.1); } 20%, 40% { transform: rotate(-15deg) scale(1.1); } 60% { transform: rotate(0deg) scale(1); } }
-
-/* --- АНИМАЦИИ ПОЯВЛЕНИЯ И ИСЧЕЗНОВЕНИЯ --- */
+/* Базовые анимации */
 @keyframes slideInChat { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes slideOutChat { from { opacity: 1; transform: scale(1); height: auto; margin-bottom: 14px; } to { opacity: 0; transform: scale(0.8) translateX(-20px); height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border: none; } }
 
-/* --- АДАПТАЦИЯ ДЛЯ СЦЕНЫ JUST CHATTING --- */
-body.scene-chatting .chat-block {
-    width: 100% !important; 
-    max-width: 100% !important;
+/* Специфика сцены Just Chatting (геометрия) */
+body.scene-chatting #chat-container {
+    top: 100px; right: 40px; left: auto; bottom: auto; width: 680px; height: 780px; 
+    overflow-y: hidden; overflow-x: hidden; 
+}
+body.scene-chatting .chat-block { width: auto !important; align-self: stretch !important; max-width: none !important; }
+body.scene-chatting .chat-bubble { width: 100% !important; box-sizing: border-box !important; }
+
+
+/* ====================================================================
+   СЛОЙ 2: СКИН "ПО УМОЛЧАНИЮ" (DEFAULT SKIN)
+   Применяется ТОЛЬКО если у .chat-block стоит data-style="default"
+   ==================================================================== */
+
+/* --- Глобальная маска для дефолтного чата --- */
+#chat-container {
+    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) calc(100% - 60px), transparent 100%); 
+    mask-image: linear-gradient(to top, rgba(0,0,0,1) calc(100% - 60px), transparent 100%);
+}
+body.scene-chatting #chat-container { -webkit-mask-image: none; }
+
+/* --- Отступы и сдвиги для дефолтного чата --- */
+.chat-block.chat-consecutive[data-style="default"] { margin-top: -10px; }
+.chat-block[data-style="default"] .chat-meta { margin-bottom: 6px; }
+.chat-block[data-style="default"] .chat-header { margin-bottom: 6px; }
+
+/* --- Дизайн Бабла --- */
+.chat-block[data-style="default"] .chat-bubble {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 248, 252, 0.85) 100%); 
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); 
+    border-radius: 4px 18px 18px 18px; 
+    border: 1px solid rgba(255, 255, 255, 1); 
+    border-left: 3px solid var(--user-color); 
+    padding: 12px 16px; 
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.8); 
+}
+.chat-block.chat-consecutive[data-style="default"] .chat-bubble {
+    border-radius: 4px 18px 18px 4px;
+    padding-top: 10px;
+}
+.chat-block[data-style="default"] .chat-bubble::before { 
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 40px; 
+    background: linear-gradient(90deg, var(--user-color), transparent); 
+    opacity: 0.1; pointer-events: none; z-index: 1; 
 }
 
-body.scene-chatting .chat-bubble {
-    width: 100% !important; 
-    box-sizing: border-box !important;
+/* --- Внутренности Шапки --- */
+.chat-block[data-style="default"] .chat-avatar { 
+    width: 28px; height: 28px; border-radius: 50%; margin-right: 10px; 
+    background: #e0e0e0; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); 
+}
+.chat-block[data-style="default"] .chat-user { 
+    font-weight: 800; font-size: 15px; letter-spacing: 0.2px; white-space: nowrap; 
+    text-shadow: 0 1px 1px rgba(0,0,0,0.1); 
+}
+.chat-block[data-style="default"] .chat-header-right { gap: 6px; }
+.chat-block[data-style="default"] .chat-time { 
+    font-size: 11px; color: rgba(0, 0, 0, 0.35); font-weight: 700; letter-spacing: 0.5px; 
+}
+.chat-block[data-style="default"] .chat-text { 
+    font-size: 15px; line-height: 1.5; color: #2c2c2e; font-weight: 600; 
+}
+.chat-block[data-style="default"] .chat-emote { 
+    height: 28px; margin: -6px 2px -4px 2px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15)); 
+}
+
+/* --- Дизайн Мета-данных --- */
+.chat-block[data-style="default"] .chat-badge { 
+    display: inline-flex; align-items: center; gap: 6px; width: fit-content; 
+    font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; 
+    padding: 4px 10px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+}
+.chat-block[data-style="default"] .chat-badge-first { background: linear-gradient(90deg, #FF4477, #FF0050); color: #ffffff; }
+.chat-block[data-style="default"] .chat-badge-highlight { background: linear-gradient(90deg, #6c5ce7, #a29bfe); color: #ffffff; }
+
+.chat-block[data-style="default"] .badge-sparkle { width: 12px; height: 12px; color: #fff; animation: defSpinSparkle 4s linear infinite; }
+.chat-block[data-style="default"] .badge-star { width: 12px; height: 12px; color: #fdcb6e; animation: defPulseStar 2s infinite alternate; filter: drop-shadow(0 0 4px #fdcb6e); }
+@keyframes defSpinSparkle { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.15); } 100% { transform: rotate(360deg) scale(1); } }
+@keyframes defPulseStar { 0% { transform: scale(0.9); opacity: 0.8; } 100% { transform: scale(1.15); opacity: 1; } }
+
+/* --- Дизайн Реплаев --- */
+.chat-block[data-style="default"] .chat-reply { 
+    background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.04); 
+    padding: 6px 12px 6px 16px; border-radius: 8px; box-sizing: border-box; 
+    position: relative; z-index: 2; overflow: hidden;
+}
+.chat-block[data-style="default"] .chat-reply::before { 
+    content: ""; position: absolute; top: 6px; bottom: 6px; left: 6px; width: 3px; 
+    background: #FF4477; border-radius: 3px; opacity: 0.8; 
+}
+.chat-block[data-style="default"] .chat-reply-user { 
+    display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; 
+    color: #FF4477; margin-bottom: 2px; text-transform: uppercase; 
+}
+.chat-block[data-style="default"] .reply-icon { width: 11px; height: 11px; fill: currentColor; opacity: 0.8; }
+.chat-block[data-style="default"] .chat-reply-text { 
+    font-size: 13px; color: rgba(0, 0, 0, 0.5); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+}
+
+/* --- Модификаторы Дефолтного Скина --- */
+/* Впервые в чате */
+.chat-block.is-first-time[data-style="default"] .chat-bubble { 
+    border-color: rgba(255, 68, 119, 0.3); box-shadow: 0 12px 30px rgba(255, 68, 119, 0.15), 0 2px 10px rgba(0, 0, 0, 0.05); 
+}
+/* Выделено за баллы */
+.chat-block.is-highlighted[data-style="default"] .chat-bubble { 
+    border-color: rgba(162, 155, 254, 0.5); background: linear-gradient(135deg, rgba(245, 235, 255, 0.98) 0%, rgba(255, 240, 248, 0.95) 100%); 
+    box-shadow: 0 12px 30px rgba(162, 155, 254, 0.25), inset 0 0 10px rgba(255, 255, 255, 1); 
+}
+/* Упоминание стримера (Пинг) */
+.chat-block.is-mention[data-style="default"] .chat-bubble { border-right: 3px solid #FF0050; }
+.chat-block[data-style="default"] .chat-ping { 
+    background: #FF0050; color: #ffffff; font-weight: 800; padding: 1px 6px; border-radius: 6px; 
+    box-shadow: 0 2px 8px rgba(255, 0, 80, 0.4); display: inline-block; vertical-align: middle; 
+}
+.chat-block[data-style="default"] .chat-ping-bell { 
+    width: 14px; height: 14px; color: #FF0050; filter: drop-shadow(0 0 4px rgba(255,0,80,0.4)); 
+    animation: defRingBell 2.5s infinite ease-in-out; 
+}
+@keyframes defRingBell { 0%, 100% { transform: rotate(0deg); } 10%, 30%, 50% { transform: rotate(15deg) scale(1.1); } 20%, 40% { transform: rotate(-15deg) scale(1.1); } 60% { transform: rotate(0deg) scale(1); } }
+
+/* --- Дизайн Цензуры (Внутри дефолтного скина) --- */
+.chat-block[data-style="default"] .censured-badge { 
+    background: #FF0050; color: #ffffff; font-size: 10px; font-weight: 900; 
+    padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; 
+    margin: 0 2px; box-shadow: 0 2px 8px rgba(255, 0, 80, 0.4); 
+}
+.chat-block[data-style="default"] .censured-message { 
+    background: rgba(255, 0, 80, 0.05); border: 1px dashed rgba(255, 0, 80, 0.4); 
+    color: #FF0050; font-size: 12px; font-weight: 900; padding: 8px 12px; border-radius: 8px; 
+    text-transform: uppercase; letter-spacing: 2px; 
+}
+
+/* Дизайн сцены Just Chatting (Скин Дефолт) */
+body.scene-chatting #chat-container { 
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(240, 240, 245, 0.2) 100%); 
+    backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); 
+    border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 20px; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.05); padding: 20px; 
 }

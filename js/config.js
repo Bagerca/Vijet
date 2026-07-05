@@ -1,6 +1,7 @@
 /* ================= ОСНОВНОЙ КОНФИГ СИСТЕМЫ ================= */
 window.AppConfig = {
     channelName: "ksusha__sher",
+    botChannel: "bagercaa",
     allowedUsers: ["bagercaa", "to_be_ang", "treebals"], 
     
     // ==========================================

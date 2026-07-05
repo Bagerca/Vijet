@@ -1,86 +1,59 @@
+/* ФАЙЛ: css/mediainfo.css */
 /* ================= УНИВЕРСАЛЬНАЯ МЕДИА-КАРТОЧКА (ПРЕМИУМ) ================= */
 #media-info-container {
-    position: absolute;
-    bottom: 875px; 
-    left: 40px; 
-    
-    --media-color: #FF4477;
-    --media-glow: rgba(255, 68, 119, 0.2);
+    position: absolute; bottom: 875px; left: 40px; 
+    --media-color: #FF4477; --media-glow: rgba(255, 68, 119, 0.2);
     
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 245, 250, 0.8) 100%);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    border-bottom: 2px solid var(--media-color);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.9); border-bottom: 2px solid var(--media-color);
     border-radius: 18px; 
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 10px 20px var(--media-glow);
     
-    display: flex;
-    padding: 12px 20px 12px 0; 
-    min-width: 340px; 
-    max-width: 440px;
-    box-sizing: border-box;
-    z-index: 10;
-    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    opacity: 1;
-    transform: translate(0, 0);
+    display: flex; padding: 12px 20px 12px 0; min-width: 340px; max-width: 440px; box-sizing: border-box;
+    z-index: 10; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 1; transform: translate(0, 0);
 }
+#media-info-container.hidden { opacity: 0; transform: translateY(30px); pointer-events: none; }
 
-#media-info-container.hidden {
-    opacity: 0;
-    transform: translateY(30px);
-    pointer-events: none;
-}
-
-/* --- ВЫПИРАЮЩИЙ ПОСТЕР (БАЗОВЫЙ, ВЕРТИКАЛЬНЫЙ) --- */
+/* --- ПОСТЕР --- */
 .mi-poster-breakout {
-    width: 126px;  
-    height: 176px; 
-    flex-shrink: 0;
-    position: relative;
-    margin-top: -16px; 
-    margin-left: -30px; 
-    margin-right: 16px;
-    border-radius: 10px;
-    background: #0a0a0f;
+    width: 126px; height: 176px; flex-shrink: 0; position: relative;
+    margin-top: -16px; margin-left: -30px; margin-right: 16px;
+    border-radius: 10px; background: #0a0a0f;
     box-shadow: 8px 12px 25px rgba(0,0,0,0.4), 0 0 15px var(--media-glow);
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 #mi-cover {
-    display: block;
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover;
-    object-position: center center;
-    border-radius: inherit; 
-    position: relative;
-    z-index: 1;
-    transition: opacity 0.4s ease;
-    margin: 0; padding: 0;
+    display: block; width: 100%; height: 100%; object-fit: cover; object-position: center center;
+    border-radius: inherit; position: relative; z-index: 1; transition: opacity 0.4s ease; margin: 0; padding: 0;
 }
-
 #mi-cover.hidden { opacity: 0; }
 
 .mi-poster-breakout::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    border-radius: inherit;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: inherit;
     background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.3) 100%);
     box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-    pointer-events: none;
-    z-index: 3;
+    pointer-events: none; z-index: 3;
 }
 
 #mi-no-media {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-    background: linear-gradient(135deg, #1a1a24, #0a0a0f);
     border-radius: inherit;
 }
 #mi-no-media svg { width: 40px; height: 40px; color: var(--media-color); filter: drop-shadow(0 0 10px var(--media-glow)); }
 .mi-no-text { font-size: 10px; font-weight: 900; color: #fff; letter-spacing: 2px; }
+
+/* УМНАЯ ЗАГЛУШКА (Инициалы игры) */
+.mi-generated-initials {
+    font-size: 48px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: -2px;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    font-style: italic;
+}
 
 /* --- КОНТЕНТ --- */
 .mi-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
@@ -98,44 +71,10 @@
 .pop-anim { animation: widgetPopBreakout 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes widgetPopBreakout { 0% { transform: scale(1); } 50% { transform: scale(1.03) translateY(-5px); box-shadow: 0 30px 50px rgba(0,0,0,0.15), 0 15px 30px var(--media-glow); } 100% { transform: scale(1); } }
 
-
-/* =============================================================
-   АДАПТАЦИЯ ПОД YOUTUBE (ГОРИЗОНТАЛЬНЫЙ РЕЖИМ 16:9)
-   ============================================================= */
-#media-info-container.is-youtube {
-    max-width: 520px; /* Делаем карточку шире, чтобы влез текст */
-    min-height: 130px;
-}
-
+/* --- ГОРИЗОНТАЛЬНЫЙ РЕЖИМ (YOUTUBE) --- */
+#media-info-container.is-youtube { max-width: 520px; min-height: 130px; }
 #media-info-container.is-youtube .mi-poster-breakout {
-    width: 224px;   /* Идеальное соотношение 16:9 */
-    height: 126px;  /* Идеальное соотношение 16:9 */
-    
-    /* Убираем сильный выход наверх, выравниваем по центру карточки */
-    margin-top: 0;
-    margin-bottom: 0;
-    align-self: center; /* Выравнивает постер по вертикали */
-    
-    margin-left: -24px; /* Чуть меньше выпирает слева */
-    margin-right: 20px;
-    border-radius: 12px;
+    width: 224px; height: 126px; margin-top: 0; margin-bottom: 0; align-self: center; margin-left: -24px; margin-right: 20px; border-radius: 12px;
 }
-
-/* Кнопка Play по центру обложки */
-#mi-yt-play {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 48px; height: 34px;
-    background: #FF0000;
-    border-radius: 8px;
-    align-items: center; justify-content: center;
-    z-index: 5;
-    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
-    transition: transform 0.2s ease;
-}
-
-#mi-yt-play svg {
-    width: 20px; height: 20px;
-    color: #ffffff;
-}
+#mi-yt-play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 48px; height: 34px; background: #FF0000; border-radius: 8px; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5); transition: transform 0.2s ease; }
+#mi-yt-play svg { width: 20px; height: 20px; color: #ffffff; }

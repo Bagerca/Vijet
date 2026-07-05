@@ -1,3 +1,4 @@
+/* ФАЙЛ: js/tts.js */
 /* ================= ВИЗУАЛ TTS (ГЛУПЫЙ ВИДЖЕТ) ================= */
 window.AppTTS = {
     container: document.getElementById('tts-container'),
@@ -52,19 +53,17 @@ window.AppTTS = {
         // Устанавливаем юзера
         this.container.setAttribute('data-user', user.toLowerCase());
         
-        // НОВОЕ: Ищем стиль и вешаем его на контейнер
+        // Ищем стиль и вешаем его на контейнер
         const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[user.toLowerCase()]) || null;
         if (userStyle) {
             this.container.setAttribute('data-style', userStyle);
         }
         
-        // Сбрасываем классы ухода
+        // Снимаем классы скрытия
         this.container.classList.remove('hidden', 'tts-out');
         
-        // ФИКС АНИМАЦИИ: Принудительно заставляем браузер пересчитать DOM
-        void this.container.offsetWidth; 
-        
-        this.container.classList.add('tts-in');
+        // Безопасный вылет карточки
+        window.AppUtils.restartAnimation(this.container, 'tts-in');
     },
 
     hideVisual: function() {
@@ -72,10 +71,8 @@ window.AppTTS = {
         
         this.container.classList.remove('tts-in');
         
-        // ФИКС АНИМАЦИИ: Снова форсируем перерисовку
-        void this.container.offsetWidth; 
-        
-        this.container.classList.add('tts-out');
+        // Безопасный уход карточки
+        window.AppUtils.restartAnimation(this.container, 'tts-out');
         
         setTimeout(() => {
             this.container.classList.add('hidden');

@@ -26,9 +26,8 @@ window.AppShoutout = {
         const targetUser = this.queue.shift();
 
         try {
-            const response = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${targetUser}`);
-            const data = await response.json();
-
+            // Используем безопасный фетч!
+            const data = await window.AppUtils.safeFetch(`https://api.ivr.fi/v2/twitch/user?login=${targetUser}`);
             if (data && data.length > 0) this.render(data[0]);
             else this.playNext();
         } catch (err) {

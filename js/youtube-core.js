@@ -1,9 +1,10 @@
+/* ФАЙЛ: js/youtube-core.js */
 /* ================= YOUTUBE CORE ПЛЕЕР ================= */
 window.AppPlayerCore = {
     yt: null,
     isReady: false,
     currentVol: window.AppConfig.defaultVolume,
-    isDucking: false, // Флаг сайдчейна (приглушения)
+    isDucking: false, 
     progressInterval: null,
     currentItem: null,
     currentVisualId: null,
@@ -13,20 +14,13 @@ window.AppPlayerCore = {
         window.AppEvents.listen('YT_CORE_HIDE', () => this.hide());
         window.AppEvents.listen('PLAYER_VOL', d => this.setVolume(d.vol));
         
-        // === АУДИО САЙДЧЕЙН (Audio Ducking) ===
         window.AppEvents.listen('AUDIO_DUCK_START', () => {
             this.isDucking = true;
-            if (this.isReady && this.yt) {
-                // Приглушаем до 15% от ТЕКУЩЕЙ громкости, минимум 1%
-                this.yt.setVolume(Math.max(1, this.currentVol * 0.15));
-            }
+            if (this.isReady && this.yt) this.yt.setVolume(Math.max(1, this.currentVol * 0.15));
         });
         window.AppEvents.listen('AUDIO_DUCK_STOP', () => {
             this.isDucking = false;
-            if (this.isReady && this.yt) {
-                // Возвращаем исходную громкость
-                this.yt.setVolume(this.currentVol);
-            }
+            if (this.isReady && this.yt) this.yt.setVolume(this.currentVol);
         });
 
         window.AppEvents.listen('QUEUE_CMD', d => {
@@ -56,10 +50,11 @@ window.AppPlayerCore = {
                 if (oldOnReady) oldOnReady();
                 this.createPlayer();
             };
-            if (!document.getElementById('yt-api-script')) {
+            if (!document.getElementById('yt-api-script-core')) {
                 const tag = document.createElement('script');
-                tag.id = 'yt-api-script';
+                tag.id = 'yt-api-script-core';
                 tag.src = "https://www.youtube.com/iframe_api";
+                tag.onerror = () => console.warn("🎵 [YT CORE] YouTube недоступен (заблокирован). Аудио-плеер отключен.");
                 document.head.appendChild(tag);
             }
         }
@@ -79,8 +74,6 @@ window.AppPlayerCore = {
                 'onStateChange': this.handleStateChange.bind(this),
                 'onError': (e) => {
                     let reason = "Ограничения правообладателя или видео удалено";
-                    console.error(`❌ [YT CORE] Ошибка: ${reason} (Код ${e.data})`);
-                    
                     window.AppEvents.emit('TICKER_REWARD', { user: "Система", reward: "Трек недоступен", message: reason });
                     
                     if (this.currentItem && this.currentItem.type === 'playlist') {
@@ -120,10 +113,7 @@ window.AppPlayerCore = {
             this.currentVol = Math.max(0, Math.min(100, parseInt(vol) || window.AppConfig.defaultVolume));
             this.yt.unMute();
             
-            // Если сейчас идет сайдчейн (говорят алерты), сохраняем новую громкость, но не применяем её к плееру
-            if (!this.isDucking) {
-                this.yt.setVolume(this.currentVol);
-            }
+            if (!this.isDucking) this.yt.setVolume(this.currentVol);
             window.AppEvents.emit('YT_VISUAL_VOL', { vol: this.currentVol });
         }
     },
@@ -135,20 +125,16 @@ window.AppPlayerCore = {
             if (actualVidId !== this.currentVisualId && this.currentItem) {
                 this.currentVisualId = actualVidId;
                 window.AppEvents.emit('YT_VISUAL_PLAY', { 
-                    id: actualVidId, 
-                    user: this.currentItem.user, 
-                    vol: this.currentVol 
+                    id: actualVidId, user: this.currentItem.user, vol: this.currentVol 
                 });
             }
             
             this.startProgress();
-            // Отправляем базовое состояние танца в СТЕК питомца
             window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: true });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'playing' });
             
         } else if (event.data === 2) { // PAUSED
             this.stopProgress();
-            // Удаляем танец из стека
             window.AppEvents.emit('PET_BASE_STATE', { state: 'jam', active: false });
             window.AppEvents.emit('YT_VISUAL_STATE', { state: 'paused' });
             

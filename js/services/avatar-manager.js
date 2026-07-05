@@ -1,39 +1,41 @@
+/* ФАЙЛ: js/services/avatar-manager.js */
+/* ================= МЕНЕДЖЕР АВАТАРОК (Умный кэш) ================= */
 window.AvatarManager = {
-    cache: {},
+    CACHE_KEY: 'uso_avatars_lru',
+    MAX_CACHED_USERS: 100, // Храним только 100 последних зрителей
 
     init: function() {
-        const now = Date.now();
-        const lastClear = localStorage.getItem('uso_avatars_last_clear');
-        const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-
-        if (!lastClear || (now - parseInt(lastClear)) > ONE_WEEK) {
-            console.log("[AvatarManager] Плановая очистка старого кэша аватаров.");
+        // Миграция: очищаем старый "бесконечный" кэш
+        if (localStorage.getItem('uso_avatars')) {
+            console.log("[AvatarManager] Удаление старой системы кэширования.");
             localStorage.removeItem('uso_avatars');
-            localStorage.setItem('uso_avatars_last_clear', now.toString());
-            this.cache = {};
-        } else {
-            const saved = localStorage.getItem('uso_avatars');
-            this.cache = saved ? JSON.parse(saved) : {};
+            localStorage.removeItem('uso_avatars_last_clear');
         }
     },
 
-    get: async function(username, fallbackColor) {
-        if (this.cache[username]) return this.cache[username];
+    get: async function(username, fallbackColor = '#FF4477') {
+        const cleanName = username.toLowerCase();
         
+        // 1. Проверяем в умном кэше
+        const cached = window.AppUtils.LRUCache.get(this.CACHE_KEY, cleanName);
+        if (cached) return cached;
+        
+        // 2. Делаем безопасный API запрос
         try {
-            const response = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${username}`);
-            const data = await response.json();
+            const data = await window.AppUtils.safeFetch(`https://api.ivr.fi/v2/twitch/user?login=${cleanName}`);
             if (data && data.length > 0 && data[0].logo) {
-                this.cache[username] = data[0].logo; 
-                localStorage.setItem('uso_avatars', JSON.stringify(this.cache));
-                return data[0].logo;
+                const avatarUrl = data[0].logo;
+                window.AppUtils.LRUCache.set(this.CACHE_KEY, cleanName, avatarUrl, this.MAX_CACHED_USERS);
+                return avatarUrl;
             }
-            throw new Error("Нет аватарки");
+            throw new Error("Нет аватарки в API");
         } catch (e) {
+            // 3. Фолбэк-заглушка UI-Avatars
             let hexColor = fallbackColor.replace('#', '');
-            let fallbackUrl = `https://ui-avatars.com/api/?name=${username}&background=${hexColor}&color=fff&size=64&bold=true`;
-            this.cache[username] = fallbackUrl;
-            localStorage.setItem('uso_avatars', JSON.stringify(this.cache));
+            let fallbackUrl = `https://ui-avatars.com/api/?name=${cleanName}&background=${hexColor}&color=fff&size=64&bold=true`;
+            
+            // Кэшируем заглушку, чтобы не спамить API ошибками
+            window.AppUtils.LRUCache.set(this.CACHE_KEY, cleanName, fallbackUrl, this.MAX_CACHED_USERS);
             return fallbackUrl;
         }
     }

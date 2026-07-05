@@ -86,7 +86,7 @@ window.GamesDatabase = {
         tags: ["Супергероика", "Нуар"], details: { "В гл. роли": "Николас Кейдж", "Платформа": "Amazon Prime", "Год": "2025" }
     },
     "spider noir color": {
-        title: "Spider-Noir", cover: "img/covers/с.jpg", themeColor: "#991B1B", type: "series",
+        title: "Spider-Noir", cover: "img/covers/spider_noir_bw.jpg", themeColor: "#991B1B", type: "series",
         tags: ["Супергероика", "Комиксы"], details: { "В гл. роли": "Николас Кейдж", "Платформа": "Amazon Prime", "Год": "2025" }
     },
     "lego batman": {
