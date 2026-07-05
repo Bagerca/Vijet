@@ -4,6 +4,7 @@ window.DeckUI = {
     init() {
         this.setupCustomSelects();
         this.setupModifierPills();
+        this.setupHoldButtons();
         this.populateDynamicSelects();
 
         // 1. Прослушка переключателя ЦЕЛЕВОГО ЧАТА
@@ -59,30 +60,31 @@ window.DeckUI = {
         setTimeout(() => toast.classList.add('hidden'), 2500);
     },
 
-    // НОВОЕ: Программное переключение кастомных селектов (для Sync.js)
+    // ПРОГРАММНОЕ ПЕРЕКЛЮЧЕНИЕ СЕЛЕКТОВ
     setSelectValue(selectId, value) {
         const customSelect = document.getElementById(selectId);
         if (!customSelect) return;
         
-        // Если значение уже установлено, ничего не делаем
-        if (customSelect.getAttribute('data-value') === value) return;
+        // ФИКС БАГА С UNDEFINED
+        let safeValue = value;
+        if (!safeValue || safeValue === 'undefined' || safeValue === 'null') safeValue = 'off';
+
+        if (customSelect.getAttribute('data-value') === safeValue) return;
 
         const itemsList = customSelect.querySelector('.select-items');
         const selectedVisual = customSelect.querySelector('.select-selected');
         
         if (!itemsList || !selectedVisual) return;
 
-        // Ищем нужный пункт в списке
         const targetOption = Array.from(itemsList.querySelectorAll('div[data-value]'))
-                                  .find(opt => opt.getAttribute('data-value') === value);
+                                  .find(opt => opt.getAttribute('data-value') === safeValue);
 
         if (targetOption) {
-            customSelect.setAttribute('data-value', value);
+            customSelect.setAttribute('data-value', safeValue);
             selectedVisual.innerHTML = targetOption.innerHTML;
         } else {
-            // Если игры нет в списке (ввели руками команду в чат), просто пишем текст
-            customSelect.setAttribute('data-value', value);
-            selectedVisual.innerHTML = value === 'off' ? '❌ Скрыть плашку' : `🎮 ${value}`;
+            customSelect.setAttribute('data-value', safeValue);
+            selectedVisual.innerHTML = safeValue === 'off' ? '❌ Скрыть плашку' : `🎮 ${safeValue}`;
         }
     },
 
@@ -138,6 +140,39 @@ window.DeckUI = {
     setupModifierPills() {
         document.querySelectorAll('.mod-pill').forEach(pill => {
             pill.addEventListener('click', e => e.currentTarget.classList.toggle('active'));
+        });
+    },
+
+    // ЛОГИКА УДЕРЖАНИЯ КНОПОК ДЛЯ ЗАЩИТЫ ОТ МИССКЛИКОВ
+    setupHoldButtons() {
+        document.querySelectorAll('.btn-hold').forEach(btn => {
+            let timer;
+            
+            const triggerAction = () => {
+                btn.classList.remove('holding');
+                const cmd = btn.getAttribute('data-cmd');
+                const action = btn.getAttribute('data-action');
+                
+                if (cmd && window.DeckAuth) window.DeckAuth.sendCommand(cmd);
+                else if (action && window.DeckCommands) window.DeckCommands.handleAction(action);
+            };
+
+            const startHold = (e) => {
+                if (e.type === 'touchstart') e.preventDefault(); 
+                btn.classList.add('holding');
+                timer = setTimeout(triggerAction, 1500); 
+            };
+            
+            const stopHold = () => {
+                clearTimeout(timer);
+                btn.classList.remove('holding');
+            };
+
+            btn.addEventListener('mousedown', startHold);
+            btn.addEventListener('mouseup', stopHold);
+            btn.addEventListener('mouseleave', stopHold);
+            btn.addEventListener('touchstart', startHold, {passive: false});
+            btn.addEventListener('touchend', stopHold);
         });
     },
 

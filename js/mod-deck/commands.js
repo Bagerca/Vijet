@@ -1,3 +1,5 @@
+/* ФАЙЛ: js/mod-deck/commands.js */
+
 window.DeckCommands = {
     init() {
         const volSlider = document.getElementById('input-vol');
@@ -13,7 +15,8 @@ window.DeckCommands = {
 
         document.querySelector('.control-panel').addEventListener('click', (e) => {
             const btn = e.target.closest('.cmd-btn, .action-btn');
-            if (!btn) return;
+            // Игнорируем кнопки удержания при обычном клике!
+            if (!btn || btn.classList.contains('btn-hold')) return;
 
             btn.style.transform = 'scale(0.92)';
             setTimeout(() => btn.style.transform = '', 150);
@@ -72,12 +75,24 @@ window.DeckCommands = {
                 break;
             case 'testchat':
                 const baseCmd = getAttr('custom-test-chat', 'data-value');
-                const msgInput = getVal('test-chat-msg');
-                let flags = Array.from(document.querySelectorAll('.mod-pill.active')).map(p => p.getAttribute('data-mod')).join(' ');
+                let msgInput = getVal('test-chat-msg') || 'Пример текста!';
+                let flags = Array.from(document.querySelectorAll('.mod-pill.active')).map(p => p.getAttribute('data-mod'));
+                
+                // ЛОГИКА ЦЕНЗУРЫ: Внедряем триггерные слова перед отправкой в ядро
+                if (flags.includes('-c_word')) {
+                    msgInput = msgInput + ' пидор'; // Точное совпадение цензурирует только само слово
+                    flags = flags.filter(f => f !== '-c_word');
+                }
+                if (flags.includes('-c_msg')) {
+                    // Омоглиф (п1д0p нормализуется в пидор). 
+                    // Пробивает точный поиск и попадает в Smart Search, что скрывает ВЕСЬ бабл!
+                    msgInput = 'п1д0p ' + msgInput; 
+                    flags = flags.filter(f => f !== '-c_msg');
+                }
                 
                 let finalCmd = `!${baseCmd}`;
-                if (flags) finalCmd += ` ${flags}`;
-                if (msgInput) finalCmd += ` ${msgInput}`;
+                if (flags.length > 0) finalCmd += ` ${flags.join(' ')}`;
+                finalCmd += ` ${msgInput}`;
                 
                 window.DeckAuth.sendCommand(finalCmd); 
                 clearVal('test-chat-msg'); 

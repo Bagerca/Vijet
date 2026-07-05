@@ -5,24 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>USO | Cyber Dashboard</title>
     
-    <!-- Заглушка для фавиконки (убирает ошибку 404 в консоли) -->
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/mod-deck/_index.css">
     
-    <!-- Базовые библиотеки и утилиты -->
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     <script src="https://embed.twitch.tv/embed/v1.js"></script>
     
-    <!-- ВАЖНО: Подключаем шину событий ДО загрузки логики пульта! -->
     <script src="js/event-bus.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/games-db.js"></script>
 </head>
 <body>
 
-    <!-- Нативное модальное окно авторизации -->
     <dialog id="auth-modal" class="modal-card">
         <div class="auth-logo">USO <span>STUDIO</span></div>
         <div class="input-group mt-2">
@@ -41,37 +37,40 @@
         <button type="button" id="btn-connect" class="btn btn-primary mt-2">ПОДКЛЮЧИТЬСЯ</button>
     </dialog>
 
-    <!-- ГЛАВНЫЙ ИНТЕРФЕЙС -->
     <div id="app-container" class="hidden">
         
         <!-- КОЛОНКА 1: TWITCH -->
         <aside class="twitch-panel">
-            <header class="twitch-header">
+            <header class="twitch-header" style="flex-wrap: wrap; gap: 10px;">
                 <div class="live-indicator"><span class="live-dot"></span> <span id="ui-status-text">OFFLINE</span></div>
+                
+                <!-- Имя канала (обязательно для auth.js) -->
                 <span id="ui-channel-name" class="channel-name">канал</span>
+                
+                <!-- Выбор целевого чата -->
+                <div class="chat-target-wrapper" style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                    <span style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Чат:</span>
+                    <div class="custom-select" id="target-chat-select" data-value="main" style="width: 120px;">
+                        <div class="select-selected" style="padding: 4px 10px; font-size: 11px; border-color: var(--c-pink);">Основной</div>
+                        <div class="select-items select-hide">
+                            <div data-value="main">Основной</div>
+                            <div data-value="bot">Канал Бота</div>
+                        </div>
+                    </div>
+                </div>
+
                 <button type="button" id="btn-logout" class="btn-icon" title="Выйти">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 </button>
             </header>
             <div id="twitch-video-container" class="twitch-video"></div>
-            
-            <!-- Выбор целевого чата -->
-            <div class="chat-header-mini" style="display: flex; justify-content: space-between; align-items: center; overflow: visible;">
-                <span>ЦЕЛЕВОЙ ЧАТ:</span>
-                <div class="custom-select" id="target-chat-select" data-value="main" style="width: auto; min-width: 130px; margin: -5px 0;">
-                    <div class="select-selected" style="padding: 4px 10px; font-size: 10px; border-color: var(--c-pink);">Основной</div>
-                    <div class="select-items select-hide">
-                        <div data-value="main">Основной</div>
-                        <div data-value="bot">Ваш канал (Бот)</div>
-                    </div>
-                </div>
-            </div>
-            
             <div id="twitch-chat-container" class="twitch-chat"></div>
         </aside>
 
         <!-- КОЛОНКА 2: УПРАВЛЕНИЕ -->
         <main class="control-panel">
+            
+            <!-- РЯД 1: САМОЕ ВАЖНОЕ (Стрим, Музыка, Интерактив) -->
             <div class="panel-row">
                 
                 <!-- БЛОК: СТРИМ (БАЗА) -->
@@ -102,12 +101,12 @@
                         <input type="number" id="input-death-val" placeholder="0" class="counter-input">
                         <button type="button" class="btn btn-outline action-btn" data-action="set_death">SET</button>
                         <button type="button" class="btn btn-outline cmd-btn" data-cmd="!death -">-1</button>
-                        <button type="button" class="btn btn-danger cmd-btn" data-cmd="!death">+1 СМЕРТЬ</button>
+                        <!-- Зажатие кнопки для защиты от миссклика -->
+                        <button type="button" class="btn btn-danger btn-hold" data-cmd="!death"><span>+1 СМЕРТЬ</span></button>
                     </div>
     
                     <div class="card-divider"><span>Система (Опасно)</span></div>
                     
-                    <!-- Тумблер дебага -->
                     <div class="toggle-row" style="margin-bottom: 12px; background: rgba(255, 68, 119, 0.05); border-color: rgba(255, 68, 119, 0.2);">
                         <span class="toggle-label text-pink">Глубинный лог (Debug)</span>
                         <label class="switch switch-pink"><input type="checkbox" id="toggle-debug"><span class="slider"></span></label>
@@ -118,9 +117,10 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                             Визуал
                         </button>
-                        <button type="button" class="btn btn-danger flex-grow cmd-btn" data-cmd="!refresh core">
+                        <!-- Зажатие кнопки для защиты от миссклика -->
+                        <button type="button" class="btn btn-danger flex-grow btn-hold" data-cmd="!refresh core">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            Ядро
+                            <span>Ядро</span>
                         </button>
                     </div>
                 </section>
@@ -141,7 +141,8 @@
                     <div class="flex-row mt-1">
                         <button type="button" class="btn btn-outline flex-grow cmd-btn" data-cmd="!skip">Скип трек</button>
                         <button type="button" class="btn btn-outline flex-grow cmd-btn" data-cmd="!skip all">Скип плейлист</button>
-                        <button type="button" class="btn btn-danger cmd-btn" data-cmd="!clear">Очистить</button>
+                        <!-- Зажатие кнопки -->
+                        <button type="button" class="btn btn-danger btn-hold" data-cmd="!clear"><span>Очистить</span></button>
                     </div>
                     
                     <div class="card-divider mt-2"><span>Очередь (Локально)</span></div>
@@ -167,23 +168,11 @@
                     </button>
                 </section>
 
-                <!-- БЛОК: ВИДЖЕТЫ (MASTER) -->
-                <section class="card card-theme-gradient">
-                    <header class="card-header">
-                        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></div>
-                        <h2 class="card-title">Мастер Виджетов</h2>
-                    </header>
-                    <div class="widget-grid" id="widget-master-grid"></div>
-                </section>
-            </div>
-
-            <div class="panel-row">
-                
                 <!-- БЛОК: ИНТЕРАКТИВ И ЛИСА -->
                 <section class="card card-theme-pink">
                     <header class="card-header">
                         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
-                        <h2 class="card-title">Интерактив (Питомец и Колесо)</h2>
+                        <h2 class="card-title">Интерактив</h2>
                     </header>
                     
                     <label class="input-label">Эмоции питомца:</label>
@@ -207,7 +196,7 @@
                     <div class="flex-row">
                         <button type="button" class="btn btn-outline flex-grow cmd-btn" data-cmd="!wheel show">Показать</button>
                         <button type="button" class="btn btn-outline flex-grow cmd-btn" data-cmd="!wheel hide">Скрыть</button>
-                        <button type="button" class="btn btn-danger cmd-btn" data-cmd="!wheel clear">Очистить</button>
+                        <button type="button" class="btn btn-danger btn-hold" data-cmd="!wheel clear"><span>Очистить</span></button>
                     </div>
                     <button type="button" class="btn btn-solid-gradient full-width mt-1 cmd-btn" data-cmd="!wheel spin">КРУТИТЬ КОЛЕСО</button>
                     
@@ -222,6 +211,19 @@
                         </div>
                         <button type="button" class="btn btn-outline action-btn" data-action="add_wheel_db">+</button>
                     </div>
+                </section>
+            </div>
+
+            <!-- РЯД 2: ВТОРОСТЕПЕННОЕ (Виджеты, Оформление, Тесты) -->
+            <div class="panel-row">
+                
+                <!-- БЛОК: ВИДЖЕТЫ (MASTER) -->
+                <section class="card card-theme-gradient">
+                    <header class="card-header">
+                        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></div>
+                        <h2 class="card-title">Мастер Виджетов</h2>
+                    </header>
+                    <div id="widget-master-grid"></div>
                 </section>
 
                 <!-- БЛОК: ИНФО И ТЕМЫ -->
@@ -303,20 +305,21 @@
                     
                     <label class="input-label">Отправитель (Стиль):</label>
                     <div class="smart-input">
-                        <!-- Изменили на testuser default_user -->
                         <div class="custom-select" id="custom-test-chat" data-value="testuser default_user">
                             <div class="select-selected">Дефолт (Обычное)</div>
                             <div class="select-items select-hide" id="dynamic-chat-styles"></div>
                         </div>
                     </div>
                     
-                    <label class="input-label mt-2">Флаги:</label>
+                    <label class="input-label mt-2">Флаги (Можно комбинировать):</label>
                     <div class="modifier-pills">
                         <div class="mod-pill" data-mod="-rep">Ответ</div>
                         <div class="mod-pill" data-mod="-hl">За баллы</div>
                         <div class="mod-pill" data-mod="-ping">Пинг</div>
                         <div class="mod-pill" data-mod="-first">Новичок</div>
                         <div class="mod-pill" data-mod="-tts">TTS</div>
+                        <div class="mod-pill" data-mod="-c_word" style="border-color: rgba(255,0,0,0.4);">Цензура (Слово)</div>
+                        <div class="mod-pill" data-mod="-c_msg" style="border-color: rgba(255,0,0,0.4);">Цензура (Текст)</div>
                     </div>
 
                     <label class="input-label mt-2">Текст:</label>
@@ -342,7 +345,6 @@
 
     <div id="toast" class="toast hidden">Успешно!</div>
 
-    <!-- Загружаем раздробленные скрипты -->
     <script src="js/mod-deck/auth.js"></script>
     <script src="js/mod-deck/ui.js"></script>
     <script src="js/mod-deck/widgets.js"></script>
