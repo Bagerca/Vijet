@@ -26,7 +26,7 @@ window.DeckSync = {
             }
         };
 
-        // 1. Уникальные Тумблеры (Имеют собственный стейт в Ядре)
+        // 1. Уникальные Тумблеры
         setToggle('blur', state.blur);
         setToggle('cam', state.cam);
         setToggle('deaths', state.deaths > 0);
@@ -40,7 +40,7 @@ window.DeckSync = {
 
         // 2. ДИНАМИЧЕСКИЙ МАСТЕР ВИДЖЕТОВ
         if (state.widgets) {
-            // ИСПРАВЛЕНИЕ: Игнорируем уникальные тумблеры, даже если они ошибочно попали в память как виджеты
+            // Игнор-лист для защиты от старых фантомных записей
             const ignoreList = ['blur', 'cam', 'deaths']; 
             
             for (const [widgetId, isVisible] of Object.entries(state.widgets)) {
@@ -57,6 +57,31 @@ window.DeckSync = {
             volSlider.value = state.youtube.volume;
             volSlider.style.setProperty('--slider-fill', state.youtube.volume + '%');
             if (volLabel) volLabel.innerText = state.youtube.volume + '%';
+        }
+
+        // 3.5 Синхронизация ползунков частиц (Созвездия)
+        if (state.particles) {
+            const updateSlider = (id, valId, val, suffix, isFloat = false) => {
+                const el = document.getElementById(id);
+                const valEl = document.getElementById(valId);
+                if (!el || !valEl) return;
+                
+                const min = el.min;
+                const max = el.max;
+                const percent = ((val - min) / (max - min)) * 100;
+                
+                el.value = val;
+                el.style.setProperty('--slider-fill', `${percent}%`);
+                valEl.innerText = isFloat ? (val / 10).toFixed(1) + suffix : val + suffix;
+            };
+
+            updateSlider('part-count', 'part-count-val', state.particles.count, '');
+            updateSlider('part-dist', 'part-dist-val', state.particles.distance, 'px');
+            updateSlider('part-speed', 'part-speed-val', state.particles.speed * 10, 'x', true);
+            
+            if (window.DeckUI) {
+                window.DeckUI.setSelectValue('part-color', state.particles.color);
+            }
         }
 
         // 4. Селект Темы

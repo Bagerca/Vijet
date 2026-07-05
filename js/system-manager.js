@@ -22,7 +22,6 @@ window.SystemManager = {
     },
 
     // СТРОГИЕ БЕЛЫЕ СПИСКИ: Что ИМЕЕТ ПРАВО жить на конкретных сценах.
-    // Если сцены тут нет (например, 'chatting'), разрешено всё, что запрошено в URL.
     sceneRules: {
         'starting': ['goal', 'socials', 'ticker'], // Только 3 виджета могут существовать на старте
         'ending': ['socials']                      // На эндинге выживут только соцсети
@@ -37,16 +36,17 @@ window.SystemManager = {
         if (sceneParam) document.body.classList.add(`scene-${sceneParam}`);
 
         // 2. ДЕЛАЕМ ПЕРЕСЕЧЕНИЕ ПРАВИЛ (Intersection)
-        // Если для текущей сцены есть строгие правила — обрезаем хотелки пользователя в OBS.
         if (sceneParam && this.sceneRules[sceneParam]) {
             const allowedByScene = this.sceneRules[sceneParam];
-            // Оставляем только те виджеты, которые запрошены в URL И разрешены правилами сцены
             requestedWidgets = requestedWidgets.filter(w => allowedByScene.includes(w));
         }
 
-        // 3. ФИЗИЧЕСКОЕ УНИЧТОЖЕНИЕ DOM
-        document.body.style.setProperty('background', 'transparent', 'important');
-        document.documentElement.style.setProperty('background', 'transparent', 'important');
+        // 3. ФИЗИЧЕСКОЕ УНИЧТОЖЕНИЕ DOM И ФОНА
+        // ИСПРАВЛЕНИЕ: Делаем принудительно прозрачный фон ТОЛЬКО если это не сцена с собственным дизайном
+        if (!['starting', 'ending', 'chatting'].includes(sceneParam)) {
+            document.body.style.setProperty('background', 'transparent', 'important');
+            document.documentElement.style.setProperty('background', 'transparent', 'important');
+        }
         
         const finalAllowedIds = new Set(requestedWidgets.map(w => this.widgetMap[w]));
 
@@ -58,8 +58,6 @@ window.SystemManager = {
         }
 
         // 4. ОСОБЫЙ СЛУЧАЙ: Контейнер веб-камеры
-        // Рамка (cam) и Питомец (pet) лежат в одном <div id="webcam-container">. 
-        // Если удалены оба, нужно удалить и родителя, чтобы он не перекрывал клики.
         if (!finalAllowedIds.has(this.widgetMap['cam']) && !finalAllowedIds.has(this.widgetMap['pet'])) {
             const mainCamCont = document.getElementById('webcam-container');
             if (mainCamCont) mainCamCont.remove();

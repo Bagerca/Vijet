@@ -5,15 +5,15 @@ window.AppStateCore = {
         theme: 'default', blur: false, cam: true, deaths: 0, wheelVisible: false,
         media: { type: 'off', query: null },
         youtube: { isPlaying: false, currentId: null, currentTime: 0, volume: 30, currentUser: null },
-        // НОВОЕ: Реестр состояний для ВСЕХ виджетов (Мастер Виджетов)
-        widgets: {} 
+        widgets: {},
+        // НОВОЕ: Состояние частиц
+        particles: { count: 80, speed: 1.0, distance: 120, color: '#ffffff' }
     },
-    saveTimeout: null, // Таймер для Debounce
+    saveTimeout: null,
 
     init: function() {
         this.loadFromStorage();
 
-        // Слушаем ИЗМЕНЕНИЯ БАЗОВЫХ СУЩНОСТЕЙ
         window.AppEvents.listen('BLUR_TOGGLE', d => { 
             if (d.state === 'on') this.state.blur = true;
             else if (d.state === 'off') this.state.blur = false;
@@ -26,13 +26,19 @@ window.AppStateCore = {
         window.AppEvents.listen('WHEEL_TOGGLE', d => { this.state.wheelVisible = d.state; this.save(); });
         window.AppEvents.listen('MEDIA_SET', d => { this.state.media = { type: d.type, query: d.query }; this.save(); });
         
-        // НОВОЕ: Ловим скрытие/показ любых других виджетов
         window.AppEvents.listen('WIDGET_TOGGLE', d => {
             this.state.widgets[d.widget] = (d.state === 'on' || d.state === 'show');
             this.save();
         });
         
-        // Музыка
+        // НОВОЕ: Слушаем настройки частиц с пульта модератора
+        window.AppEvents.listen('PARTICLES_CFG', d => {
+            this.state.particles = { ...this.state.particles, ...d };
+            this.save();
+            // Сразу шлем обновленные настройки на сцены
+            window.AppEvents.emit('PARTICLES_UPDATE_SETTINGS', this.state.particles);
+        });
+        
         window.AppEvents.listen('YT_VISUAL_PLAY', d => { 
             this.state.youtube.currentId = d.id; 
             this.state.youtube.isPlaying = true; 
@@ -59,10 +65,7 @@ window.AppStateCore = {
     },
 
     save: function() {
-        // Мгновенная рассылка по сети (для отклика UI в Mod Deck и OBS)
         window.AppEvents.emit('STATE_SYNC_RESPONSE', this.state);
-
-        // Отложенная запись на диск (Debounce 1 sec)
         clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(() => {
             localStorage.setItem('uso_global_state', JSON.stringify(this.state));
@@ -75,8 +78,8 @@ window.AppStateCore = {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 this.state = { ...this.state, ...parsed };
-                // Убеждаемся что объект виджетов существует
                 if (!this.state.widgets) this.state.widgets = {};
+                if (!this.state.particles) this.state.particles = { count: 80, speed: 1.0, distance: 120, color: '#ffffff' };
             }
         } catch (e) {}
     }

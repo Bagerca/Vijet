@@ -5,6 +5,7 @@ window.DeckUI = {
         this.setupCustomSelects();
         this.setupModifierPills();
         this.setupHoldButtons();
+        this.setupParticleSliders();
         this.populateDynamicSelects();
 
         // 1. Прослушка переключателя ЦЕЛЕВОГО ЧАТА
@@ -174,6 +175,55 @@ window.DeckUI = {
             btn.addEventListener('touchstart', startHold, {passive: false});
             btn.addEventListener('touchend', stopHold);
         });
+    },
+
+    // ЛОГИКА НАСТРОЙКИ ЧАСТИЦ С ДЕБАУНСОМ
+    setupParticleSliders() {
+        let updateTimer;
+        
+        const emitUpdate = () => {
+            const count = parseInt(document.getElementById('part-count').value);
+            const dist = parseInt(document.getElementById('part-dist').value);
+            const speed = parseInt(document.getElementById('part-speed').value) / 10; 
+            const color = document.getElementById('part-color').getAttribute('data-value');
+
+            window.AppEvents.emit('PARTICLES_CFG', { count, distance: dist, speed, color });
+        };
+
+        const attachSlider = (id, valId, suffix, isFloat = false) => {
+            const el = document.getElementById(id);
+            const valEl = document.getElementById(valId);
+            if (!el || !valEl) return;
+
+            el.addEventListener('input', (e) => {
+                const val = e.target.value;
+                const min = e.target.min;
+                const max = e.target.max;
+                const percent = ((val - min) / (max - min)) * 100;
+                
+                el.style.setProperty('--slider-fill', `${percent}%`);
+                
+                if (isFloat) valEl.innerText = (val / 10).toFixed(1) + suffix;
+                else valEl.innerText = val + suffix;
+
+                clearTimeout(updateTimer);
+                updateTimer = setTimeout(emitUpdate, 50);
+            });
+        };
+
+        attachSlider('part-count', 'part-count-val', '');
+        attachSlider('part-dist', 'part-dist-val', 'px');
+        attachSlider('part-speed', 'part-speed-val', 'x', true);
+
+        const colorSelect = document.getElementById('part-color');
+        if (colorSelect) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach(m => {
+                    if (m.attributeName === 'data-value') emitUpdate();
+                });
+            });
+            observer.observe(colorSelect, { attributes: true });
+        }
     },
 
     populateDynamicSelects() {
