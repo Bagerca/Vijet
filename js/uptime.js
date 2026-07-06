@@ -1,9 +1,7 @@
 /* ФАЙЛ: js/uptime.js */
-/* ================= ВИДЖЕТ ТАЙМЕРА СТРИМА (UPTIME) ================= */
+/* ================= ВИДЖЕТ ТАЙМЕРА СТРИМА (STUDIO PILL) ================= */
 window.AppUptime = {
     container: document.getElementById('uptime-container'),
-    valueEl: document.getElementById('uptime-value'),
-    dotEl: document.querySelector('#uptime-container .uptime-dot'),
     
     startTime: null,
     timerInterval: null,
@@ -13,6 +11,21 @@ window.AppUptime = {
     init: function() {
         if (!this.container) return;
 
+        // Внедряем новый стильный HTML
+        this.container.innerHTML = `
+            <div class="up-live-pill" id="up-pill-bg">
+                <div class="up-dot" id="up-dot"></div>
+                <span class="up-live-text" id="up-text">В ЭФИРЕ</span>
+            </div>
+            <div class="up-divider"></div>
+            <div id="uptime-value" class="up-time">00:00:00</div>
+        `;
+
+        this.valueEl = document.getElementById('uptime-value');
+        this.dotEl = document.getElementById('up-dot');
+        this.pillBg = document.getElementById('up-pill-bg');
+        this.textEl = document.getElementById('up-text');
+
         // Слушаем команды
         window.AppEvents.listen('UPTIME_CMD', d => {
             if (d.cmd === 'test') this.enableTestMode();
@@ -21,16 +34,32 @@ window.AppUptime = {
         });
 
         this.fetchStreamStatus();
-        // Проверяем статус каждые 30 секунд
         setInterval(() => this.fetchStreamStatus(), 30000);
 
-        // Обновляем секундомер каждую секунду
         this.timerInterval = setInterval(() => this.tick(), 1000);
     },
 
     toggle: function(state) {
         if (state) this.container.classList.remove('hidden');
         else this.container.classList.add('hidden');
+    },
+
+    setUIState: function(isLive) {
+        if (isLive) {
+            this.dotEl.style.background = '#FF0050';
+            this.dotEl.style.boxShadow = '0 0 8px #FF0050';
+            this.textEl.innerText = 'В ЭФИРЕ';
+            this.textEl.style.color = '#FF0050';
+            this.pillBg.style.background = 'rgba(255, 0, 80, 0.1)';
+            this.pillBg.style.borderColor = 'rgba(255, 0, 80, 0.15)';
+        } else {
+            this.dotEl.style.background = '#888888';
+            this.dotEl.style.boxShadow = 'none';
+            this.textEl.innerText = 'ОФФЛАЙН';
+            this.textEl.style.color = '#888888';
+            this.pillBg.style.background = 'rgba(0, 0, 0, 0.05)';
+            this.pillBg.style.borderColor = 'rgba(0, 0, 0, 0.05)';
+        }
     },
 
     fetchStreamStatus: async function() {
@@ -43,13 +72,13 @@ window.AppUptime = {
                 if (user.stream && user.stream.createdAt) {
                     this.startTime = new Date(user.stream.createdAt).getTime();
                     this.isLive = true;
+                    this.setUIState(true);
                     this.container.classList.remove('hidden');
-                    if (this.dotEl) this.dotEl.style.background = '#FF0050';
                 } else {
                     this.isLive = false;
                     this.startTime = null;
-                    this.valueEl.innerText = "OFFLINE";
-                    if (this.dotEl) this.dotEl.style.background = '#888888';
+                    this.valueEl.innerText = "00:00:00";
+                    this.setUIState(false);
                 }
             }
         } catch (err) {
@@ -60,10 +89,10 @@ window.AppUptime = {
     enableTestMode: function() {
         this.isTestMode = true;
         this.isLive = true;
-        // Ставим фейковый старт: 1 час 23 минуты 45 секунд назад
+        // Фейковый старт: 1 час 23 минуты 45 секунд назад
         this.startTime = Date.now() - (1 * 3600 + 23 * 60 + 45) * 1000;
+        this.setUIState(true);
         this.container.classList.remove('hidden');
-        if (this.dotEl) this.dotEl.style.background = '#FF0050';
         this.tick();
     },
 
