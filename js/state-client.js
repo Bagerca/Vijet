@@ -1,3 +1,4 @@
+/* ФАЙЛ: js/state-client.js */
 /* ================= ПРИЕМНИК СОСТОЯНИЯ (ДЛЯ СЦЕН OBS) ================= */
 window.AppStateClient = {
     init: function() {
@@ -27,8 +28,11 @@ window.AppStateClient = {
         // Тема
         if (window.SystemManager) window.SystemManager.applyTheme(state.theme);
 
-        // Рамка вебкамеры
-        if (window.AppMedia) window.AppMedia.toggleCam(state.cam);
+        // Рамка вебкамеры и Фильтры
+        if (window.AppMedia) {
+            window.AppMedia.toggleCam(state.cam);
+            if (state.camFilter) window.AppEvents.emit('CAM_FILTER_SET', { filter: state.camFilter });
+        }
 
         // Колесо
         if (window.AppWheel) window.AppWheel.toggle(state.wheelVisible);
@@ -38,22 +42,18 @@ window.AppStateClient = {
             window.AppMediaInfo.set(state.media.type, state.media.query, true); // true = без анимации
         }
 
-        // Восстановление YouTube плеера (Самое важное!)
-        // Если плеер был открыт, но на этой сцене его нет - открываем
+        // Восстановление YouTube плеера
         if (window.AppPlayer && state.youtube.isPlaying && state.youtube.currentId) {
             const container = document.getElementById('widget-container');
-            // Если контейнер скрыт, показываем его без анимаций вылета
             if (container && container.classList.contains('hidden')) {
                 container.classList.remove('hidden');
                 
-                // Прокидываем данные в плеер
                 window.AppPlayer.play({
                     id: state.youtube.currentId,
                     user: "Восстановлено",
                     vol: state.youtube.volume
                 });
                 
-                // Перематываем на нужную секунду, если плеер API готов
                 setTimeout(() => {
                     if (window.AppPlayer.yt && typeof window.AppPlayer.yt.seekTo === 'function') {
                         window.AppPlayer.yt.seekTo(state.youtube.currentTime, true);

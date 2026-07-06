@@ -38,7 +38,6 @@ window.DeckCommands = {
             if (btn.classList.contains('btn-remove-track')) {
                 const idx = btn.getAttribute('data-idx');
                 if (idx !== null) {
-                    // Команда на удаление (индексы для людей начинаются с 1)
                     window.DeckAuth.sendCommand(`!remove ${parseInt(idx) + 1}`);
                 }
                 return;
@@ -47,12 +46,12 @@ window.DeckCommands = {
             const cmd = btn.getAttribute('data-cmd');
             if (cmd) { 
                 window.DeckAuth.sendCommand(cmd); 
-                window.DeckUI.buttonFeedback(btn); // <-- Визуальный отклик
+                window.DeckUI.buttonFeedback(btn); 
                 return; 
             }
 
             this.handleAction(btn.getAttribute('data-action'));
-            window.DeckUI.buttonFeedback(btn); // <-- Визуальный отклик
+            window.DeckUI.buttonFeedback(btn); 
         });
 
         document.querySelectorAll('.smart-input input, .counter-input').forEach(input => {
@@ -89,6 +88,10 @@ window.DeckCommands = {
             case 'settheme':
                 val = getAttr('custom-theme-select', 'data-value');
                 if (val) window.DeckAuth.sendCommand(`!протокол ${val}`); 
+                break;
+            case 'setfilter':
+                val = getAttr('custom-cam-filter', 'data-value');
+                if (val) window.DeckAuth.sendCommand(`!filter ${val}`); 
                 break;
             case 'testalert':
                 val = getAttr('custom-test-alert', 'data-value');

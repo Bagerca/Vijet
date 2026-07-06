@@ -41,6 +41,7 @@ window.AppCore = {
                 window.AppEvents.emit('WHEEL_TOGGLE', { state: false });
                 window.AppEvents.emit('BLUR_TOGGLE', { state: 'off' });
                 window.AppEvents.emit('MEDIA_CAM', { state: 'on' });
+                window.AppEvents.emit('CAM_FILTER_SET', { filter: 'off' });
                 window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' });
                 window.AppEvents.emit('TTS_CMD', { cmd: 'stop' });
 
@@ -86,6 +87,10 @@ window.AppCore = {
         "vol": (arg) => { if(arg) window.AppEvents.emit('PLAYER_VOL', { vol: arg }); },
         "cam": (arg) => window.AppEvents.emit('MEDIA_CAM', { state: arg }),
         "mic": (arg) => window.AppEvents.emit('MEDIA_MIC', { state: arg }),
+        
+        "filter": (arg) => window.AppEvents.emit('CAM_FILTER_SET', { filter: arg }),
+        "фильтр": (arg) => window.AppCore.CommandRouter["filter"](arg),
+        
         "emotes": (arg) => window.AppEvents.emit('EMOTES_CMD', { cmd: arg }),
         "смайлы": (arg) => window.AppCore.CommandRouter["emotes"](arg),
         "blur": (arg) => window.AppEvents.emit('BLUR_TOGGLE', { state: arg }),

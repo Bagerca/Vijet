@@ -1,71 +1,94 @@
 /* ФАЙЛ: css/webcam.css */
-/* ================= РАМКА ВЕБКИ (ФИРМЕННЫЙ РОЗОВЫЙ НЕОН) ================= */
+/* ================= РАМКА ВЕБКИ И ОПТИЧЕСКИЕ ФИЛЬТРЫ ================= */
 #webcam-container { 
     position: absolute; 
     top: 220px; 
-    left: 20px; /* Было 40px. Прижали левее */
+    left: 20px;
     width: 360px; 
     height: 270px; 
     border-radius: 12px; 
     transition: all 0.5s ease; 
+    z-index: 5;
 }
 
 #webcam-frame { 
-    /* Вводим CSS-переменные для идеальной геометрии рамки */
     --frame-thickness: 4px;
     --frame-radius: 12px;
 
     position: absolute; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    
+    top: 0; left: 0; width: 100%; height: 100%; 
     border: var(--frame-thickness) solid transparent; 
     border-radius: var(--frame-radius); 
     box-sizing: border-box; 
-    
-    /* Тень от микрофона (mic.js) ложится сюда */
     box-shadow: 0 0 15px rgba(255, 68, 119, 0.2); 
     transition: box-shadow 0.1s ease-out, border-width 0.5s ease, border-radius 0.5s ease; 
     z-index: 2; 
 }
 
-/* 1. Анимированный неоновый градиент по контуру рамки */
+/* Неоновый градиент рамки */
 #webcam-frame::before {
-    content: '';
-    position: absolute;
-    
-    /* Динамически выносим градиент ровно на толщину рамки */
-    top: calc(var(--frame-thickness) * -1); 
-    left: calc(var(--frame-thickness) * -1); 
-    right: calc(var(--frame-thickness) * -1); 
-    bottom: calc(var(--frame-thickness) * -1); 
-    
-    /* ИДЕАЛЬНОЕ ЗАКРУГЛЕНИЕ: Внешний радиус = Внутренний радиус + Толщина рамки */
+    content: ''; position: absolute;
+    top: calc(var(--frame-thickness) * -1); left: calc(var(--frame-thickness) * -1); 
+    right: calc(var(--frame-thickness) * -1); bottom: calc(var(--frame-thickness) * -1); 
     border-radius: calc(var(--frame-radius) + var(--frame-thickness)); 
-    
-    /* Указываем толщину выреза для маски */
     padding: var(--frame-thickness); 
-    
-    /* Убрал белые/светлые оттенки, оставил чистый розовый неон */
     background: linear-gradient(135deg, #FF4477, #FF0050, #D81B60, #FF4477);
     background-size: 300% 300%;
-    
-    /* Идеальная маска без багов и белых слоев в OBS */
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
     animation: frameGradientMove 5s linear infinite;
     pointer-events: none;
 }
 
-/* Анимация переливания цветов градиента */
 @keyframes frameGradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+}
+
+/* ================= ОПТИЧЕСКИЕ ФИЛЬТРЫ ДЛЯ ВЕБКИ ================= */
+#webcam-filter-layer {
+    position: absolute;
+    top: 4px; left: 4px; right: 4px; bottom: 4px; /* Ровно по внутреннему контуру рамки */
+    border-radius: 8px; /* Чуть меньше радиуса рамки */
+    pointer-events: none;
+    z-index: 1; /* Под рамкой, но над самой вебкой OBS */
+    opacity: 0;
+    transition: opacity 0.5s ease, backdrop-filter 0.5s ease;
+}
+
+/* 1. НУАР (ЧБ Детектив) */
+.filter-noir #webcam-filter-layer {
+    opacity: 1;
+    backdrop-filter: grayscale(100%) contrast(1.4) sepia(20%);
+    -webkit-backdrop-filter: grayscale(100%) contrast(1.4) sepia(20%);
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9); /* Тяжелая виньетка */
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* 2. NIGHT VISION (ПНВ / Тактический) */
+.filter-night #webcam-filter-layer {
+    opacity: 1;
+    backdrop-filter: grayscale(100%) sepia(100%) hue-rotate(70deg) saturate(300%) contrast(1.3) brightness(1.2);
+    -webkit-backdrop-filter: grayscale(100%) sepia(100%) hue-rotate(70deg) saturate(300%) contrast(1.3) brightness(1.2);
+    box-shadow: inset 0 0 50px rgba(0, 50, 0, 0.9);
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 0, 0.05) 2px, rgba(0, 255, 0, 0.05) 4px);
+}
+
+/* 3. VHS (Камера наблюдения / Хоррор) */
+.filter-vhs #webcam-filter-layer {
+    opacity: 1;
+    backdrop-filter: contrast(1.5) saturate(0.5);
+    -webkit-backdrop-filter: contrast(1.5) saturate(0.5);
+    background: rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+    background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 3px);
+    animation: vhsJump 4s infinite;
+}
+@keyframes vhsJump { 0%, 98% { transform: translateY(0); } 99% { transform: translateY(2px); } 100% { transform: translateY(-2px); } }
+
+/* 4. MIAMI (Киберпанк / Неон) */
+.filter-miami #webcam-filter-layer {
+    opacity: 1;
+    backdrop-filter: hue-rotate(140deg) saturate(250%) contrast(1.2);
+    -webkit-backdrop-filter: hue-rotate(140deg) saturate(250%) contrast(1.2);
+    box-shadow: inset 20px 0 40px rgba(255, 0, 128, 0.3), inset -20px 0 40px rgba(0, 255, 255, 0.3);
 }

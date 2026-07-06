@@ -1,6 +1,7 @@
 window.AppMedia = {
     container: document.getElementById('webcam-container'),
     frame: document.getElementById('webcam-frame'),
+    filterLayer: null, // Слой оптического фильтра
     camEnabled: true, 
     micEnabled: true,
     audioCtx: null,
@@ -9,12 +10,27 @@ window.AppMedia = {
     init: function() {
         this.container.style.transition = "opacity 0.4s ease";
         
+        // Создаем DOM-элемент для линзы фильтра и вставляем внутрь контейнера
+        this.filterLayer = document.createElement('div');
+        this.filterLayer.id = 'webcam-filter-layer';
+        this.container.appendChild(this.filterLayer);
+
         // Подписка на события
         window.AppEvents.listen('MEDIA_CAM', d => { 
             if(d.state==='off') this.toggleCam(false); else if(d.state==='on') this.toggleCam(true); else this.toggleCam();
         });
         window.AppEvents.listen('MEDIA_MIC', d => { 
             if(d.state==='off') this.toggleMic(false); else if(d.state==='on') this.toggleMic(true); else this.toggleMic();
+        });
+        
+        // Слушаем изменение оптического фильтра
+        window.AppEvents.listen('CAM_FILTER_SET', d => {
+            // Очищаем старые фильтры
+            this.container.className = this.container.className.replace(/\bfilter-[^ ]+/g, '');
+            // Применяем новый
+            if (d.filter && d.filter !== 'off') {
+                this.container.classList.add(`filter-${d.filter}`);
+            }
         });
 
         setTimeout(() => this.initMic(), 1500);

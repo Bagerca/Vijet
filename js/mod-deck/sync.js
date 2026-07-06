@@ -49,7 +49,6 @@ window.DeckSync = {
         const volSlider = document.getElementById('input-vol');
         const volLabel = document.getElementById('vol-label');
         
-        // ВАЖНО: Если мы тянем ползунок (!hasAttribute('data-dragging')), игнорируем обновление
         if (volSlider && !volSlider.hasAttribute('data-dragging') && volSlider.value != state.youtube.volume) {
             volSlider.value = state.youtube.volume;
             volSlider.style.setProperty('--slider-fill', state.youtube.volume + '%');
@@ -62,7 +61,6 @@ window.DeckSync = {
                 const el = document.getElementById(id);
                 const valEl = document.getElementById(valId);
                 
-                // ВАЖНО: Игнорируем обновление, если тянем ползунок
                 if (!el || !valEl || el.hasAttribute('data-dragging')) return;
                 
                 const min = el.min;
@@ -83,9 +81,10 @@ window.DeckSync = {
             }
         }
 
-        // 4. Селект Темы
-        if (window.DeckUI && state.theme) {
-            window.DeckUI.setSelectValue('custom-theme-select', state.theme);
+        // 4. Селекты (Тема и Фильтры)
+        if (window.DeckUI) {
+            if (state.theme) window.DeckUI.setSelectValue('custom-theme-select', state.theme);
+            if (state.camFilter) window.DeckUI.setSelectValue('custom-cam-filter', state.camFilter);
         }
 
         // 5. Плашка Медиа

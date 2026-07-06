@@ -18,7 +18,6 @@
     <script src="js/event-bus.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/games-db.js"></script>
-    <!-- НОВЫЙ СКРИПТ DROPDOWN -->
     <script src="js/mod-deck/dropdown.js"></script>
 </head>
 <body>
@@ -91,6 +90,22 @@
                         </div>
                     </div>
                     
+                    <!-- НОВЫЙ БЛОК: ФИЛЬТРЫ -->
+                    <label class="input-label mt-1">Оптический фильтр:</label>
+                    <div class="smart-input" style="margin-bottom: 12px;">
+                        <div class="custom-select" id="custom-cam-filter" data-value="off">
+                            <div class="select-selected">❌ Без фильтра</div>
+                            <div class="select-items select-hide">
+                                <div data-value="off">❌ Без фильтра</div>
+                                <div data-value="noir">🕵️‍♂️ Нуар (ЧБ)</div>
+                                <div data-value="night">🥽 ПНВ (Ночное зрение)</div>
+                                <div data-value="vhs">📼 Кассета (VHS/CCTV)</div>
+                                <div data-value="miami">🌴 Miami (Неон)</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-solid-pink action-btn" style="background: var(--c-pink); color: #fff; box-shadow: 0 4px 15px var(--c-pink-glow);" data-action="setfilter">ОК</button>
+                    </div>
+                    
                     <div class="card-divider"><span>Счетчик смертей</span></div>
                     <div class="toggle-row" style="margin-bottom: 12px;">
                         <span class="toggle-label">Счетчик на экране</span>
@@ -154,7 +169,6 @@
                         <span id="vol-label" style="font-size: 13px; font-weight: 800; color: #fff; width: 35px; text-align: right;">30%</span>
                     </div>
 
-                    <!-- НОВОЕ: SOUNDBOARD -->
                     <div class="card-divider mt-2"><span>Soundboard (Звуки)</span></div>
                     <div class="grid-soundboard" id="soundboard-grid">
                         <!-- Генерируется из config.js -->
@@ -208,7 +222,6 @@
                         <button type="button" class="btn btn-outline action-btn" data-action="add_wheel_custom">+</button>
                     </div>
                     <div class="smart-input mt-1">
-                        <!-- НОВОЕ: Класс searchable -->
                         <div class="custom-select searchable" id="custom-wheel-db" data-value="">
                             <div class="select-selected">Выбрать игру из базы...</div>
                             <div class="select-items select-hide" id="dynamic-wheel-list"></div>
@@ -237,7 +250,6 @@
                     
                     <label class="input-label">Плашка "Сейчас на стриме":</label>
                     <div class="smart-input">
-                        <!-- НОВОЕ: Класс searchable -->
                         <div class="custom-select searchable" id="custom-game-select" data-value="off">
                             <div class="select-selected">❌ Скрыть плашку</div>
                             <div class="select-items select-hide" id="dynamic-game-list"></div>

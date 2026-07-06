@@ -2,11 +2,10 @@
 /* ================= ХРАНИТЕЛЬ СОСТОЯНИЯ (ТОЛЬКО ДЛЯ CORE) ================= */
 window.AppStateCore = {
     state: {
-        theme: 'default', blur: false, cam: true, deaths: 0, wheelVisible: false,
+        theme: 'default', blur: false, cam: true, camFilter: 'off', deaths: 0, wheelVisible: false,
         media: { type: 'off', query: null },
         youtube: { isPlaying: false, currentId: null, currentTime: 0, volume: 30, currentUser: null },
         widgets: {},
-        // НОВОЕ: Состояние частиц
         particles: { count: 80, speed: 1.0, distance: 120, color: '#ffffff' }
     },
     saveTimeout: null,
@@ -22,6 +21,7 @@ window.AppStateCore = {
         });
         
         window.AppEvents.listen('MEDIA_CAM', d => { this.state.cam = d.state === 'on'; this.save(); });
+        window.AppEvents.listen('CAM_FILTER_SET', d => { this.state.camFilter = d.filter; this.save(); });
         window.AppEvents.listen('THEME_CHANGE', d => { this.state.theme = d.theme; this.save(); });
         window.AppEvents.listen('WHEEL_TOGGLE', d => { this.state.wheelVisible = d.state; this.save(); });
         window.AppEvents.listen('MEDIA_SET', d => { this.state.media = { type: d.type, query: d.query }; this.save(); });
@@ -31,11 +31,9 @@ window.AppStateCore = {
             this.save();
         });
         
-        // НОВОЕ: Слушаем настройки частиц с пульта модератора
         window.AppEvents.listen('PARTICLES_CFG', d => {
             this.state.particles = { ...this.state.particles, ...d };
             this.save();
-            // Сразу шлем обновленные настройки на сцены
             window.AppEvents.emit('PARTICLES_UPDATE_SETTINGS', this.state.particles);
         });
         
