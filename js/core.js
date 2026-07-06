@@ -6,6 +6,7 @@ window.AppCore = {
     CommandRouter: {
         "widget": (arg) => { let p = arg.split(' '); if(p.length>=2) window.AppEvents.emit('WIDGET_TOGGLE', { widget: p[0], state: p[1] }); },
         "виджет": (arg) => window.AppCore.CommandRouter["widget"](arg),
+        
         "протокол": (arg) => {
             if (arg === "цирк" || arg === "circus") { window.AppEvents.emit('THEME_CHANGE', { theme: 'circus' }); window.AppEvents.emit('PET_EMOTION', { emotion: 'hype', duration: 5000 }); } 
             else if (arg === "нуар" || arg === "noir") { window.AppEvents.emit('THEME_CHANGE', { theme: 'noir' }); window.AppEvents.emit('PET_EMOTION', { emotion: 'listen', duration: 5000 }); } 
@@ -13,7 +14,7 @@ window.AppCore = {
         },
         "protocol": (arg) => window.AppCore.CommandRouter["протокол"](arg),
         
-        // --- НОВЫЙ БЛОК: ОБРАБОТКА ЧАСТИЦ ЧЕРЕЗ ЧАТ ---
+        // --- ОБРАБОТКА ЧАСТИЦ ЧЕРЕЗ ЧАТ ---
         "particles": (arg) => {
             const parts = arg.split(' ');
             if (parts.length >= 4) {
@@ -25,7 +26,11 @@ window.AppCore = {
             }
         },
         "частицы": (arg) => window.AppCore.CommandRouter["particles"](arg),
-        // ----------------------------------------------
+        
+        // --- ТАЙМЕР СТРИМА ---
+        "uptime": (arg) => window.AppEvents.emit('UPTIME_CMD', { cmd: arg || 'show' }),
+        "аптайм": (arg) => window.AppCore.CommandRouter["uptime"](arg),
+        "таймер": (arg) => window.AppCore.CommandRouter["uptime"](arg),
 
         "refresh": (arg) => {
             if (arg === "core") { 
@@ -60,15 +65,17 @@ window.AppCore = {
             else if (arg.startsWith("remove ")) window.AppEvents.emit('WHEEL_CMD', { cmd: 'remove', val: arg.substring(7) });
         },
         "рулетка": (arg) => window.AppCore.CommandRouter["wheel"](arg),
+        
         "skip": (arg) => window.AppEvents.emit('QUEUE_CMD', { cmd: arg === "all" ? 'skip_all' : 'skip_track' }),
         "clear": () => window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' }),
         
-        // НОВОЕ: Удаление конкретного трека
+        // Удаление конкретного трека из очереди
         "remove": (arg) => {
             const idx = parseInt(arg);
             if (!isNaN(idx) && idx > 0) window.AppEvents.emit('QUEUE_CMD', { cmd: 'remove', idx: idx - 1 });
         },
-        // НОВОЕ: Запуск звуков
+        
+        // Запуск аудио-эффектов из Soundboard
         "sound": (arg) => {
             if (window.AppConfig.modDeck && window.AppConfig.modDeck.soundboard) {
                 const snd = window.AppConfig.modDeck.soundboard.find(s => s.id === arg);
@@ -83,6 +90,7 @@ window.AppCore = {
         "смайлы": (arg) => window.AppCore.CommandRouter["emotes"](arg),
         "blur": (arg) => window.AppEvents.emit('BLUR_TOGGLE', { state: arg }),
         "блюр": (arg) => window.AppCore.CommandRouter["blur"](arg),
+        
         "media": (arg, msg) => {
             if (arg === "off" || arg === "clear" || arg === "hide") window.AppEvents.emit('MEDIA_SET', { type: 'off' });
             else if (arg.startsWith("yt ") || arg.startsWith("youtube ")) {
@@ -97,12 +105,14 @@ window.AppCore = {
         "медиа": (arg, msg) => window.AppCore.CommandRouter["media"](arg, msg),
         "game": (arg) => window.AppEvents.emit('MEDIA_SET', { type: (arg === "off" || arg === "clear" || arg === "hide") ? 'off' : 'game', query: arg }),
         "игра": (arg) => window.AppCore.CommandRouter["game"](arg),
+        
         "death": (arg) => {
             if (!["off", "hide", "-", "sub", "reset", "clear"].includes(arg) && !arg.startsWith("set")) window.AppEvents.emit('PET_EMOTION', { emotion: 'scared', duration: 3000 });
             window.AppEvents.emit('DEATHS_CMD', { cmd: arg });
         },
         "deaths": (arg) => window.AppCore.CommandRouter["death"](arg),
         "смерть": (arg) => window.AppCore.CommandRouter["death"](arg),
+        
         "fox": (arg) => {
             const states = ['idle', 'sleep', 'alert', 'hype', 'love', 'scared', 'angry', 'greet', 'bye', 'jam', 'listen', 'nom'];
             if (states.includes(arg)) window.AppEvents.emit('PET_EMOTION', { emotion: arg, duration: 5000 });
@@ -113,6 +123,7 @@ window.AppCore = {
         },
         "лиса": (arg) => window.AppCore.CommandRouter["fox"](arg),
         "лис": (arg) => window.AppCore.CommandRouter["fox"](arg),
+        
         "alert": (arg) => { window.AppEvents.emit('PET_EMOTION', { emotion: 'love', duration: 5000 }); window.AppEvents.emit('ALERT_TEST', { type: arg }); }
     },
 
@@ -189,7 +200,7 @@ window.AppCore = {
             let replyData = null;
             if (extra.userState?.['reply-parent-display-name']) {
                 const replyUser = extra.userState['reply-parent-display-name'];
-                let cleanReply = window.ChatFilter.processText(window.ChatFilter.escapeHTML(extra.userState['reply-parent-msg-body'] || '').replace(/\\s/g, ' ').replace(/^@[a-zA-Z0-9_]+\s*,?\s*/i, ''), window.AppConfig.forbiddenWords).text;
+                let cleanReply = window.ChatFilter.processText(window.ChatFilter.escapeHTML(extra.userState['reply-parent-msg-body'] || '').replace(/\s+/g, ' ').replace(/^@[a-zA-Z0-9_]+\s*,?\s*/i, ''), window.AppConfig.forbiddenWords).text;
                 replyData = { user: replyUser, htmlText: cleanReply };
                 cleanText = cleanText.replace(new RegExp(`^@${replyUser}\\s*,?\\s*`, 'i'), '');
             }

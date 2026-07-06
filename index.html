@@ -24,9 +24,22 @@
         <div id="deaths-container" class="hidden"><div class="deaths-title">DEATHS</div><div id="deaths-count">0</div></div>
         <div id="emotes-container"></div>
         
+        <!-- НОВЫЙ ВИДЖЕТ: ТАЙМЕР СТРИМА -->
+        <div id="uptime-container" class="hidden">
+            <div class="uptime-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <div class="uptime-info">
+                <div class="uptime-badge">
+                    <div class="uptime-dot"></div>
+                    В ЭФИРЕ
+                </div>
+                <div id="uptime-value">00:00:00</div>
+            </div>
+        </div>
+        
         <div id="chat-container"><div id="chat-messages"></div></div>
         
-        <!-- ОБНОВЛЕННЫЙ МЕДИА-КОНТЕЙНЕР -->
         <div id="media-info-container" class="hidden">
             <div class="mi-poster-breakout">
                 <img id="mi-cover" src="" alt="Cover" class="hidden">
@@ -43,7 +56,6 @@
                 <div class="mi-title-wrapper" id="mi-title-wrapper">
                     <div class="mi-title" id="mi-title">Неизвестно</div>
                 </div>
-                <!-- Единая строка меты вместо старой громоздкой сетки -->
                 <div class="mi-meta-row" id="mi-meta-row"></div>
             </div>
         </div>
@@ -72,7 +84,6 @@
         const cacheBuster = new URLSearchParams(window.location.search).get('nocache') || Date.now();
         const urlParams = new URLSearchParams(window.location.search);
         
-        // CSS грузим всегда, они кэшируются
         const myStyles = [
             "css/base.css", "css/blur.css", "css/pet.css", "css/tts.css", "css/emotes.css",
             "css/chat.css", "css/users/hollow_knight.css", "css/users/minecraft.css", "css/users/angel.css", 
@@ -80,20 +91,18 @@
             "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
             "css/mediainfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
+            "css/uptime.css", // <--- ДОБАВЛЕН CSS АПТАЙМА
             "css/theme-circus.css", "css/theme-noir.css", "css/modes.css" 
         ];
         myStyles.forEach(href => { document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`); });
         
-        // УМНЫЙ ЗАГРУЗЧИК СКРИПТОВ
         const activeWidgets = urlParams.get('widgets') ? urlParams.get('widgets').split(',').map(s => s.trim().toLowerCase()) : null;
         
-        // Базовые скрипты, нужные всегда
         let myScripts = [
             "js/config.js", "js/utils.js", "js/services/avatar-manager.js", "js/games-db.js", "js/event-bus.js",
             "js/system-manager.js", "js/state-client.js"
         ];
 
-        // Идеальная строгая карта: Один ключ = Один виджет. Никаких алиасов.
         const widgetModules = {
             'particles': ['js/particles.js'],
             'emotes': ['js/emotes.js'],
@@ -106,14 +115,14 @@
             'goal': ['js/goal.js'],
             'ticker': ['js/ticker.js'],
             'deaths': ['js/deaths.js'],
-            'media': ['js/mediainfo.js'], // Строго только media
+            'media': ['js/mediainfo.js'],
             'wheel': ['js/wheel.js'],
             'tts': ['js/tts.js'],
             'pet': ['js/pet.js'],
-            'blur': ['js/blur.js']
+            'blur': ['js/blur.js'],
+            'uptime': ['js/uptime.js'] // <--- ДОБАВЛЕН JS АПТАЙМА
         };
 
-        // Если виджеты не указаны — грузим всё. Иначе — только выбранные
         if (!activeWidgets) {
             Object.values(widgetModules).forEach(scripts => myScripts.push(...scripts));
         } else {
@@ -122,10 +131,8 @@
             });
         }
         
-        // Всегда грузим countdown, так как он завязан на сцену
         myScripts.push("js/countdown.js");
 
-        // Убираем дубликаты и загружаем
         [...new Set(myScripts)].forEach(src => {
             document.write(`<script src="${src}?v=${cacheBuster}"><\/script>`);
         });

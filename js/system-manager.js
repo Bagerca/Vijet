@@ -17,7 +17,8 @@ window.SystemManager = {
         'wheel': 'wheel-overlay', 
         'cam': 'webcam-frame', 
         'media': 'media-info-container', 
-        'pet': 'pet-container'
+        'pet': 'pet-container',
+        'uptime': 'uptime-container' // <--- Зарегистрировали аптайм
     },
 
     sceneRules: {
@@ -37,7 +38,6 @@ window.SystemManager = {
             requestedWidgets = requestedWidgets.filter(w => allowedByScene.includes(w));
         }
 
-        // ИСПРАВЛЕНИЕ: Теперь фон рисуется ТОЛЬКО на starting и ending. Всё остальное - прозрачное!
         if (!['starting', 'ending'].includes(sceneParam)) {
             document.body.style.setProperty('background', 'transparent', 'important');
             document.documentElement.style.setProperty('background', 'transparent', 'important');

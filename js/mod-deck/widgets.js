@@ -4,7 +4,7 @@ window.DeckWidgets = {
     groups: [
         { 
             title: "Основные", 
-            items: [{ id: 'chat', label: 'Чат' }, { id: 'media', label: 'Сейчас играем' }, { id: 'alerts', label: 'Алерты' }] 
+            items: [{ id: 'chat', label: 'Чат' }, { id: 'media', label: 'Сейчас играем' }, { id: 'alerts', label: 'Алерты' }, { id: 'uptime', label: 'Таймер Стрима' }] 
         },
         { 
             title: "Инфо и Цели", 
@@ -12,7 +12,7 @@ window.DeckWidgets = {
         },
         { 
             title: "Интерактив", 
-            items: [{ id: 'pet', label: 'Питомец (Лиса)' }, { id: 'emotes', label: 'Смайлы чата' }, { id: 'music', label: 'ПлеЕР YouTube' }, { id: 'tts', label: 'TTS Эквалайзер' }] 
+            items: [{ id: 'pet', label: 'Питомец (Лиса)' }, { id: 'emotes', label: 'Смайлы чата' }, { id: 'music', label: 'Плеер YouTube' }, { id: 'tts', label: 'TTS Эквалайзер' }] 
         },
         { 
             title: "Эффекты", 
@@ -24,7 +24,6 @@ window.DeckWidgets = {
         const grid = document.getElementById('widget-master-grid');
         if (!grid) return;
 
-        // Генерируем сгруппированный HTML для Мастера Виджетов
         grid.innerHTML = this.groups.map(group => `
             <div class="widget-group">
                 <div class="widget-group-title">${group.title}</div>
@@ -37,13 +36,11 @@ window.DeckWidgets = {
             </div>
         `).join('');
 
-        // Вешаем обработчики на ВСЕ тумблеры в панели
         document.querySelectorAll('.widget-toggle').forEach(toggle => {
             toggle.addEventListener('change', (e) => {
                 const widgetName = e.target.getAttribute('data-widget');
                 const state = e.target.checked ? 'on' : 'off';
                 
-                // ИСПРАВЛЕНИЕ: Возвращаем правильные команды для уникальных виджетов
                 if (widgetName === 'cam') window.DeckAuth.sendCommand(`!cam ${state}`);
                 else if (widgetName === 'blur') window.DeckAuth.sendCommand(`!blur ${state}`);
                 else if (widgetName === 'deaths') window.DeckAuth.sendCommand(`!death ${state === 'on' ? 'show' : 'hide'}`);
@@ -52,7 +49,6 @@ window.DeckWidgets = {
         });
     },
 
-    // ИСПРАВЛЕНИЕ: Возвращаем правильную прослушку обратной связи из чата
     syncToggleFromChat(command, message) {
         const cmd = command.toLowerCase();
         const arg = message.trim().toLowerCase();
@@ -70,6 +66,9 @@ window.DeckWidgets = {
         else if (cmd === 'blur' || cmd === 'блюр') setToggle('blur', arg);
         else if (['death', 'deaths', 'смерть'].includes(cmd)) {
             if (['show', 'on', 'hide', 'off'].includes(arg)) setToggle('deaths', arg);
+        }
+        else if (['uptime', 'аптайм', 'таймер'].includes(cmd)) {
+            if (['show', 'on', 'hide', 'off'].includes(arg)) setToggle('uptime', arg);
         }
     }
 };
