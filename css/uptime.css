@@ -83,11 +83,11 @@
     letter-spacing: 0.5px;
 }
 
-/* Расположение на сцене общения Just Chatting (ровно справа от медиа-плашки) */
+/* Расположение на сцене общения Just Chatting (Внизу, под чатом) */
 body.scene-chatting #uptime-container {
-    top: 65px;
-    left: 460px; /* Идеально встанет справа от плашки "Сейчас играем" */
-    bottom: auto;
+    top: auto;
+    bottom: 40px;
+    left: 1200px; /* Идеально встает по левой границе чата (сохраняя зазор 40px от бегущей строки) */
     right: auto;
     box-shadow: 0 15px 30px rgba(0,0,0,0.15);
 }
