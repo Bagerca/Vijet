@@ -1,3 +1,4 @@
+/* ФАЙЛ: css/modes.css */
 /* ================= РЕЖИМ ВИДЖЕТОВ ================= */
 body.is-widget { width: 100vw !important; height: 100vh !important; background: transparent !important; }
 body.is-widget #scene-wrapper { width: 100vw; height: 100vh; position: relative; }
@@ -5,7 +6,6 @@ body.is-widget #scene-wrapper > div, body.is-widget #particles-canvas { display:
 
 body.widget-chat #chat-container { display: flex !important; position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; padding: 20px; -webkit-mask-image: none; }
 body.widget-music #widget-container { display: flex !important; position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 10px; box-sizing: border-box; transform: translateY(0) scale(1) !important; }
-body.widget-music #widget-container.hidden { transform: translateY(50px) scale(0.9) !important; opacity: 0; }
 body.widget-alerts #alert-container { display: flex !important; top: 50px; }
 body.widget-goal #goal-container { display: block !important; top: 25px; }
 body.widget-cam #webcam-container { display: block !important; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 0; }
@@ -15,8 +15,9 @@ body.widget-ticker #ticker-container { display: flex !important; bottom: 20px; }
 body.widget-particles #particles-canvas { display: block !important; }
 body.widget-deaths #deaths-container { display: flex !important; position: absolute; top: 10px; left: auto; right: 10px; transform: translateX(0) scale(1) !important; }
 
-/* ================= СЦЕНА "JUST CHATTING" (СВЕТЛАЯ) ================= */
-body.scene-chatting { background: radial-gradient(circle at center, #f8f9fa 0%, #e9ecef 100%); }
+/* ================= СЦЕНА "JUST CHATTING" ================= */
+/* ИСПРАВЛЕНИЕ: Фон должен быть кристально прозрачным для OBS */
+body.scene-chatting { background: transparent !important; }
 
 /* Рамка вебки */
 body.scene-chatting #webcam-container { top: 40px; left: 40px; width: 1120px; height: 840px; border-radius: 34px; transform: translateZ(0) !important; }
@@ -59,10 +60,7 @@ body.scene-chatting #deaths-container {
 body.scene-chatting .deaths-title { font-size: 16px; letter-spacing: 6px; margin-right: -6px; }
 body.scene-chatting #deaths-count { font-size: 64px; }
 
-
-/* ================= ИДЕАЛЬНАЯ РАССТАНОВКА (ЛЕВАЯ ЧАСТЬ И НИЗ) ================= */
-
-/* 1. Плашка Медиа (Сцена Just Chatting, левый верхний угол экрана) */
+/* ИДЕАЛЬНАЯ РАССТАНОВКА (ЛЕВАЯ ЧАСТЬ И НИЗ) */
 body.scene-chatting #media-info-container {
     bottom: auto;      
     top: 65px;         
@@ -84,7 +82,6 @@ body.scene-chatting #media-info-container.pop-anim {
     100% { transform: translateX(0) scale(1); }
 }
 
-/* 2. Музыкальный плеер (Внутри вебки, левый нижний угол) */
 body.scene-chatting #widget-container { 
     top: auto; 
     bottom: 225px; 
@@ -99,7 +96,6 @@ body.scene-chatting #widget-container.hidden {
     pointer-events: none; 
 }
 
-/* 3. Бегущая строка (В самом низу, выровнена строго под вебкой) */
 body.scene-chatting #ticker-container { 
     bottom: 40px; 
     left: 40px; 
@@ -107,7 +103,6 @@ body.scene-chatting #ticker-container {
     transform: translateZ(0) !important; 
 }
 
-/* 4. Соцсети (В самом низу, выровнены строго под чатом) */
 body.scene-chatting #social-rotator { 
     top: auto; 
     bottom: 40px; 

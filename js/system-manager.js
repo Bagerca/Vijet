@@ -1,7 +1,6 @@
 /* ФАЙЛ: js/system-manager.js */
 /* ================= МЕНЕДЖЕР СИСТЕМЫ И ВИДЖЕТОВ (STRICT WHITELIST ARCHITECTURE) ================= */
 window.SystemManager = {
-    // Единый словарь: Имя виджета -> DOM ID контейнера
     widgetMap: { 
         'chat': 'chat-container', 
         'music': 'widget-container', 
@@ -21,10 +20,9 @@ window.SystemManager = {
         'pet': 'pet-container'
     },
 
-    // СТРОГИЕ БЕЛЫЕ СПИСКИ: Что ИМЕЕТ ПРАВО жить на конкретных сценах.
     sceneRules: {
-        'starting': ['goal', 'socials', 'ticker'], // Только 3 виджета могут существовать на старте
-        'ending': ['socials']                      // На эндинге выживут только соцсети
+        'starting': ['goal', 'socials', 'ticker'], 
+        'ending': ['socials']                      
     },
 
     init: function() {
@@ -32,18 +30,15 @@ window.SystemManager = {
         let requestedWidgets = urlParams.get('widgets') ? urlParams.get('widgets').split(',').map(w => w.trim().toLowerCase()) : Object.keys(this.widgetMap);
         const sceneParam = urlParams.get('scene');
 
-        // 1. Устанавливаем класс сцены
         if (sceneParam) document.body.classList.add(`scene-${sceneParam}`);
 
-        // 2. ДЕЛАЕМ ПЕРЕСЕЧЕНИЕ ПРАВИЛ (Intersection)
         if (sceneParam && this.sceneRules[sceneParam]) {
             const allowedByScene = this.sceneRules[sceneParam];
             requestedWidgets = requestedWidgets.filter(w => allowedByScene.includes(w));
         }
 
-        // 3. ФИЗИЧЕСКОЕ УНИЧТОЖЕНИЕ DOM И ФОНА
-        // ИСПРАВЛЕНИЕ: Делаем принудительно прозрачный фон ТОЛЬКО если это не сцена с собственным дизайном
-        if (!['starting', 'ending', 'chatting'].includes(sceneParam)) {
+        // ИСПРАВЛЕНИЕ: Теперь фон рисуется ТОЛЬКО на starting и ending. Всё остальное - прозрачное!
+        if (!['starting', 'ending'].includes(sceneParam)) {
             document.body.style.setProperty('background', 'transparent', 'important');
             document.documentElement.style.setProperty('background', 'transparent', 'important');
         }
@@ -53,11 +48,10 @@ window.SystemManager = {
         for (const [widgetName, domId] of Object.entries(this.widgetMap)) {
             if (!finalAllowedIds.has(domId)) {
                 const el = document.getElementById(domId);
-                if (el) el.remove(); // Хирургическое удаление
+                if (el) el.remove(); 
             }
         }
 
-        // 4. ОСОБЫЙ СЛУЧАЙ: Контейнер веб-камеры
         if (!finalAllowedIds.has(this.widgetMap['cam']) && !finalAllowedIds.has(this.widgetMap['pet'])) {
             const mainCamCont = document.getElementById('webcam-container');
             if (mainCamCont) mainCamCont.remove();
@@ -72,7 +66,6 @@ window.SystemManager = {
         window.AppEvents.listen('CORE_REBOOT_START', () => this.triggerCoreRefreshUI('start'));
         window.AppEvents.listen('CORE_REBOOT_DONE', () => this.triggerCoreRefreshUI('done'));
         
-        // Управление через команды чата (!widget chat off)
         window.AppEvents.listen('WIDGET_TOGGLE', (data) => {
             const elId = this.widgetMap[data.widget];
             if (elId) {
