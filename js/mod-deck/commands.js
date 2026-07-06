@@ -1,12 +1,9 @@
 /* ФАЙЛ: js/mod-deck/commands.js */
-
 window.DeckCommands = {
     init() {
         const volSlider = document.getElementById('input-vol');
         const volLabel = document.getElementById('vol-label');
         if (volSlider && volLabel) {
-            
-            // ЗАЩИТА ОТ РАССИНХРОНА: Блокируем входящие пакеты, пока тянем ползунок
             const lockSlider = () => volSlider.setAttribute('data-dragging', 'true');
             const unlockSlider = () => setTimeout(() => volSlider.removeAttribute('data-dragging'), 1000);
             
@@ -16,7 +13,7 @@ window.DeckCommands = {
             volSlider.addEventListener('touchend', unlockSlider);
 
             volSlider.addEventListener('input', (e) => {
-                lockSlider(); // На всякий случай блокируем и при движении
+                lockSlider(); 
                 const val = e.target.value;
                 volLabel.innerText = val + '%';
                 volSlider.style.setProperty('--slider-fill', val + '%');
@@ -24,24 +21,38 @@ window.DeckCommands = {
             
             volSlider.addEventListener('change', (e) => {
                 window.DeckAuth.sendCommand(`!vol ${e.target.value}`);
-                unlockSlider(); // Снимаем блок через секунду после отпускания
+                unlockSlider(); 
             });
         }
 
+        // Делегирование событий клика для динамических кнопок (вкл. удаление очереди)
         document.querySelector('.control-panel').addEventListener('click', (e) => {
-            const btn = e.target.closest('.cmd-btn, .action-btn');
+            const btn = e.target.closest('.cmd-btn, .action-btn, .btn-remove-track');
             if (!btn || btn.classList.contains('btn-hold')) return;
 
+            // Анимация нажатия
             btn.style.transform = 'scale(0.92)';
             setTimeout(() => btn.style.transform = '', 150);
+
+            // Если это кнопка удаления трека
+            if (btn.classList.contains('btn-remove-track')) {
+                const idx = btn.getAttribute('data-idx');
+                if (idx !== null) {
+                    // Команда на удаление (индексы для людей начинаются с 1)
+                    window.DeckAuth.sendCommand(`!remove ${parseInt(idx) + 1}`);
+                }
+                return;
+            }
 
             const cmd = btn.getAttribute('data-cmd');
             if (cmd) { 
                 window.DeckAuth.sendCommand(cmd); 
+                window.DeckUI.buttonFeedback(btn); // <-- Визуальный отклик
                 return; 
             }
 
             this.handleAction(btn.getAttribute('data-action'));
+            window.DeckUI.buttonFeedback(btn); // <-- Визуальный отклик
         });
 
         document.querySelectorAll('.smart-input input, .counter-input').forEach(input => {

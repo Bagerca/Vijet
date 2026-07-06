@@ -1,32 +1,35 @@
 /* ФАЙЛ: js/queue-core.js */
-/* ================= ОЧЕРЕДЬ МУЗЫКИ (MASTER) ================= */
 window.AppQueueCore = {
     items: [],
     isPlaying: false,
-    nowPlaying: null, // Текущий играющий трек
+    nowPlaying: null, 
 
     init: function() {
         const saved = localStorage.getItem('uso_queue');
         if (saved) { try { this.items = JSON.parse(saved); } catch(e) { this.items = []; } }
 
-        // Слушаем команды
         window.AppEvents.listen('QUEUE_ADD', d => this.add(d.url, d.user));
         window.AppEvents.listen('QUEUE_CMD', d => {
             if (d.cmd === 'next') this.next();
             if (d.cmd === 'clear') this.clear();
+            // НОВОЕ: Обработчик удаления
+            if (d.cmd === 'remove' && d.idx !== undefined) {
+                if (d.idx >= 0 && d.idx < this.items.length) {
+                    this.items.splice(d.idx, 1);
+                    this.save();
+                    this.broadcastFullState();
+                }
+            }
         });
 
-        // Слушаем статусы плеера
         window.AppEvents.listen('YT_ENDED', () => this.next());
         
         window.AppEvents.listen('YT_CORE_READY', () => {
             if (this.items.length > 0 && !this.isPlaying) {
-                console.log("🔄 [QUEUE] Восстанавливаем треки из памяти...");
                 this.next();
             }
         });
 
-        // НОВОЕ: Отвечаем Mod Deck'у полной информацией об очереди по запросу
         window.AppEvents.listen('STATE_SYNC_REQUEST', () => {
             this.broadcastFullState();
         });
@@ -48,13 +51,9 @@ window.AppQueueCore = {
     },
 
     add: async function(url, user) {
-        console.log(`📥 [QUEUE] Запрос от ${user}: ${url}`);
         const ytData = this.extractData(url);
         
         if (ytData) {
-            console.log(`✅ [QUEUE] Распознан формат: ${ytData.type}, ID: ${ytData.id}`);
-            
-            // Пытаемся получить название заранее, чтобы панель модера не тупила
             let title = ytData.id;
             if (ytData.type === 'video') {
                 try {
@@ -73,9 +72,7 @@ window.AppQueueCore = {
             window.AppEvents.emit('TICKER_MUSIC', { data: ytData, user: user });
             
             if (!this.isPlaying) this.next();
-            else this.broadcastFullState(); // Обновляем Mod Deck
-        } else {
-            console.error(`❌ [QUEUE] Ошибка: Не удалось распознать ссылку "${url}"`);
+            else this.broadcastFullState();
         }
     },
 
@@ -85,22 +82,19 @@ window.AppQueueCore = {
             this.nowPlaying = this.items.shift();
             this.save();
             
-            console.log(`▶️ [QUEUE] Отправляем трек/плейлист в плеер:`, this.nowPlaying);
             window.AppEvents.emit('YT_CORE_PLAY', this.nowPlaying);
-            this.broadcastFullState(); // Обновляем Mod Deck
+            this.broadcastFullState();
         } else {
-            console.log("📭 [QUEUE] Очередь пуста.");
             this.isPlaying = false;
             this.nowPlaying = null;
             this.save();
             
             window.AppEvents.emit('YT_CORE_HIDE');
-            this.broadcastFullState(); // Обновляем Mod Deck
+            this.broadcastFullState(); 
         }
     },
 
     clear: function() {
-        console.log("🧹 [QUEUE] Очередь очищена!");
         this.items = [];
         this.save();
         this.next(); 
@@ -108,10 +102,9 @@ window.AppQueueCore = {
 
     save: function() {
         localStorage.setItem('uso_queue', JSON.stringify(this.items));
-        window.AppEvents.emit('QUEUE_STATE', { count: this.items.length }); // Для виджета на стриме
+        window.AppEvents.emit('QUEUE_STATE', { count: this.items.length });
     },
 
-    // НОВОЕ: Транслируем полную правду в шину
     broadcastFullState: function() {
         window.AppEvents.emit('QUEUE_FULL_SYNC', {
             nowPlaying: this.nowPlaying,

@@ -1,10 +1,8 @@
 /* ФАЙЛ: js/core.js */
-/* ================= CORE (РОУТЕР КОМАНД И ЯДРО) ================= */
 window.AppCore = {
     greetedUsers: new Set(), 
     commandCooldowns: {}, 
 
-    // Вынесенный словарь команд (Command Router)
     CommandRouter: {
         "widget": (arg) => { let p = arg.split(' '); if(p.length>=2) window.AppEvents.emit('WIDGET_TOGGLE', { widget: p[0], state: p[1] }); },
         "виджет": (arg) => window.AppCore.CommandRouter["widget"](arg),
@@ -15,45 +13,27 @@ window.AppCore = {
         },
         "protocol": (arg) => window.AppCore.CommandRouter["протокол"](arg),
         
-        // ==============================================================
-        // КНОПКИ РЕФРЕША И ПАНИКИ
-        // ==============================================================
         "refresh": (arg) => {
             if (arg === "core") { 
-                // 1. Показываем загрузочный экран на стриме
                 window.AppEvents.emit('CORE_REBOOT_START');
-
-                // 2. ХАРД-РЕСЕТ: Принудительно отключаем всё на визуле
                 window.AppEvents.emit('THEME_CHANGE', { theme: 'default' });
                 window.AppEvents.emit('MEDIA_SET', { type: 'off' });
-                window.AppEvents.emit('DEATHS_CMD', { cmd: 'reset' }); // ИСПРАВЛЕНО: Сброс в 0
+                window.AppEvents.emit('DEATHS_CMD', { cmd: 'reset' }); 
                 window.AppEvents.emit('WHEEL_TOGGLE', { state: false });
                 window.AppEvents.emit('BLUR_TOGGLE', { state: 'off' });
                 window.AppEvents.emit('MEDIA_CAM', { state: 'on' });
-                
-                // 3. Останавливаем аудио и TTS
                 window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' });
                 window.AppEvents.emit('TTS_CMD', { cmd: 'stop' });
 
-                // 4. ЖЕСТКАЯ ЗАЧИСТКА ПАМЯТИ
-                // Уничтожаем все сохраненные данные, чтобы Ядро запустилось чистым.
-                // Оставляем только настройки авторизации Mod Deck и кэш аватарок.
-                const keysToNuke = [
-                    'uso_global_state', 'uso_current_media', 'uso_deaths', 
-                    'uso_queue', 'uso_wheel_items', 'uso_current_theme'
-                ];
+                const keysToNuke = ['uso_global_state', 'uso_current_media', 'uso_deaths', 'uso_queue', 'uso_wheel_items', 'uso_current_theme'];
                 keysToNuke.forEach(k => localStorage.removeItem(k));
 
-                // 5. Перезагрузка самого файла Ядра (core.html)
-                // Даем 800мс, чтобы визуальные эффекты закрытия успели отыграть
                 setTimeout(() => { 
                     const u = new URL(window.location.href); 
                     u.searchParams.set('nocache', Date.now()); 
                     window.location.href = u.toString(); 
                 }, 800); 
             } else {
-                // ПЕРЕЗАГРУЗКА ВИЗУАЛА (ОБС браузеров)
-                // Ядро работает дальше, музыка играет. Перезагрузятся только картинки.
                 window.AppEvents.emit('FORCE_RELOAD_VISUAL');
             }
         },
@@ -68,6 +48,20 @@ window.AppCore = {
         "рулетка": (arg) => window.AppCore.CommandRouter["wheel"](arg),
         "skip": (arg) => window.AppEvents.emit('QUEUE_CMD', { cmd: arg === "all" ? 'skip_all' : 'skip_track' }),
         "clear": () => window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' }),
+        
+        // НОВОЕ: Удаление конкретного трека
+        "remove": (arg) => {
+            const idx = parseInt(arg);
+            if (!isNaN(idx) && idx > 0) window.AppEvents.emit('QUEUE_CMD', { cmd: 'remove', idx: idx - 1 });
+        },
+        // НОВОЕ: Запуск звуков
+        "sound": (arg) => {
+            if (window.AppConfig.modDeck && window.AppConfig.modDeck.soundboard) {
+                const snd = window.AppConfig.modDeck.soundboard.find(s => s.id === arg);
+                if (snd) window.AppEvents.emit('PLAY_SOUND', { path: snd.path });
+            }
+        },
+
         "vol": (arg) => { if(arg) window.AppEvents.emit('PLAYER_VOL', { vol: arg }); },
         "cam": (arg) => window.AppEvents.emit('MEDIA_CAM', { state: arg }),
         "mic": (arg) => window.AppEvents.emit('MEDIA_MIC', { state: arg }),
@@ -114,9 +108,6 @@ window.AppCore = {
             if (window.AppConfig.botChannel && window.AppConfig.botChannel.trim() !== "") channelsToListen.push(window.AppConfig.botChannel);
             ComfyJS.Init(null, null, channelsToListen);
             this.setupEvents();
-            
-            // Если Ядро только что загрузилось после Хард-Ресета, 
-            // отправляем сигнал визуалам убрать заглушку "Перезагрузка ядра..."
             setTimeout(() => window.AppEvents.emit('CORE_REBOOT_DONE'), 1000);
         } else { console.warn("[CORE ❌] Имя канала не настроено в config.js!"); }
     },

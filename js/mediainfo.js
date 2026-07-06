@@ -10,8 +10,7 @@ window.AppMediaInfo = {
     typeBadgeEl: document.getElementById('mi-type-badge'),
     titleWrapper: document.getElementById('mi-title-wrapper'),
     titleEl: document.getElementById('mi-title'),
-    tagsContainer: document.getElementById('mi-tags-container'),
-    detailsGrid: document.getElementById('mi-details-grid'),
+    metaRowEl: document.getElementById('mi-meta-row'), // Новый контейнер метаданных
 
     init: function() {
         const savedMedia = localStorage.getItem('uso_current_media');
@@ -90,13 +89,16 @@ window.AppMediaInfo = {
             if (steamData && steamData.items && steamData.items.length > 0) {
                 const game = steamData.items[0]; 
                 const coverUrl = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.id}/library_600x900_2x.jpg`;
-                return { title: game.name, cover: coverUrl, themeColor: "#1B2838", type: "game", tags: ["Steam Game"], details: { "Платформа": "PC (Steam)" } };
+                return { 
+                    title: game.name, cover: coverUrl, themeColor: "#1B2838", type: "game", 
+                    meta: ["Steam", "PC"] // Компактная мета
+                };
             }
         } catch (err) {
             console.warn("[MediaInfo] Steam API недоступен, генерируем заглушку.");
         }
         // Если Steam не нашел игру, возвращаем специальный флаг cover: "generated"
-        return { title: gameName.toUpperCase(), cover: "generated", themeColor: "#FF4477", type: "game", tags: ["Пользовательская"], details: {} };
+        return { title: gameName.toUpperCase(), cover: "generated", themeColor: "#FF4477", type: "game", meta: ["Пользовательская игра"] };
     },
 
     fetchFromYouTube: async function(videoId) {
@@ -104,7 +106,7 @@ window.AppMediaInfo = {
             const data = await window.AppUtils.safeFetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
             return {
                 title: data.title, cover: data.thumbnail_url, themeColor: "#FF0000", type: "youtube",
-                tags: ["YouTube", data.author_name], details: { "Платформа": "YouTube", "Канал": data.author_name }
+                meta: [data.author_name] // Оставляем ТОЛЬКО имя канала
             };
         } catch (err) { return null; }
     },
@@ -151,13 +153,11 @@ window.AppMediaInfo = {
         this.posterBreakout.style.background = '';
 
         if (data.cover === "generated") {
-            // УМНАЯ ЗАГЛУШКА
             this.coverEl.src = "";
             this.coverEl.classList.add('hidden');
             this.generateGradientPlaceholder(data.title);
         } 
         else if (data.cover && data.cover.trim() !== "") {
-            // ОБЫЧНАЯ КАРТИНКА
             this.coverEl.onerror = () => { 
                 this.coverEl.classList.add('hidden'); 
                 this.generateGradientPlaceholder(data.title); 
@@ -167,7 +167,6 @@ window.AppMediaInfo = {
             this.noMediaEl.style.display = 'none';
         } 
         else {
-            // ПОЛНАЯ ПУСТОТА
             this.coverEl.src = "";
             this.coverEl.classList.add('hidden');
             this.noMediaEl.innerHTML = `
@@ -178,26 +177,17 @@ window.AppMediaInfo = {
             this.noMediaEl.style.background = 'linear-gradient(135deg, #1a1a24, #0a0a0f)';
         }
 
-        this.tagsContainer.innerHTML = '';
-        if (data.tags && data.tags.length > 0) {
-            data.tags.forEach(tag => {
-                const t = document.createElement('div');
-                t.className = 'mi-tag';
-                t.innerText = tag;
-                this.tagsContainer.appendChild(t);
-            });
-        }
-
-        this.detailsGrid.innerHTML = '';
-        if (data.details) {
-            for (const [key, value] of Object.entries(data.details)) {
-                if (value) {
-                    const item = document.createElement('div');
-                    item.className = 'mi-detail-item';
-                    item.innerHTML = `<span class="mi-detail-label">${key}</span><span class="mi-detail-value">${value}</span>`;
-                    this.detailsGrid.appendChild(item);
+        // Рендер чистой строки меты
+        this.metaRowEl.innerHTML = '';
+        if (data.meta && data.meta.length > 0) {
+            data.meta.forEach(itemText => {
+                if(itemText) {
+                    const span = document.createElement('span');
+                    span.className = 'mi-meta-item';
+                    span.innerText = itemText;
+                    this.metaRowEl.appendChild(span);
                 }
-            }
+            });
         }
     },
 

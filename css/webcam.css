@@ -3,7 +3,7 @@
 #webcam-container { 
     position: absolute; 
     top: 220px; 
-    left: 40px; 
+    left: 20px; /* Было 40px. Прижали левее */
     width: 360px; 
     height: 270px; 
     border-radius: 12px; 

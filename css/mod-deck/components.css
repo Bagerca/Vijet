@@ -1,3 +1,5 @@
+/* ФАЙЛ: css/mod-deck/components.css */
+
 /* Инпуты */
 .input-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; display: block; position: relative; z-index: 2;}
 .input-group { display: flex; flex-direction: column; gap: 8px; }
@@ -19,7 +21,7 @@
     border: 1px solid transparent; user-select: none; letter-spacing: 0.5px; position: relative; z-index: 2;
 }
 .btn svg { width: 16px; height: 16px; position: relative; z-index: 2; pointer-events: none;}
-.btn span { position: relative; z-index: 2; pointer-events: none; } /* Важно для удержания */
+.btn span { position: relative; z-index: 2; pointer-events: none; }
 
 .btn-primary { width: 100%; padding: 16px; background: var(--c-pink); color: #fff; font-weight: 900; font-size: 15px; letter-spacing: 1px; box-shadow: 0 4px 15px var(--c-pink-glow); }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 0, 80, 0.4); }
@@ -104,7 +106,8 @@ input[type=range]:focus { outline: none; }
 .select-selected.select-arrow-active { border-color: var(--c-green); box-shadow: 0 0 15px var(--c-green-glow); background: #000;}
 .select-selected.select-arrow-active::after { transform: rotate(180deg); color: var(--c-green);}
 
-.select-items { position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 9999; background: #110D18 !important; border: 1px solid var(--border-hover); border-radius: 12px; max-height: 250px; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.8); transform-origin: top; animation: dropDownOpen 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;}
+/* УВЕЛИЧЕНО max-height для больших постеров */
+.select-items { position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 9999; background: #110D18 !important; border: 1px solid var(--border-hover); border-radius: 12px; max-height: 400px; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.8); transform-origin: top; animation: dropDownOpen 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;}
 @keyframes dropDownOpen { 0% { opacity: 0; transform: scaleY(0.95) translateY(-5px); } 100% { opacity: 1; transform: scaleY(1) translateY(0); } }
 .select-items::-webkit-scrollbar { width: 6px; } .select-items::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
 .select-hide { display: none !important; }
@@ -112,8 +115,57 @@ input[type=range]:focus { outline: none; }
 .select-items div[data-value] { padding: 12px 16px; cursor: pointer; color: var(--text); font-size: 13px; font-weight: 500; transition: all 0.2s ease; border-bottom: 1px solid var(--border); }
 .select-items div[data-value]:hover { background: rgba(255, 255, 255, 0.05); color: #fff; padding-left: 20px; border-left: 3px solid var(--c-green);}
 .select-items .optgroup { background: #000; color: var(--text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; padding: 8px 16px; border-bottom: 1px solid var(--border);}
-.item-with-cover { display: flex; align-items: center; gap: 10px;}
-.select-item-cover { width: 20px; height: 26px; border-radius: 4px; object-fit: cover; background: #222; }
+
+/* НОВЫЙ ДИЗАЙН: КРУПНЫЕ ОБЛОЖКИ ИГР */
+.item-with-cover { 
+    display: flex; 
+    align-items: center; 
+    gap: 14px; 
+    padding: 10px 16px !important; /* Увеличили внутренний отступ для карточек */
+}
+
+/* Обложка (стала 36x52 вместо 20x26) */
+.select-item-cover { 
+    width: 36px; 
+    height: 52px; 
+    border-radius: 6px; 
+    object-fit: cover; 
+    background: #1a1a24; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4); 
+    flex-shrink: 0; 
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Контейнер для текста и тегов */
+.item-cover-info { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+    overflow: hidden; 
+}
+
+/* Название игры */
+.item-cover-title { 
+    font-size: 14px; 
+    font-weight: 700; 
+    color: #fff; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
+/* Маленькая плашка тега под названием */
+.item-mini-tag { 
+    font-size: 9px; 
+    font-weight: 800; 
+    color: var(--text-muted); 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    background: rgba(255,255,255,0.05); 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    align-self: flex-start; 
+}
 
 /* Пиллсы модификаторов */
 .modifier-pills { display: flex; flex-wrap: wrap; gap: 8px; position: relative; z-index: 2;}
@@ -146,3 +198,99 @@ input[type=range]:focus { outline: none; }
 .q-bar:nth-child(3) { animation-delay: 0.4s; }
 .q-anim-bars.paused .q-bar { animation: none; opacity: 0.5; }
 @keyframes qBarBounce { 0% { height: 30%; } 100% { height: 100%; } }
+
+/* =======================================================
+   НОВЫЕ СТИЛИ (ПОИСК, КНОПКА ЗАГРУЗКИ, PIP, SOUNDBOARD)
+   ======================================================= */
+
+/* Состояние загрузки кнопки (успех/loading) */
+.btn.btn-success {
+    background: var(--c-green) !important;
+    color: #000 !important;
+    pointer-events: none;
+    border-color: transparent !important;
+    box-shadow: 0 0 15px var(--c-green-glow) !important;
+}
+.btn.btn-success svg {
+    animation: popToast 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Строка поиска внутри выпадающего списка */
+.select-search {
+    padding: 8px;
+    background: #0B0811;
+    border-bottom: 1px solid var(--border-hover);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.select-search input {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+    transition: 0.3s;
+}
+.select-search input:focus { border-color: var(--c-green); }
+
+/* Превью YouTube (PIP) в очереди треков */
+.q-pip-wrapper {
+    position: relative;
+    width: 56px; height: 32px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    background: #000;
+}
+.q-pip-thumb {
+    width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.6; /* Затемняем, чтобы было видно эквалайзер поверх */
+}
+.q-pip-thumb.no-thumb {
+    display: flex; align-items: center; justify-content: center;
+    background: #1a1a24; color: #fff; font-size: 10px; font-weight: 800; opacity: 1;
+}
+
+/* Переносим эквалайзер прямо поверх превью */
+.playing-now .q-anim-bars {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+.playing-now .q-bar { background: #fff; box-shadow: 0 0 5px var(--c-pink); }
+
+/* Кнопка удаления трека (крестик) */
+.btn-remove-track {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-left: auto; /* Прижать вправо */
+}
+.btn-remove-track svg { width: 14px; height: 14px; pointer-events: none; }
+.btn-remove-track:hover {
+    background: rgba(255, 0, 0, 0.1);
+    color: #ff4444;
+}
+
+/* Сетка Soundboard */
+.grid-soundboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.grid-soundboard .btn {
+    padding: 10px 0;
+    font-size: 12px;
+}

@@ -5,7 +5,9 @@
 
 /* --- 1. ГЛОБАЛЬНЫЕ КОНТЕЙНЕРЫ --- */
 #chat-container { 
-    position: absolute; bottom: 140px; left: 20px; width: 380px; height: 450px; 
+    position: absolute; bottom: 140px; 
+    left: 0px; /* Было 20px. Внутренний padding делает текст на уровне 20px, вровень с вебкой */
+    width: 380px; height: 450px; 
     display: flex; flex-direction: column; justify-content: flex-end; padding: 0 20px 20px 20px; box-sizing: border-box; 
     transition: all 0.5s ease; 
     -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) calc(100% - 60px), transparent 100%); 
