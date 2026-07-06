@@ -52,7 +52,6 @@ window.DeckUI = {
         setTimeout(() => toast.classList.add('hidden'), 2500);
     },
 
-    // НОВОЕ: Визуальный отклик кнопок (Loading State)
     buttonFeedback(btn) {
         if (!btn || btn.classList.contains('btn-hold') || btn.classList.contains('btn-fox')) return;
         
@@ -124,26 +123,32 @@ window.DeckUI = {
     },
 
     setupParticleSliders() {
-        let updateTimer;
         const emitUpdate = () => {
             const count = parseInt(document.getElementById('part-count').value);
             const dist = parseInt(document.getElementById('part-dist').value);
             const speed = parseInt(document.getElementById('part-speed').value) / 10; 
             const color = document.getElementById('part-color').getAttribute('data-value');
-            window.AppEvents.emit('PARTICLES_CFG', { count, distance: dist, speed, color });
+            
+            // Отправляем настройки через чат Twitch, чтобы OBS их увидел
+            if (window.DeckAuth) {
+                window.DeckAuth.sendCommand(`!particles ${count} ${dist} ${speed} ${color}`);
+            }
         };
+
         const attachSlider = (id, valId, suffix, isFloat = false) => {
             const el = document.getElementById(id);
             const valEl = document.getElementById(valId);
             if (!el || !valEl) return;
+            
             const lock = () => el.setAttribute('data-dragging', 'true');
-            const unlock = () => setTimeout(() => el.removeAttribute('data-dragging'), 1000);
+            const unlock = () => {
+                setTimeout(() => el.removeAttribute('data-dragging'), 1000);
+            };
             
             el.addEventListener('mousedown', lock);
             el.addEventListener('touchstart', lock, {passive: true});
-            el.addEventListener('mouseup', unlock);
-            el.addEventListener('touchend', unlock);
-
+            
+            // Визуальное обновление ползунка
             el.addEventListener('input', (e) => {
                 lock();
                 const val = e.target.value;
@@ -153,21 +158,34 @@ window.DeckUI = {
                 el.style.setProperty('--slider-fill', `${percent}%`);
                 if (isFloat) valEl.innerText = (val / 10).toFixed(1) + suffix;
                 else valEl.innerText = val + suffix;
-                clearTimeout(updateTimer);
-                updateTimer = setTimeout(emitUpdate, 50);
             });
+
+            // Отправка команды при отпускании мышки (смене значения)
+            el.addEventListener('change', () => {
+                emitUpdate();
+                unlock();
+            });
+            
+            el.addEventListener('mouseup', unlock);
+            el.addEventListener('touchend', unlock);
         };
+
         attachSlider('part-count', 'part-count-val', '');
         attachSlider('part-dist', 'part-dist-val', 'px');
         attachSlider('part-speed', 'part-speed-val', 'x', true);
+        
+        // Отправка при изменении цвета в выпадающем списке
         const colorSelect = document.getElementById('part-color');
         if (colorSelect) {
-            const observer = new MutationObserver((mutations) => { mutations.forEach(m => { if (m.attributeName === 'data-value') emitUpdate(); }); });
+            const observer = new MutationObserver((mutations) => { 
+                mutations.forEach(m => { 
+                    if (m.attributeName === 'data-value') emitUpdate(); 
+                }); 
+            });
             observer.observe(colorSelect, { attributes: true });
         }
     },
 
-    // НОВОЕ: Отрисовка Soundboard
     renderSoundboard() {
         const container = document.getElementById('soundboard-grid');
         if (!container || !window.AppConfig.modDeck || !window.AppConfig.modDeck.soundboard) return;
@@ -242,7 +260,6 @@ window.DeckUI = {
             }
         }
 
-        // Инициализируем новые классы Dropdown вместо старой логики
         document.querySelectorAll('.custom-select').forEach(el => new CustomSelect(el));
     }
 };

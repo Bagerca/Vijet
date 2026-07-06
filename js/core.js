@@ -13,6 +13,20 @@ window.AppCore = {
         },
         "protocol": (arg) => window.AppCore.CommandRouter["протокол"](arg),
         
+        // --- НОВЫЙ БЛОК: ОБРАБОТКА ЧАСТИЦ ЧЕРЕЗ ЧАТ ---
+        "particles": (arg) => {
+            const parts = arg.split(' ');
+            if (parts.length >= 4) {
+                const count = parseInt(parts[0]);
+                const dist = parseInt(parts[1]);
+                const speed = parseFloat(parts[2]);
+                const color = parts[3];
+                window.AppEvents.emit('PARTICLES_CFG', { count, distance: dist, speed, color });
+            }
+        },
+        "частицы": (arg) => window.AppCore.CommandRouter["particles"](arg),
+        // ----------------------------------------------
+
         "refresh": (arg) => {
             if (arg === "core") { 
                 window.AppEvents.emit('CORE_REBOOT_START');
