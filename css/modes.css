@@ -61,13 +61,16 @@ body.scene-chatting .deaths-title { font-size: 16px; letter-spacing: 6px; margin
 body.scene-chatting #deaths-count { font-size: 64px; }
 
 /* ИДЕАЛЬНАЯ РАССТАНОВКА (ЛЕВАЯ ЧАСТЬ И НИЗ) */
+
+/* 1. Плашка "Сейчас играем" (Внутри вебки, Левый верхний угол) */
 body.scene-chatting #media-info-container {
     bottom: auto;      
     top: 65px;         
-    left: 40px; 
+    left: 65px; /* Отступ внутри вебки */
     right: auto;
     transform: translateX(0); 
     box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    z-index: 20;
 }
 body.scene-chatting #media-info-container.hidden {
     transform: translateX(-20px); 
@@ -82,27 +85,48 @@ body.scene-chatting #media-info-container.pop-anim {
     100% { transform: translateX(0) scale(1); }
 }
 
+/* 2. Плеер Музыки (Под вебкой, Слева) */
 body.scene-chatting #widget-container { 
     top: auto; 
-    bottom: 225px; 
-    left: 65px;    
+    bottom: 104px; /* Ровно над бегущей строкой */
+    left: 40px;    /* По левому краю вебки */
     right: auto; 
     transform: translateZ(0) !important; 
     z-index: 10;
 }
 body.scene-chatting #widget-container.hidden { 
-    transform: translateX(-20px); 
+    transform: translateY(20px); 
     opacity: 0; 
     pointer-events: none; 
 }
 
+/* 3. Лиса (Сидит на правой нижней рамке вебки) */
+body.scene-chatting #pet-container {
+    bottom: -4px;
+    right: 40px; /* Прижата к правому краю вебки, смотрит на чат */
+    transform: scale(1.2); /* Делаем её чуть крупнее на сцене общения */
+    transform-origin: bottom center;
+    z-index: 25;
+}
+
+/* 4. Бегущая строка (Под музыкой, на всю ширину вебки) */
 body.scene-chatting #ticker-container { 
+    top: auto;
     bottom: 40px; 
     left: 40px; 
     width: 1120px; 
     transform: translateZ(0) !important; 
 }
 
+/* 5. Таймер стрима (Под чатом, Слева) */
+body.scene-chatting #uptime-container {
+    top: auto;
+    bottom: 40px;
+    left: 1200px; /* Идеально по левому краю чата */
+    right: auto;
+}
+
+/* 6. Ротатор Соцсетей (Под чатом, Справа) */
 body.scene-chatting #social-rotator { 
     top: auto; 
     bottom: 40px; 
