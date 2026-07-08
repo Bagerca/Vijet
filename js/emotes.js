@@ -1,7 +1,10 @@
+/* ФАЙЛ: js/emotes.js */
 window.AppEmotes = {
     container: document.getElementById('emotes-container'),
     mode: "bubble",
     enabled: true,
+    activeEmotesCount: 0, // Отслеживаем количество нод в DOM
+    MAX_GLOBAL_EMOTES: 150, // Абсолютный лимит для защиты OBS
 
     init: function() {
         if (window.AppConfig.emotesMode) this.mode = window.AppConfig.emotesMode;
@@ -31,32 +34,37 @@ window.AppEmotes = {
     spawn: function(emotesData) {
         if (!this.enabled || !emotesData || !this.container) return;
 
+        // Защита: Если на экране уже максимум, игнорируем новые (спасение от спама)
+        if (this.activeEmotesCount >= this.MAX_GLOBAL_EMOTES) return;
+
         let emoteIds = Object.keys(emotesData);
         if (emoteIds.length === 0) return;
 
-        let maxSpawn = window.AppConfig.emotesMaxPerMessage || 100;
+        let maxSpawn = window.AppConfig.emotesMaxPerMessage || 20; // Локальный лимит на 1 сообщение
         let spawned = 0;
         let delayIndex = 0;
 
         for (let id of emoteIds) {
             let count = emotesData[id].length; 
             for (let i = 0; i < count; i++) {
-                if (spawned >= maxSpawn) break;
+                if (spawned >= maxSpawn || this.activeEmotesCount >= this.MAX_GLOBAL_EMOTES) break;
                 this.createEmoteDOM(id, delayIndex);
                 spawned++;
                 delayIndex++;
             }
-            if (spawned >= maxSpawn) break;
+            if (spawned >= maxSpawn || this.activeEmotesCount >= this.MAX_GLOBAL_EMOTES) break;
         }
     },
 
     createEmoteDOM: function(id, delayIndex) {
+        this.activeEmotesCount++;
         const emoteUrl = `https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/3.0`;
         const wrap = document.createElement('div');
         const img = document.createElement('img');
         img.src = emoteUrl;
 
         const staggerDelay = delayIndex * (0.05 + Math.random() * 0.03); 
+        let fallBackDestroyTime = 0;
         
         if (this.mode === 'bubble') {
             wrap.className = 'emote-bubble';
@@ -79,6 +87,8 @@ window.AppEmotes = {
             img.style.setProperty('--e-scale', scale);
             img.style.setProperty('--e-dir', swayDir);
             wrap.appendChild(img);
+            
+            fallBackDestroyTime = (duration + staggerDelay + 1) * 1000;
         } 
         else if (this.mode === 'fountain') {
             wrap.className = 'emote-fountain-x';
@@ -100,12 +110,30 @@ window.AppEmotes = {
             img.style.setProperty('--f-rot', `${rot}deg`);
             img.style.setProperty('--f-scale', scale);
             wrap.appendChild(img);
+            
+            fallBackDestroyTime = (3 + staggerDelay + 1) * 1000;
         }
 
         this.container.appendChild(wrap);
+
+        // Функция безопасного уничтожения
+        let isDestroyed = false;
+        const destroyEmote = () => {
+            if (isDestroyed) return;
+            isDestroyed = true;
+            wrap.remove();
+            this.activeEmotesCount--;
+            if (this.activeEmotesCount < 0) this.activeEmotesCount = 0;
+        };
+
+        // Стандартное удаление по концу анимации (Если вкладка активна в OBS)
         wrap.addEventListener('animationend', (e) => {
-            if (e.target === wrap) wrap.remove();
+            if (e.target === wrap) destroyEmote();
         });
+
+        // ФОЛЛБЭК: Если OBS свернул сцену, animationend не сработает. 
+        // Таймер удалит элемент принудительно, чтобы спасти RAM.
+        setTimeout(destroyEmote, fallBackDestroyTime);
     }
 };
 

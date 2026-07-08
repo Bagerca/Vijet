@@ -187,6 +187,13 @@ window.AppCore = {
             if (hasForbidden) { setPet('angry', 10); } 
             else {
                 if ((window.AppConfig.allowedUsers?.map(u=>u.toLowerCase()).includes(lowerUser) || flags.broadcaster) && !this.greetedUsers.has(lowerUser)) {
+                    
+                    // ЗАЩИТА ОТ УТЕЧКИ ПАМЯТИ: Сбрасываем Set, если в него записано более 3000 уникальных юзеров
+                    if (this.greetedUsers.size > 3000) {
+                        this.greetedUsers.clear();
+                        console.log("[CORE] Очистка кэша поприветствованных пользователей (достигнут лимит RAM).");
+                    }
+                    
                     this.greetedUsers.add(lowerUser); setPet('love', 5);
                 } 
                 if (isMention) setPet('alert', 4);

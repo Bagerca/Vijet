@@ -43,6 +43,9 @@ window.AppParticles = {
         });
 
         this.initParticles();
+        
+        // ФИКС УТЕЧКИ: Убиваем предыдущий кадр, если инициализация вызвана повторно
+        if (this.animationId) cancelAnimationFrame(this.animationId);
         this.animate();
     },
 
@@ -82,6 +85,9 @@ window.AppParticles = {
     },
 
     animate: function() {
+        // Обязательно сбрасываем ID в начале кадра
+        this.animationId = null;
+
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         const rgb = this.hexToRgbCached(this.settings.color);
@@ -172,6 +178,7 @@ window.AppParticles = {
             this.ctx.stroke(); // Рисуем все линии этого уровня прозрачности разом
         }
 
+        // Планируем следующий кадр и запоминаем ID
         this.animationId = requestAnimationFrame(this.animate.bind(this));
     },
 

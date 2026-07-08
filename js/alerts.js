@@ -1,3 +1,4 @@
+/* ФАЙЛ: js/alerts.js */
 window.AppAlerts = {
     container: document.getElementById('alert-container'),
     queue: [],
@@ -21,6 +22,12 @@ window.AppAlerts = {
     },
 
     add: function(user, type, message = "", value = 0) {
+        // ЗАЩИТА ОТ ПЕРЕПОЛНЕНИЯ ОЧЕРЕДИ (Предотвращает зависание при массовом спаме алертов)
+        if (this.queue.length > 50) {
+            console.warn("[Alerts] Очередь переполнена (> 50). Алерт пропущен для защиты UI.");
+            return; 
+        }
+
         this.queue.push({ user, type, message, value });
         if (!this.isPlaying) this.playNext();
     },
