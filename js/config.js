@@ -1,7 +1,7 @@
 /* ФАЙЛ: js/config.js */
 /* ================= ОСНОВНОЙ КОНФИГ СИСТЕМЫ ================= */
 window.AppConfig = {
-    channelName: "bagercaa",
+    channelName: "ksusha__sher",
     botChannel: "bagercaa",
     allowedUsers: ["bagercaa", "to_be_ang", "treebals"], 
     
