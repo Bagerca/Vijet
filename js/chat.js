@@ -1,7 +1,8 @@
 /* ФАЙЛ: js/chat.js */
-/* ================= ЧАТ (TITANIUM SKELETON & GRID SLOTS) ================= */
+/* ================= ЧАТ (HARD-CAPPED DOM ARCHITECTURE) ================= */
 window.AppChat = {
     container: document.getElementById('chat-messages'),
+    maxMessages: window.AppConfig.maxChatMessages || 12,
 
     init: function() {
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', (data) => this.renderMessage(data));
@@ -16,7 +17,6 @@ window.AppChat = {
         let replyHTML = '';
         let bellHTML = '';
 
-        // 1. Сборка бейджей (Лежат перед ником)
         if (data.isFirstTime) {
             stateClasses += ' is-first-time';
             badgesHTML += `<div class="chat-badge chat-badge-first"><svg class="badge-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path></svg><span>Впервые</span></div>`;
@@ -30,7 +30,6 @@ window.AppChat = {
             bellHTML = `<svg class="chat-ping-bell" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>`;
         }
 
-        // 2. Сборка Реплая
         if (data.replyData) {
             replyHTML = `
                 <div class="chat-reply">
@@ -43,35 +42,26 @@ window.AppChat = {
             `;
         }
 
-        // 3. Инициализация корневого блока
         const blockDiv = document.createElement('div');
         blockDiv.className = `chat-block${stateClasses}`;
         blockDiv.setAttribute('data-style', data.styleName ? data.styleName : 'default');
         blockDiv.setAttribute('data-user', data.user.toLowerCase());
         
-        // CSS VARIABLES API: Передаем данные дизайну
         blockDiv.style.setProperty('--user-color', data.color);
         blockDiv.style.setProperty('--avatar-img', `url('${data.avatarUrl}')`);
+        
+        // АППАРАТНОЕ УСКОРЕНИЕ: Сразу закидываем блок на GPU
+        blockDiv.style.willChange = 'transform, opacity';
 
-        // 4. ТИТАНОВАЯ HTML АРХИТЕКТУРА (Идеальная вложенность)
         blockDiv.innerHTML = `
-            <!-- СЛОЙ -1: Задние эффекты -->
             <div class="chat-fx-backdrop"></div>
-
-            <!-- ОСНОВНАЯ СЕТКА (CSS Grid) -->
             <div class="chat-bubble">
-                <!-- Слот фона -->
                 <div class="chat-bubble-bg"></div>
-
-                <!-- КОЛОНКА 1: Слот Аватарки -->
                 <div class="chat-avatar-slot">
                     <div class="chat-avatar"></div>
                 </div>
-
-                <!-- КОЛОНКА 2: Контент -->
                 <div class="chat-content">
                     ${replyHTML}
-                    
                     <div class="chat-header">
                         <div class="chat-header-info">
                             ${badgesHTML ? `<div class="chat-badges-wrap">${badgesHTML}</div>` : ''}
@@ -82,25 +72,34 @@ window.AppChat = {
                             <span class="chat-time">${data.time}</span>
                         </div>
                     </div>
-                    
                     <div class="chat-text">
                         <div class="chat-text-inner">${data.htmlText}</div>
                     </div>
                 </div>
             </div>
-
-            <!-- СЛОЙ 99: Передние эффекты -->
             <div class="chat-fx-front"></div>
         `;
         
         this.container.appendChild(blockDiv);
 
-        // 5. Очистка старых сообщений
-        const activeMessages = Array.from(this.container.children).filter(el => !el.classList.contains('chat-out'));
-        if (activeMessages.length > window.AppConfig.maxChatMessages) {
-            const oldestMsg = activeMessages[0];
-            window.AppUtils.restartAnimation(oldestMsg, 'chat-out');
-            setTimeout(() => { if (oldestMsg.parentNode) oldestMsg.remove(); }, 400);
+        // ЖЕСТКАЯ ОЧИСТКА DOM (Без таймеров, которые "спят" в свернутом OBS)
+        const allMessages = Array.from(this.container.children);
+        if (allMessages.length > this.maxMessages) {
+            const excessCount = allMessages.length - this.maxMessages;
+            
+            // Запускаем красивую анимацию для ПЕРВОГО лишнего (чтобы зритель видел как оно уходит)
+            if (!allMessages[0].classList.contains('chat-out')) {
+                window.AppUtils.restartAnimation(allMessages[0], 'chat-out');
+                setTimeout(() => { if (allMessages[0].parentNode) allMessages[0].remove(); }, 400);
+            }
+            
+            // ЖЕСТКО ВЫРЕЗАЕМ все остальные излишки (если чат спамят с огромной скоростью)
+            // Это спасет DOM от раздувания на невидимых сценах!
+            if (excessCount > 1) {
+                for (let i = 1; i < excessCount; i++) {
+                    allMessages[i].remove();
+                }
+            }
         }
     }
 };
