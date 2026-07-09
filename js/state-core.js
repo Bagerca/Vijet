@@ -6,7 +6,8 @@ window.AppStateCore = {
         media: { type: 'off', query: null },
         youtube: { isPlaying: false, currentId: null, currentTime: 0, volume: 30, currentUser: null },
         widgets: {},
-        particles: { count: 80, speed: 1.0, distance: 120, color: '#ffffff' }
+        // НОВЫЙ ДЕФОЛТ: Минимум плотности, медленная скорость, короткие связи, розовый неон
+        particles: { count: 30, speed: 0.2, distance: 80, color: '#FF4477' }
     },
     saveTimeout: null,
 
@@ -77,7 +78,8 @@ window.AppStateCore = {
                 const parsed = JSON.parse(saved);
                 this.state = { ...this.state, ...parsed };
                 if (!this.state.widgets) this.state.widgets = {};
-                if (!this.state.particles) this.state.particles = { count: 80, speed: 1.0, distance: 120, color: '#ffffff' };
+                // НОВЫЙ ДЕФОЛТ для старых сохранений
+                if (!this.state.particles) this.state.particles = { count: 30, speed: 0.2, distance: 80, color: '#FF4477' };
             }
         } catch (e) {}
     }

@@ -11,9 +11,10 @@ window.AppParticles = {
     spriteCanvas: null,
     spriteCtx: null,
     
-    settings: { count: 80, speed: 1.0, distance: 120, color: '#ffffff' },
-    cachedRgb: { r: 255, g: 255, b: 255 },
-    lastHexColor: '#ffffff',
+    // НОВЫЙ ДЕФОЛТ: 30 частиц, медленные (0.2x), короткая дистанция связи, розовый цвет
+    settings: { count: 30, speed: 0.2, distance: 80, color: '#FF4477' },
+    cachedRgb: { r: 255, g: 68, b: 119 }, // Кэш стартового RGB для #FF4477
+    lastHexColor: '#FF4477',
 
     init: function() {
         if (!this.canvas) return;
@@ -47,6 +48,7 @@ window.AppParticles = {
         this.initParticles();
         this.preRenderSprite(); // Рисуем спрайт 1 раз
         
+        // ФИКС УТЕЧКИ: Убиваем предыдущий кадр, если инициализация вызвана повторно
         if (this.animationId) cancelAnimationFrame(this.animationId);
         this.animate();
     },
@@ -100,7 +102,9 @@ window.AppParticles = {
     },
 
     animate: function() {
+        // Обязательно сбрасываем ID в начале кадра
         this.animationId = null;
+
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         const rgb = this.cachedRgb; // Используем кэш
@@ -123,7 +127,7 @@ window.AppParticles = {
             this.ctx.drawImage(this.spriteCanvas, p.x - spriteOffset, p.y - spriteOffset);
         }
 
-        // 2. Линии (Остались на батчинге, что тоже очень быстро)
+        // 2. Линии (Батчинг, очень быстро)
         const BUCKET_COUNT = 20; 
         const MAX_OPACITY = 0.4;
         const lineBuckets = Array.from({length: BUCKET_COUNT}, () => []);
@@ -166,6 +170,7 @@ window.AppParticles = {
             this.ctx.stroke(); 
         }
 
+        // Планируем следующий кадр
         this.animationId = requestAnimationFrame(this.animate.bind(this));
     },
 

@@ -279,7 +279,7 @@
                     </div>
                 </section>
                 
-                <!-- БЛОК: ЧАСТИЦЫ И СОЗВЕЗДИЯ -->
+                <!-- БЛОК: ЧАСТИЦЫ И СОЗВЕЗДИЯ (НОВЫЕ ДЕФОЛТЫ) -->
                 <section class="card card-theme-pink">
                     <header class="card-header">
                         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .11 1.89l1.8 2.6a2 2 0 0 1-3.24 2.24l-2.6-1.8a1.65 1.65 0 0 0-1.89-.11l-3 2.1A2 2 0 0 1 7 19.4l-2.1-3a1.65 1.65 0 0 0-1.89-.11l-2.6 1.8A2 2 0 0 1 2 15.84l1.8-2.6a1.65 1.65 0 0 0 .11-1.89l-1.8-2.6a2 2 0 0 1 3.24-2.24l2.6 1.8a1.65 1.65 0 0 0 1.89.11l3-2.1a2 2 0 0 1 3.68 2.52l-2.1 3a1.65 1.65 0 0 0 1.89.11l2.6-1.8a2 2 0 0 1 2.24 3.24l-1.8 2.6z"></path></svg></div>
@@ -288,30 +288,30 @@
                     
                     <label class="input-label">Плотность точек:</label>
                     <div class="flex-row" style="margin-bottom: 12px;">
-                        <input type="range" id="part-count" min="20" max="150" value="80" class="flex-grow part-slider" style="--slider-fill: 50%;">
-                        <span id="part-count-val" style="font-size: 12px; font-weight: 800; color: #fff; width: 30px;">80</span>
+                        <input type="range" id="part-count" min="20" max="150" value="30" class="flex-grow part-slider" style="--slider-fill: 7%;">
+                        <span id="part-count-val" style="font-size: 12px; font-weight: 800; color: #fff; width: 30px;">30</span>
                     </div>
 
                     <label class="input-label">Длина линий (Связи):</label>
                     <div class="flex-row" style="margin-bottom: 12px;">
-                        <input type="range" id="part-dist" min="50" max="250" value="120" class="flex-grow part-slider" style="--slider-fill: 40%;">
-                        <span id="part-dist-val" style="font-size: 12px; font-weight: 800; color: #fff; width: 30px;">120</span>
+                        <input type="range" id="part-dist" min="50" max="250" value="80" class="flex-grow part-slider" style="--slider-fill: 15%;">
+                        <span id="part-dist-val" style="font-size: 12px; font-weight: 800; color: #fff; width: 30px;">80</span>
                     </div>
 
                     <label class="input-label">Скорость движения:</label>
                     <div class="flex-row" style="margin-bottom: 12px;">
-                        <input type="range" id="part-speed" min="0" max="30" value="10" class="flex-grow part-slider" style="--slider-fill: 33%;">
-                        <span id="part-speed-val" style="font-size: 12px; font-weight: 800; color: #fff; width: 30px;">1.0x</span>
+                        <input type="range" id="part-speed" min="0" max="30" value="2" class="flex-grow part-slider" style="--slider-fill: 6%;">
+                        <span id="part-speed-val" style="font-size: 12px; font-weight: 800; color: #fff; width: 30px;">0.2x</span>
                     </div>
 
                     <label class="input-label mt-2">Цвет свечения:</label>
                     <div class="smart-input">
-                        <div class="custom-select" id="part-color" data-value="#ffffff">
-                            <div class="select-selected">⚪ Белый (Базовый)</div>
+                        <div class="custom-select" id="part-color" data-value="#FF4477">
+                            <div class="select-selected">🔴 Розовый неон (Базовый)</div>
                             <div class="select-items select-hide">
-                                <div data-value="#ffffff">⚪ Белый (Базовый)</div>
-                                <div data-value="#FFD700">🟡 Золотой (Классика)</div>
-                                <div data-value="#FF4477">🔴 Розовый неон</div>
+                                <div data-value="#FF4477">🔴 Розовый неон (Базовый)</div>
+                                <div data-value="#ffffff">⚪ Белый (Классика)</div>
+                                <div data-value="#FFD700">🟡 Золотой</div>
                                 <div data-value="#00E5FF">🔵 Голубой неон</div>
                                 <div data-value="#00FF41">🟢 Матрица (Хакер)</div>
                             </div>
