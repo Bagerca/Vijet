@@ -76,12 +76,16 @@ window.AppGoal = {
         else this.container.classList.remove('goal-completed');
 
         if (!isFirstLoad && this.displayFollowers < targetValue) {
-            // ИСПОЛЬЗУЕМ БЕЗОПАСНЫЙ ПЕРЕЗАПУСК
             window.AppUtils.restartAnimation(elIcon, 'icon-beat');
         }
 
         const startValue = this.displayFollowers;
-        const duration = 1200; 
+        
+        // ФИКС АНИМАЦИИ ЦИФР: Делаем скорость зависящей от разницы.
+        // Если пришел всего 1 человек, прокручиваем цифру быстро (400мс), чтобы не было "висяков".
+        const diff = Math.abs(targetValue - startValue);
+        const duration = diff <= 1 ? 400 : Math.min(1500, Math.max(600, diff * 50));
+        
         const startTime = performance.now();
 
         const updateCounter = (currentTime) => {
@@ -99,7 +103,7 @@ window.AppGoal = {
                 elCurrent.innerText = targetValue;
                 this.displayFollowers = targetValue;
                 
-                if (!isFirstLoad) {
+                if (!isFirstLoad && diff > 0) {
                     elCurrent.classList.add('pop-text');
                     setTimeout(() => elCurrent.classList.remove('pop-text'), 300);
                 }
