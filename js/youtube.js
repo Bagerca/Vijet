@@ -1,5 +1,5 @@
 /* ФАЙЛ: js/youtube.js */
-/* ================= YOUTUBE ВИДЖЕТ ================= */
+/* ================= YOUTUBE ВИДЖЕТ (GPU OPTIMIZED) ================= */
 window.AppPlayer = {
     yt: null,
     container: document.getElementById('widget-container'),
@@ -59,7 +59,10 @@ window.AppPlayer = {
         }
         this.updateVol(data.vol);
         if (this.container) this.container.classList.remove('hidden');
-        if (this.progressBar) this.progressBar.style.width = '0%';
+        
+        // ОПТИМИЗАЦИЯ: Сброс шкалы через transform
+        if (this.progressBar) this.progressBar.style.transform = 'scaleX(0)';
+        
         this.yt.loadVideoById(data.id);
         this.yt.mute(); 
         this.yt.playVideo(); 
@@ -87,7 +90,11 @@ window.AppPlayer = {
 
     updateProgress: function(data) {
         let percent = data.percent !== undefined ? data.percent : data;
-        if(this.progressBar) this.progressBar.style.width = `${percent}%`;
+        
+        // ОПТИМИЗАЦИЯ: Используем scaleX вместо width для аппаратного ускорения
+        if(this.progressBar) {
+            this.progressBar.style.transform = `scaleX(${percent / 100})`;
+        }
 
         // ФИКС РАССИНХРОНА: Увеличен допуск до 2.5 секунд
         if (this.isReady && this.yt && typeof this.yt.getCurrentTime === 'function' && data.currentTime !== undefined) {

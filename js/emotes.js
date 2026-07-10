@@ -1,16 +1,16 @@
 /* ФАЙЛ: js/emotes.js */
+/* ================= СМАЙЛЫ В ЧАТЕ (БЕЗ ПРОПУСКОВ + ОЧИСТКА VRAM) ================= */
 window.AppEmotes = {
     container: document.getElementById('emotes-container'),
     mode: "bubble",
     enabled: true,
-    activeEmotesCount: 0, // Отслеживаем количество нод в DOM
-    MAX_GLOBAL_EMOTES: 150, // Абсолютный лимит для защиты OBS
+    activeEmotesCount: 0, 
+    MAX_GLOBAL_EMOTES: 100, // Надежный лимит для OBS
 
     init: function() {
         if (window.AppConfig.emotesMode) this.mode = window.AppConfig.emotesMode;
         if (window.AppConfig.emotesEnabled !== undefined) this.enabled = window.AppConfig.emotesEnabled;
 
-        // Подписка на события
         window.AppEvents.listen('EMOTES_SPAWN', d => this.spawn(d));
         window.AppEvents.listen('EMOTES_CMD', d => { 
             if(d.cmd==='a' || d.cmd==='bubble') this.setMode('bubble');
@@ -21,10 +21,7 @@ window.AppEmotes = {
     },
 
     setMode: function(newMode) {
-        if (newMode === "bubble" || newMode === "fountain") {
-            this.mode = newMode;
-            console.log(`[Emotes] Режим изменен на: ${newMode}`);
-        }
+        if (newMode === "bubble" || newMode === "fountain") this.mode = newMode;
     },
 
     toggle: function(state) {
@@ -32,31 +29,36 @@ window.AppEmotes = {
     },
 
     spawn: function(emotesData) {
+        // Убрали проверку document.hidden. Теперь смайлы спавнятся безотказно.
         if (!this.enabled || !emotesData || !this.container) return;
 
-        // Защита: Если на экране уже максимум, игнорируем новые (спасение от спама)
         if (this.activeEmotesCount >= this.MAX_GLOBAL_EMOTES) return;
 
         let emoteIds = Object.keys(emotesData);
         if (emoteIds.length === 0) return;
 
-        let maxSpawn = window.AppConfig.emotesMaxPerMessage || 20; // Локальный лимит на 1 сообщение
+        let maxSpawn = window.AppConfig.emotesMaxPerMessage || 20; 
         let spawned = 0;
         let delayIndex = 0;
+        
+        // Используем DocumentFragment для пакетного рендера (снижает нагрузку на CPU)
+        const fragment = document.createDocumentFragment();
 
         for (let id of emoteIds) {
             let count = emotesData[id].length; 
             for (let i = 0; i < count; i++) {
                 if (spawned >= maxSpawn || this.activeEmotesCount >= this.MAX_GLOBAL_EMOTES) break;
-                this.createEmoteDOM(id, delayIndex);
+                this.createEmoteDOM(id, delayIndex, fragment);
                 spawned++;
                 delayIndex++;
             }
             if (spawned >= maxSpawn || this.activeEmotesCount >= this.MAX_GLOBAL_EMOTES) break;
         }
+        
+        this.container.appendChild(fragment);
     },
 
-    createEmoteDOM: function(id, delayIndex) {
+    createEmoteDOM: function(id, delayIndex, fragment) {
         this.activeEmotesCount++;
         const emoteUrl = `https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/3.0`;
         const wrap = document.createElement('div');
@@ -114,25 +116,25 @@ window.AppEmotes = {
             fallBackDestroyTime = (3 + staggerDelay + 1) * 1000;
         }
 
-        this.container.appendChild(wrap);
+        fragment.appendChild(wrap);
 
-        // Функция безопасного уничтожения
         let isDestroyed = false;
         const destroyEmote = () => {
             if (isDestroyed) return;
             isDestroyed = true;
+            
+            // ОЧИСТКА ПАМЯТИ: Сбрасываем картинку перед удалением ноды
+            img.src = ''; 
             wrap.remove();
+            
             this.activeEmotesCount--;
             if (this.activeEmotesCount < 0) this.activeEmotesCount = 0;
         };
 
-        // Стандартное удаление по концу анимации (Если вкладка активна в OBS)
         wrap.addEventListener('animationend', (e) => {
             if (e.target === wrap) destroyEmote();
         });
 
-        // ФОЛЛБЭК: Если OBS свернул сцену, animationend не сработает. 
-        // Таймер удалит элемент принудительно, чтобы спасти RAM.
         setTimeout(destroyEmote, fallBackDestroyTime);
     }
 };

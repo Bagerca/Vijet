@@ -106,12 +106,13 @@ window.DeckCommands = {
                 let msgInput = getVal('test-chat-msg') || 'Пример текста!';
                 let flags = Array.from(document.querySelectorAll('.mod-pill.active')).map(p => p.getAttribute('data-mod'));
                 
+                // БЕЗОПАСНАЯ ЦЕНЗУРА (Слова из config.js)
                 if (flags.includes('-c_word')) {
-                    msgInput = msgInput + ' пидор'; 
+                    msgInput = msgInput + ' запретка'; // Точное совпадение (закрасит только слово)
                     flags = flags.filter(f => f !== '-c_word');
                 }
                 if (flags.includes('-c_msg')) {
-                    msgInput = 'п1д0p ' + msgInput; 
+                    msgInput = 'з@претк@ ' + msgInput; // Умный фильтр (омоглифы) скроет всё сообщение
                     flags = flags.filter(f => f !== '-c_msg');
                 }
                 

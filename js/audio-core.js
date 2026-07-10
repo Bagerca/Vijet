@@ -1,4 +1,5 @@
-/* ================= АУДИО ЯДРО (Только для core.html) ================= */
+/* ФАЙЛ: js/audio-core.js */
+/* ================= АУДИО ЯДРО (ОПТИМИЗАЦИЯ ПАМЯТИ) ================= */
 window.AppAudioCore = {
     lastPlayed: 0,
 
@@ -15,12 +16,20 @@ window.AppAudioCore = {
             
             // Включаем Audio Ducking (приглушаем музыку)
             audio.onplay = () => window.AppEvents.emit('AUDIO_DUCK_START');
-            audio.onended = () => window.AppEvents.emit('AUDIO_DUCK_STOP');
-            audio.onerror = () => window.AppEvents.emit('AUDIO_DUCK_STOP'); // Защита
+            
+            // Функция безопасного уничтожения аудио-объекта
+            const cleanup = () => {
+                window.AppEvents.emit('AUDIO_DUCK_STOP');
+                // УТЕЧКА ПАМЯТИ ИСПРАВЛЕНА: Обнуляем src, чтобы GC сразу выкинул файл из RAM
+                audio.src = '';
+            };
+
+            audio.onended = cleanup;
+            audio.onerror = cleanup;
 
             audio.play().catch(e => {
-                console.warn("[AudioCore] Ошибка:", e);
-                window.AppEvents.emit('AUDIO_DUCK_STOP');
+                console.warn("[AudioCore] Ошибка воспроизведения:", e);
+                cleanup();
             });
         } catch (e) {}
     }

@@ -1,5 +1,5 @@
 /* ФАЙЛ: js/chat.js */
-/* ================= ЧАТ (HARD-CAPPED DOM ARCHITECTURE) ================= */
+/* ================= ЧАТ (СТАБИЛЬНЫЙ РЕНДЕР С ОЧИСТКОЙ VRAM) ================= */
 window.AppChat = {
     container: document.getElementById('chat-messages'),
     maxMessages: window.AppConfig.maxChatMessages || 12,
@@ -12,6 +12,8 @@ window.AppChat = {
     },
 
     renderMessage: function(data) {
+        // Убрали document.hidden: сообщения должны сохраняться в историю, даже если сцена скрыта
+
         let stateClasses = ''; 
         let badgesHTML = '';
         let replyHTML = '';
@@ -50,7 +52,7 @@ window.AppChat = {
         blockDiv.style.setProperty('--user-color', data.color);
         blockDiv.style.setProperty('--avatar-img', `url('${data.avatarUrl}')`);
         
-        // АППАРАТНОЕ УСКОРЕНИЕ: Сразу закидываем блок на GPU
+        // Оставляем вынос на GPU для плавной анимации
         blockDiv.style.willChange = 'transform, opacity';
 
         blockDiv.innerHTML = `
@@ -80,23 +82,31 @@ window.AppChat = {
             <div class="chat-fx-front"></div>
         `;
         
+        // Синхронное добавление гарантирует, что сообщения не "перепутаются" при одновременном спаме
         this.container.appendChild(blockDiv);
 
-        // ЖЕСТКАЯ ОЧИСТКА DOM (Без таймеров, которые "спят" в свернутом OBS)
+        // Синхронный подсчет и удаление излишков
         const allMessages = Array.from(this.container.children);
         if (allMessages.length > this.maxMessages) {
             const excessCount = allMessages.length - this.maxMessages;
             
-            // Запускаем красивую анимацию для ПЕРВОГО лишнего (чтобы зритель видел как оно уходит)
+            // Анимация ухода для самого верхнего сообщения
             if (!allMessages[0].classList.contains('chat-out')) {
                 window.AppUtils.restartAnimation(allMessages[0], 'chat-out');
-                setTimeout(() => { if (allMessages[0].parentNode) allMessages[0].remove(); }, 400);
+                
+                setTimeout(() => { 
+                    if (allMessages[0] && allMessages[0].parentNode) {
+                        // КРИТИЧЕСКАЯ ОЧИСТКА VRAM (Сбрасываем картинку перед удалением ноды)
+                        allMessages[0].style.setProperty('--avatar-img', 'none');
+                        allMessages[0].remove(); 
+                    }
+                }, 400);
             }
             
-            // ЖЕСТКО ВЫРЕЗАЕМ все остальные излишки (если чат спамят с огромной скоростью)
-            // Это спасет DOM от раздувания на невидимых сценах!
+            // Жестко вырезаем остальные излишки, если чат летит слишком быстро
             if (excessCount > 1) {
                 for (let i = 1; i < excessCount; i++) {
+                    allMessages[i].style.setProperty('--avatar-img', 'none');
                     allMessages[i].remove();
                 }
             }

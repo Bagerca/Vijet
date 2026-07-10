@@ -6,7 +6,7 @@ window.DeckUI = {
         this.setupModifierPills();
         this.setupHoldButtons();
         this.setupParticleSliders();
-        this.renderSoundboard(); // Рисуем саундборд
+        this.renderSoundboard();
 
         const targetChatSelect = document.getElementById('target-chat-select');
         if (targetChatSelect) {
@@ -126,10 +126,10 @@ window.DeckUI = {
         const emitUpdate = () => {
             const count = parseInt(document.getElementById('part-count').value);
             const dist = parseInt(document.getElementById('part-dist').value);
+            // Делим на 10, так как ползунок от 0 до 20, чтобы получить 0.0 - 2.0
             const speed = parseInt(document.getElementById('part-speed').value) / 10; 
             const color = document.getElementById('part-color').getAttribute('data-value');
             
-            // Отправляем настройки через чат Twitch, чтобы OBS их увидел
             if (window.DeckAuth) {
                 window.DeckAuth.sendCommand(`!particles ${count} ${dist} ${speed} ${color}`);
             }
@@ -148,19 +148,19 @@ window.DeckUI = {
             el.addEventListener('mousedown', lock);
             el.addEventListener('touchstart', lock, {passive: true});
             
-            // Визуальное обновление ползунка
+            // Динамический пересчет визуального заполнения
             el.addEventListener('input', (e) => {
                 lock();
-                const val = e.target.value;
-                const min = e.target.min;
-                const max = e.target.max;
+                const val = parseFloat(e.target.value);
+                const min = parseFloat(e.target.min);
+                const max = parseFloat(e.target.max);
                 const percent = ((val - min) / (max - min)) * 100;
+                
                 el.style.setProperty('--slider-fill', `${percent}%`);
                 if (isFloat) valEl.innerText = (val / 10).toFixed(1) + suffix;
                 else valEl.innerText = val + suffix;
             });
 
-            // Отправка команды при отпускании мышки (смене значения)
             el.addEventListener('change', () => {
                 emitUpdate();
                 unlock();
@@ -174,7 +174,6 @@ window.DeckUI = {
         attachSlider('part-dist', 'part-dist-val', 'px');
         attachSlider('part-speed', 'part-speed-val', 'x', true);
         
-        // Отправка при изменении цвета в выпадающем списке
         const colorSelect = document.getElementById('part-color');
         if (colorSelect) {
             const observer = new MutationObserver((mutations) => { 

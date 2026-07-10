@@ -1,5 +1,5 @@
 /* ФАЙЛ: js/particles.js */
-/* ================= ФОНОВЫЕ ЧАСТИЦЫ (SPRITE-RENDERING OPTIMIZATION) ================= */
+/* ================= ФОНОВЫЕ ЧАСТИЦЫ (PERFORMANCE OPTIMIZED) ================= */
 
 window.AppParticles = {
     canvas: document.getElementById('particles-canvas'),
@@ -11,16 +11,22 @@ window.AppParticles = {
     spriteCanvas: null,
     spriteCtx: null,
     
-    // НОВЫЙ ДЕФОЛТ: 30 частиц, медленные (0.2x), короткая дистанция связи, розовый цвет
+    // СТРОГИЕ ЛИМИТЫ (Защита от краша OBS через чат-команды)
+    LIMITS: {
+        MAX_COUNT: 100, // Обрезано с 150 до 100
+        MAX_DIST: 200,  // Обрезано с 250 до 200
+        MAX_SPEED: 2.0  // Обрезано до 2.0
+    },
+
+    // Дефолтные настройки
     settings: { count: 30, speed: 0.2, distance: 80, color: '#FF4477' },
-    cachedRgb: { r: 255, g: 68, b: 119 }, // Кэш стартового RGB для #FF4477
+    cachedRgb: { r: 255, g: 68, b: 119 },
     lastHexColor: '#FF4477',
 
     init: function() {
         if (!this.canvas) return;
         this.ctx = this.canvas.getContext('2d', { alpha: true });
         
-        // Создаем скрытый холст для спрайта
         this.spriteCanvas = document.createElement('canvas');
         this.spriteCtx = this.spriteCanvas.getContext('2d');
         
@@ -30,7 +36,7 @@ window.AppParticles = {
         window.AppEvents.listen('STATE_SYNC_RESPONSE', state => {
             if (state.particles) {
                 const oldSettings = JSON.stringify(this.settings);
-                this.settings = { ...this.settings, ...state.particles };
+                this.applySafeSettings(state.particles);
                 if (JSON.parse(oldSettings).count !== this.settings.count) this.initParticles();
                 if (JSON.parse(oldSettings).color !== this.settings.color) this.preRenderSprite();
             }
@@ -39,18 +45,29 @@ window.AppParticles = {
         window.AppEvents.listen('PARTICLES_UPDATE_SETTINGS', newSettings => {
             const oldCount = this.settings.count;
             const oldColor = this.settings.color;
-            this.settings = { ...this.settings, ...newSettings };
+            this.applySafeSettings(newSettings);
             
             if (oldCount !== this.settings.count) this.initParticles();
             if (oldColor !== this.settings.color) this.preRenderSprite();
         });
 
         this.initParticles();
-        this.preRenderSprite(); // Рисуем спрайт 1 раз
+        this.preRenderSprite(); 
         
-        // ФИКС УТЕЧКИ: Убиваем предыдущий кадр, если инициализация вызвана повторно
         if (this.animationId) cancelAnimationFrame(this.animationId);
         this.animate();
+    },
+
+    // ВАЖНО: Валидация всех входящих настроек
+    applySafeSettings: function(newSettings) {
+        if (newSettings.count !== undefined) this.settings.count = Math.min(Math.max(newSettings.count, 10), this.LIMITS.MAX_COUNT);
+        if (newSettings.distance !== undefined) this.settings.distance = Math.min(Math.max(newSettings.distance, 25), this.LIMITS.MAX_DIST);
+        if (newSettings.speed !== undefined) this.settings.speed = Math.min(Math.max(newSettings.speed, 0), this.LIMITS.MAX_SPEED);
+        if (newSettings.color !== undefined) this.settings.color = newSettings.color;
+        
+        if (window.AppEvents.isDebug) {
+            console.log("[Particles] Настройки применены и отфильтрованы:", this.settings);
+        }
     },
 
     resize: function() {
@@ -68,11 +85,10 @@ window.AppParticles = {
         return this.cachedRgb;
     },
 
-    // МАГИЯ ОПТИМИЗАЦИИ: Рисуем светящуюся точку 1 раз в памяти
     preRenderSprite: function() {
         const rgb = this.hexToRgbCached(this.settings.color);
-        const radius = 3; // Максимальный радиус
-        const glow = 10;  // Размер свечения
+        const radius = 3; 
+        const glow = 10;  
         const size = (radius + glow) * 2;
         
         this.spriteCanvas.width = size;
@@ -89,7 +105,8 @@ window.AppParticles = {
 
     initParticles: function() {
         this.particlesArray = [];
-        const maxParticles = Math.min(this.settings.count, 150); 
+        // Хардкап при инициализации
+        const maxParticles = Math.min(this.settings.count, this.LIMITS.MAX_COUNT); 
         for (let i = 0; i < maxParticles; i++) {
             this.particlesArray.push({
                 x: Math.random() * this.canvas.width,
@@ -102,17 +119,16 @@ window.AppParticles = {
     },
 
     animate: function() {
-        // Обязательно сбрасываем ID в начале кадра
         this.animationId = null;
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        const rgb = this.cachedRgb; // Используем кэш
+        const rgb = this.cachedRgb; 
         const speedMult = this.settings.speed;
         const linkDist = this.settings.distance;
         const linkDistSq = linkDist * linkDist; 
 
-        // 1. Отрисовка частиц через готовый Спрайт (Быстрее в 100 раз)
+        // 1. Отрисовка частиц
         for (let i = 0; i < this.particlesArray.length; i++) {
             let p = this.particlesArray[i];
 
@@ -122,12 +138,11 @@ window.AppParticles = {
             if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
             if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
 
-            // Вместо тяжелого arc() + shadowBlur, просто копируем картинку!
-            const spriteOffset = (p.radius + 10); // Радиус + свечение из preRenderSprite
+            const spriteOffset = (p.radius + 10); 
             this.ctx.drawImage(this.spriteCanvas, p.x - spriteOffset, p.y - spriteOffset);
         }
 
-        // 2. Линии (Батчинг, очень быстро)
+        // 2. Линии (Оптимизированный Батчинг)
         const BUCKET_COUNT = 20; 
         const MAX_OPACITY = 0.4;
         const lineBuckets = Array.from({length: BUCKET_COUNT}, () => []);
@@ -136,6 +151,10 @@ window.AppParticles = {
             let p1 = this.particlesArray[a];
             for (let b = a + 1; b < this.particlesArray.length; b++) {
                 let p2 = this.particlesArray[b];
+                
+                // Оптимизация: Грубая предварительная проверка по квадрату (BBox) перед точной математикой
+                if (Math.abs(p1.x - p2.x) > linkDist || Math.abs(p1.y - p2.y) > linkDist) continue;
+
                 let dx = p1.x - p2.x;
                 let dy = p1.y - p2.y;
                 let distSq = dx * dx + dy * dy;
@@ -170,7 +189,6 @@ window.AppParticles = {
             this.ctx.stroke(); 
         }
 
-        // Планируем следующий кадр
         this.animationId = requestAnimationFrame(this.animate.bind(this));
     },
 
@@ -179,13 +197,21 @@ window.AppParticles = {
         const cx = this.canvas.width / 2;
         const cy = this.canvas.height / 2;
         
-        for (let i = 0; i < amount; i++) {
+        // Защита от переполнения массива при кликах
+        const safeAmount = Math.min(amount, 50);
+        
+        for (let i = 0; i < safeAmount; i++) {
             this.particlesArray.push({
                 x: cx, y: cy,
                 radius: Math.random() * 3 + 1,
                 vx: (Math.random() - 0.5) * 15,
                 vy: (Math.random() - 0.5) * 15
             });
+        }
+        
+        // Жестко отсекаем старые частицы, если массив раздулся
+        if (this.particlesArray.length > this.LIMITS.MAX_COUNT + safeAmount) {
+            this.particlesArray.splice(0, this.particlesArray.length - (this.LIMITS.MAX_COUNT + safeAmount));
         }
     }
 };
