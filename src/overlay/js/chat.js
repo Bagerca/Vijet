@@ -6,14 +6,23 @@ window.AppChat = {
 
     init: function() {
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', (data) => this.renderMessage(data));
+        // Слушаем сигнал асинхронного обновления аватарки
+        window.AppEvents.listen('CHAT_UPDATE_AVATAR', (data) => this.updateAvatar(data));
+        
         window.AppEvents.listen('CHAT_RENDER_MESSAGE', () => {
             if (window.AppPet) window.AppPet.resetSleepTimer();
         });
     },
 
-    renderMessage: function(data) {
-        // Убрали document.hidden: сообщения должны сохраняться в историю, даже если сцена скрыта
+    updateAvatar: function(data) {
+        // Находим сообщение по ID и подменяем ему картинку на лету
+        const msgBlock = document.getElementById(data.id);
+        if (msgBlock) {
+            msgBlock.style.setProperty('--avatar-img', `url('${data.avatarUrl}')`);
+        }
+    },
 
+    renderMessage: function(data) {
         let stateClasses = ''; 
         let badgesHTML = '';
         let replyHTML = '';
@@ -45,14 +54,13 @@ window.AppChat = {
         }
 
         const blockDiv = document.createElement('div');
+        blockDiv.id = data.id; // Устанавливаем ID для поиска
         blockDiv.className = `chat-block${stateClasses}`;
         blockDiv.setAttribute('data-style', data.styleName ? data.styleName : 'default');
         blockDiv.setAttribute('data-user', data.user.toLowerCase());
         
         blockDiv.style.setProperty('--user-color', data.color);
         blockDiv.style.setProperty('--avatar-img', `url('${data.avatarUrl}')`);
-        
-        // Оставляем вынос на GPU для плавной анимации
         blockDiv.style.willChange = 'transform, opacity';
 
         blockDiv.innerHTML = `
@@ -85,30 +93,25 @@ window.AppChat = {
         // Синхронное добавление гарантирует, что сообщения не "перепутаются" при одновременном спаме
         this.container.appendChild(blockDiv);
 
-        // Синхронный подсчет и удаление излишков
-        const allMessages = Array.from(this.container.children);
-        if (allMessages.length > this.maxMessages) {
-            const excessCount = allMessages.length - this.maxMessages;
+        // --- ИСПРАВЛЕННАЯ ЛОГИКА ОЧИСТКИ СТАРЫХ СООБЩЕНИЙ ---
+        // Ищем только "живые" сообщения (исключаем те, которые уже анимируются на выход)
+        const activeMessages = Array.from(this.container.querySelectorAll('.chat-block:not(.chat-out)'));
+
+        if (activeMessages.length > this.maxMessages) {
+            const excessCount = activeMessages.length - this.maxMessages;
             
-            // Анимация ухода для самого верхнего сообщения
-            if (!allMessages[0].classList.contains('chat-out')) {
-                window.AppUtils.restartAnimation(allMessages[0], 'chat-out');
+            // Удаляем строго самое старое из живых
+            for (let i = 0; i < excessCount; i++) {
+                const msgToHide = activeMessages[i];
+                msgToHide.classList.add('chat-out');
                 
-                setTimeout(() => { 
-                    if (allMessages[0] && allMessages[0].parentNode) {
-                        // КРИТИЧЕСКАЯ ОЧИСТКА VRAM (Сбрасываем картинку перед удалением ноды)
-                        allMessages[0].style.setProperty('--avatar-img', 'none');
-                        allMessages[0].remove(); 
+                // Удаляем из DOM только после завершения анимации исчезновения
+                msgToHide.addEventListener('animationend', (e) => {
+                    if (e.animationName === 'slideOutChat') {
+                        msgToHide.style.setProperty('--avatar-img', 'none'); // Сброс VRAM
+                        msgToHide.remove();
                     }
-                }, 400);
-            }
-            
-            // Жестко вырезаем остальные излишки, если чат летит слишком быстро
-            if (excessCount > 1) {
-                for (let i = 1; i < excessCount; i++) {
-                    allMessages[i].style.setProperty('--avatar-img', 'none');
-                    allMessages[i].remove();
-                }
+                }, { once: true });
             }
         }
     }

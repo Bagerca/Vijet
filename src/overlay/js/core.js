@@ -14,7 +14,6 @@ window.AppCore = {
         },
         "protocol": (arg) => window.AppCore.CommandRouter["протокол"](arg),
         
-        // --- ОБРАБОТКА ЧАСТИЦ ЧЕРЕЗ ЧАТ ---
         "particles": (arg) => {
             const parts = arg.split(' ');
             if (parts.length >= 4) {
@@ -27,7 +26,6 @@ window.AppCore = {
         },
         "частицы": (arg) => window.AppCore.CommandRouter["particles"](arg),
         
-        // --- ТАЙМЕР СТРИМА ---
         "uptime": (arg) => window.AppEvents.emit('UPTIME_CMD', { cmd: arg || 'show' }),
         "аптайм": (arg) => window.AppCore.CommandRouter["uptime"](arg),
         "таймер": (arg) => window.AppCore.CommandRouter["uptime"](arg),
@@ -70,14 +68,10 @@ window.AppCore = {
         
         "skip": (arg) => window.AppEvents.emit('QUEUE_CMD', { cmd: arg === "all" ? 'skip_all' : 'skip_track' }),
         "clear": () => window.AppEvents.emit('QUEUE_CMD', { cmd: 'clear' }),
-        
-        // Удаление конкретного трека из очереди
         "remove": (arg) => {
             const idx = parseInt(arg);
             if (!isNaN(idx) && idx > 0) window.AppEvents.emit('QUEUE_CMD', { cmd: 'remove', idx: idx - 1 });
         },
-        
-        // Запуск аудио-эффектов из Soundboard
         "sound": (arg) => {
             if (window.AppConfig.modDeck && window.AppConfig.modDeck.soundboard) {
                 const snd = window.AppConfig.modDeck.soundboard.find(s => s.id === arg);
@@ -88,10 +82,8 @@ window.AppCore = {
         "vol": (arg) => { if(arg) window.AppEvents.emit('PLAYER_VOL', { vol: arg }); },
         "cam": (arg) => window.AppEvents.emit('MEDIA_CAM', { state: arg }),
         "mic": (arg) => window.AppEvents.emit('MEDIA_MIC', { state: arg }),
-        
         "filter": (arg) => window.AppEvents.emit('CAM_FILTER_SET', { filter: arg }),
         "фильтр": (arg) => window.AppCore.CommandRouter["filter"](arg),
-        
         "emotes": (arg) => window.AppEvents.emit('EMOTES_CMD', { cmd: arg }),
         "смайлы": (arg) => window.AppCore.CommandRouter["emotes"](arg),
         "blur": (arg) => window.AppEvents.emit('BLUR_TOGGLE', { state: arg }),
@@ -166,7 +158,9 @@ window.AppCore = {
 
         const userStyle = (window.AppConfig.customChatStyles && window.AppConfig.customChatStyles[userAlias.toLowerCase()]) || null;
 
+        // Отправляем ID для теста
         window.AppEvents.emit('CHAT_RENDER_MESSAGE', {
+            id: 'test-' + Date.now() + Math.floor(Math.random()*1000), // Добавлен ID
             user: userAlias, color: color, avatarUrl: avatarUrl,
             time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             htmlText: cleanText, replyData: isReply ? this.generateFakeReply() : null,
@@ -175,7 +169,8 @@ window.AppCore = {
     },
 
     setupEvents: function() {
-        ComfyJS.onChat = async (user, message, flags, self, extra) => {
+        // УБРАЛИ async — функция больше не блокируется в ожидании аватарок!
+        ComfyJS.onChat = (user, message, flags, self, extra) => {
             const userColor = extra.userColor || '#FF4477'; 
             const lowerUser = user.toLowerCase();
             const isMention = new RegExp(`@${window.AppConfig.channelName}\\b`, 'ig').test(message);
@@ -188,13 +183,10 @@ window.AppCore = {
             if (hasForbidden) { setPet('angry', 10); } 
             else {
                 if ((window.AppConfig.allowedUsers?.map(u=>u.toLowerCase()).includes(lowerUser) || flags.broadcaster) && !this.greetedUsers.has(lowerUser)) {
-                    
-                    // ЗАЩИТА ОТ УТЕЧКИ ПАМЯТИ: Сбрасываем Set, если в него записано более 3000 уникальных юзеров
                     if (this.greetedUsers.size > 3000) {
                         this.greetedUsers.clear();
                         console.log("[CORE] Очистка кэша поприветствованных пользователей (достигнут лимит RAM).");
                     }
-                    
                     this.greetedUsers.add(lowerUser); setPet('love', 5);
                 } 
                 if (isMention) setPet('alert', 4);
@@ -209,7 +201,6 @@ window.AppCore = {
                 window.AppEvents.emit('TTS_ADD', { user, text: cleanText.replace(/<[^>]+>/g, '') });
             }
             
-            const avatarUrl = await window.AvatarManager.get(user, userColor);
             let replyData = null;
             if (extra.userState?.['reply-parent-display-name']) {
                 const replyUser = extra.userState['reply-parent-display-name'];
@@ -218,12 +209,26 @@ window.AppCore = {
                 cleanText = cleanText.replace(new RegExp(`^@${replyUser}\\s*,?\\s*`, 'i'), '');
             }
 
+            // Генерируем уникальный ID для этого сообщения
+            const msgId = extra.id || ('chat-' + Date.now() + '-' + Math.floor(Math.random()*1000));
+            
+            // Создаем заглушку аватарки, чтобы вывести сообщение МГНОВЕННО
+            let hexColor = userColor.replace('#', '');
+            let fallbackAvatar = `https://ui-avatars.com/api/?name=${user}&background=${hexColor}&color=fff`;
+
+            // 1. Отрисовываем сообщение моментально
             window.AppEvents.emit('CHAT_RENDER_MESSAGE', { 
-                user, color: userColor, avatarUrl, time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }), 
+                id: msgId,
+                user, color: userColor, avatarUrl: fallbackAvatar, time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }), 
                 htmlText: cleanText, replyData, isFirstTime: extra.userState?.['first-msg'] === '1', 
                 isHighlighted: flags.highlighted || !!extra.customRewardId, isMention,
                 styleName: window.AppConfig.customChatStyles?.[lowerUser] || null
             });
+
+            // 2. В фоновом режиме запрашиваем картинку с Twitch, и как только она придет - обновляем её в чате
+            window.AvatarManager.get(user, userColor).then(realAvatar => {
+                window.AppEvents.emit('CHAT_UPDATE_AVATAR', { id: msgId, avatarUrl: realAvatar });
+            }).catch(() => {});
         };
 
         ComfyJS.onReward = (user, reward, cost, message) => {
