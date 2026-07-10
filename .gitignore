@@ -1,0 +1,11 @@
+# Зависимости Node.js
+node_modules/
+
+# Файлы сборки приложения (когда будем делать .exe)
+dist/
+build/
+out/
+
+# Системные файлы
+.DS_Store
+Thumbs.db

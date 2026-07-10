@@ -1,0 +1,116 @@
+:root {
+    --bg-sidebar: #17171a;
+    --bg-active: #2a2a2d;
+    --text-main: #f0f0f0;
+    --text-muted: #888888;
+    --accent: #FF4477;
+    --accent-glow: rgba(255, 68, 119, 0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; user-select: none; }
+
+body {
+    display: flex;
+    height: 100vh;
+    background: transparent;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.titlebar-drag {
+    position: absolute; top: 0; left: 0; right: 0; height: 40px;
+    -webkit-app-region: drag;
+    z-index: 9999;
+}
+
+/* БОКОВАЯ ПАНЕЛЬ */
+.sidebar {
+    width: 240px;
+    background: var(--bg-sidebar);
+    display: flex; flex-direction: column;
+    padding: 20px 15px;
+    z-index: 10;
+    box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+}
+
+/* Кнопки Mac OS */
+.window-controls {
+    display: flex; gap: 8px; margin-bottom: 40px; padding-left: 5px;
+    -webkit-app-region: no-drag;
+}
+.win-btn { width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; transition: 0.2s; }
+.win-close { background: #ff5f56; } .win-close:hover { filter: brightness(0.8); }
+.win-min { background: #ffbd2e; }   .win-min:hover { filter: brightness(0.8); }
+.win-max { background: #27c93f; }   .win-max:hover { filter: brightness(0.8); }
+
+/* Навигация */
+.nav-menu { display: flex; flex-direction: column; gap: 5px; -webkit-app-region: no-drag; }
+.nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 10px; border: none;
+    background: transparent; color: var(--text-muted); 
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: 0.2s; text-align: left;
+}
+.nav-item:hover { color: var(--text-main); background: rgba(255,255,255,0.02); }
+.nav-item.active { background: var(--bg-active); color: var(--text-main); }
+.nav-item svg { width: 20px; height: 20px; }
+
+/* ГЛАВНАЯ ОБЛАСТЬ */
+.main-content {
+    flex-grow: 1;
+    position: relative;
+    /* ФОН ЛАУНЧЕРА: Чтобы поставить свою картинку, раскомментируй строку ниже и укажи путь */
+    /* background-image: url('../img/launcher-bg.jpg'); */
+    background-color: #1f1c2c;
+    background-image: linear-gradient(135deg, #1f1c2c, #928DAB);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Вкладки */
+.tab-content { display: none; width: 100%; height: 100%; }
+.tab-content.active { display: flex; flex-direction: column; }
+
+/* Содержимое вкладки Запуск (Снизу, как в играх) */
+#tab-home.active {
+    justify-content: flex-end;
+    padding: 30px;
+}
+#tab-home::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+    pointer-events: none; z-index: 1;
+}
+
+/* Стеклянная панель */
+.info-panel {
+    position: relative; z-index: 5;
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 25px;
+    display: flex; flex-direction: column; gap: 15px;
+    -webkit-app-region: no-drag;
+}
+.panel-title { font-size: 24px; font-weight: 800; color: #fff; }
+.panel-desc { font-size: 14px; color: #ccc; line-height: 1.5; font-weight: 500; }
+.text-accent { color: var(--accent); font-weight: 700; }
+
+.links-container { display: flex; gap: 10px; margin-top: 10px; }
+.link-btn {
+    background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; 
+    padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 14px;
+    cursor: pointer; transition: 0.2s; flex-grow: 1;
+}
+.link-btn:hover { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+.link-btn.copied { background: #27c93f; border-color: #27c93f; color: #000; box-shadow: 0 0 15px rgba(39, 201, 63, 0.4); }
+
+/* Фрейм Mod Deck */
+#tab-moddeck { background: #0B0811; } /* Темный фон под фреймом */
+#moddeck-frame { width: 100%; height: 100%; border: none; background: transparent; }
+
+/* Вкладка Параметры */
+#tab-settings { padding: 30px; justify-content: flex-start; }
