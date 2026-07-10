@@ -1,4 +1,3 @@
-<!-- ФАЙЛ: index.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -7,16 +6,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     
+    <!-- ПОДКЛЮЧАЕМ WEBSOCKETS -->
+    <script src="/socket.io/socket.io.js"></script>
+    
     <style>
-        /* АНТИ-МЕРЦАНИЕ ПРИ ЗАГРУЗКЕ СЦЕНЫ В OBS */
-        body { 
-            opacity: 0; 
-            transition: opacity 0.6s ease-in-out; 
-            background: transparent !important; 
-        }
-        body.is-ready { 
-            opacity: 1; 
-        }
+        body { opacity: 0; transition: opacity 0.6s ease-in-out; background: transparent !important; }
+        body.is-ready { opacity: 1; }
     </style>
 </head>
 <body>
@@ -36,40 +31,11 @@
         <div id="deaths-container" class="hidden"><div class="deaths-title">DEATHS</div><div id="deaths-count">0</div></div>
         <div id="emotes-container"></div>
         
-        <div id="uptime-container" class="hidden">
-            <div class="uptime-icon-wrap">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            </div>
-            <div class="uptime-info">
-                <div class="uptime-badge">
-                    <div class="uptime-dot"></div>
-                    В ЭФИРЕ
-                </div>
-                <div id="uptime-value">00:00:00</div>
-            </div>
-        </div>
+        <div id="uptime-container" class="hidden"><div class="up-live-pill" id="up-pill-bg"><div class="up-dot" id="up-dot"></div><span class="up-live-text" id="up-text">В ЭФИРЕ</span></div><div class="up-divider"></div><div id="uptime-value" class="up-time">00:00:00</div></div>
         
         <div id="chat-container"><div id="chat-messages"></div></div>
         
-        <div id="media-info-container" class="hidden">
-            <div class="mi-poster-breakout">
-                <img id="mi-cover" src="" alt="Cover" class="hidden">
-                <div id="mi-yt-play" style="display: none;">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </div>
-                <div id="mi-no-media">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <div class="mi-no-text">NO SIGNAL</div>
-                </div>
-            </div>
-            <div class="mi-content">
-                <div class="mi-header-badge" id="mi-type-badge">СЕЙЧАС НА СТРИМЕ</div>
-                <div class="mi-title-wrapper" id="mi-title-wrapper">
-                    <div class="mi-title" id="mi-title">Неизвестно</div>
-                </div>
-                <div class="mi-meta-row" id="mi-meta-row"></div>
-            </div>
-        </div>
+        <div id="media-info-container" class="hidden"><div class="mi-poster-breakout"><img id="mi-cover" src="" alt="Cover" class="hidden"><div id="mi-yt-play" style="display: none;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div><div id="mi-no-media"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><circle cx="12" cy="12" r="3"></circle></svg><div class="mi-no-text">NO SIGNAL</div></div></div><div class="mi-content"><div class="mi-header-badge" id="mi-type-badge">СЕЙЧАС НА СТРИМЕ</div><div class="mi-title-wrapper" id="mi-title-wrapper"><div class="mi-title" id="mi-title">Неизвестно</div></div><div class="mi-meta-row" id="mi-meta-row"></div></div></div>
 
         <div id="webcam-container">
             <div id="pet-container" class="state-idle"><div class="tail-pos joint"><div class="tail-anim"><div class="fox-part tail-main"><div class="fox-part tail-tip"></div></div></div></div><div class="body-pos joint"><div class="body-anim"><div class="head-shadow"></div><div class="fox-part leg leg-l"></div><div class="fox-part leg leg-r"></div><div class="fox-part torso"><div class="fox-part chest"></div></div></div></div><div class="head-pos joint"><div class="head-anim"><div class="fox-part ear ear-l joint"><div class="ear-in"></div></div><div class="fox-part ear ear-r joint"><div class="ear-in"></div></div><div class="fox-part face"><div class="fox-part cheek cheek-l"></div><div class="fox-part cheek cheek-r"></div><div class="jaw-pos joint"><div class="tongue joint"></div></div><div class="snout-pos"><div class="nose"></div></div><div class="eyebrow eyebrow-l joint"></div><div class="eyebrow eyebrow-r joint"></div><div class="eye eye-l joint"></div><div class="eye eye-r joint"></div></div></div></div><div class="body-pos arms-layer joint"><div class="body-anim"><div class="arm-pos arm-l joint"><div class="arm-part"><div class="arm-paw"></div></div></div><div class="arm-pos arm-r joint"><div class="arm-part"><div class="arm-paw"></div></div><div class="item-cookie"></div></div></div></div></div>
@@ -80,15 +46,7 @@
         
         <div id="widget-container" class="hidden"><div id="player-wrapper"><div id="yt-player"></div><div id="yt-progress-container"><div id="yt-progress-bar"></div></div></div><div id="info-bar"><div class="info-left"><div class="info-user-wrap"><img id="requester-avatar" src="" alt="Avatar"><div class="avatar-ring"></div></div><div class="info-main"><div class="info-label">СЕЙЧАС ИГРАЕТ ЗАКАЗ</div><div id="requester-name">Никнейм</div></div></div><div class="info-stats"><div class="stat-badge" title="Громкость"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg><span><span id="volume-level">30</span>%</span></div><div class="stat-badge stat-queue-badge" title="В очереди"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg><span id="queue-count">0</span></div></div></div></div>
         
-        <div id="ticker-container" class="hidden">
-            <div id="ticker-badge">
-                <div class="t-dot"></div>
-                <span id="ticker-badge-text">СИСТЕМА</span>
-            </div>
-            <div id="ticker-mask">
-                <div id="ticker-text"></div>
-            </div>
-        </div>
+        <div id="ticker-container" class="hidden"><div id="ticker-badge"><div class="t-dot"></div><span id="ticker-badge-text">СИСТЕМА</span></div><div id="ticker-mask"><div id="ticker-text"></div></div></div>
     </div>
 
     <script>
@@ -102,8 +60,7 @@
             "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
             "css/mediainfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
-            "css/uptime.css", 
-            "css/theme-circus.css", "css/theme-noir.css", "css/modes.css" 
+            "css/uptime.css", "css/theme-circus.css", "css/theme-noir.css", "css/modes.css" 
         ];
         myStyles.forEach(href => { document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`); });
         
@@ -115,38 +72,22 @@
         ];
 
         const widgetModules = {
-            'particles': ['js/particles.js'],
-            'emotes': ['js/emotes.js'],
-            'chat': ['js/chat.js'],
-            'music': ['js/youtube.js'],
-            'cam': ['js/mic.js'],
-            'socials': ['js/socials.js'],
-            'alerts': ['js/alerts.js'],
-            'shoutout': ['js/shoutout.js'],
-            'goal': ['js/goal.js'],
-            'ticker': ['js/ticker.js'],
-            'deaths': ['js/deaths.js'],
-            'media': ['js/mediainfo.js'],
-            'wheel': ['js/wheel.js'],
-            'tts': ['js/tts.js'],
-            'pet': ['js/pet.js'],
-            'blur': ['js/blur.js'],
-            'uptime': ['js/uptime.js'] 
+            'particles': ['js/particles.js'], 'emotes': ['js/emotes.js'], 'chat': ['js/chat.js'],
+            'music': ['js/youtube.js'], 'cam': ['js/mic.js'], 'socials': ['js/socials.js'],
+            'alerts': ['js/alerts.js'], 'shoutout': ['js/shoutout.js'], 'goal': ['js/goal.js'],
+            'ticker': ['js/ticker.js'], 'deaths': ['js/deaths.js'], 'media': ['js/mediainfo.js'],
+            'wheel': ['js/wheel.js'], 'tts': ['js/tts.js'], 'pet': ['js/pet.js'],
+            'blur': ['js/blur.js'], 'uptime': ['js/uptime.js'] 
         };
 
         if (!activeWidgets) {
             Object.values(widgetModules).forEach(scripts => myScripts.push(...scripts));
         } else {
-            activeWidgets.forEach(w => {
-                if (widgetModules[w]) myScripts.push(...widgetModules[w]);
-            });
+            activeWidgets.forEach(w => { if (widgetModules[w]) myScripts.push(...widgetModules[w]); });
         }
         
         myScripts.push("js/countdown.js");
-
-        [...new Set(myScripts)].forEach(src => {
-            document.write(`<script src="${src}?v=${cacheBuster}"><\/script>`);
-        });
+        [...new Set(myScripts)].forEach(src => { document.write(`<script src="${src}?v=${cacheBuster}"><\/script>`); });
     </script>
 </body>
 </html>

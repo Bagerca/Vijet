@@ -1,16 +1,39 @@
 const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
 const express = require('express');
+const http = require('http'); // Встроенный модуль Node.js
+const { Server } = require('socket.io'); // Подключаем WebSockets
 
 // ==========================================
-// 1. ЛОКАЛЬНЫЙ СЕРВЕР (Для OBS)
+// 1. ЛОКАЛЬНЫЙ СЕРВЕР И WEBSOCKETS
 // ==========================================
 const expressApp = express();
+const server = http.createServer(expressApp);
+
+// Создаем хаб (брокер) для мгновенной связи
+const io = new Server(server, { 
+    cors: { origin: '*' } // Разрешаем подключение откуда угодно (для Ngrok/VPN)
+});
+
 const PORT = 3500;
 
 expressApp.use(express.static(path.join(__dirname, '..', 'overlay')));
 
-expressApp.listen(PORT, () => {
+// Логика передачи сообщений между OBS и Mod Deck
+io.on('connection', (socket) => {
+    console.log(`[SOCKET 🟢] Устройство подключено: ${socket.id}`);
+    
+    // Когда сервер получает событие от одного окна, он пересылает его ВСЕМ остальным
+    socket.on('uso_event', (data) => {
+        socket.broadcast.emit('uso_event', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log(`[SOCKET 🔴] Устройство отключено: ${socket.id}`);
+    });
+});
+
+server.listen(PORT, () => {
     console.log(`[USO SERVER] Сервер запущен: http://localhost:${PORT}`);
 });
 
@@ -26,8 +49,8 @@ function createWindow() {
         minWidth: 900,
         minHeight: 600,
         title: "USO Launcher",
-        frame: false,             // УБИРАЕМ СТАНДАРТНУЮ РАМКУ WINDOWS
-        transparent: true,        // Прозрачный фон для закругленных углов
+        frame: false,
+        transparent: true,
         backgroundColor: '#00000000', 
         webPreferences: {
             nodeIntegration: true,
@@ -39,27 +62,11 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-    // ==========================================
     // ФИКС БЛОКИРОВКИ TWITCH IFRAME (CSP)
-    // Twitch запрещает встраивание, если в предках есть file://
-    // Мы перехватываем заголовки и вырезаем политику безопасности
-    // ==========================================
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
         const responseHeaders = { ...details.responseHeaders };
-        
-        const headersToRemove = [
-            'content-security-policy', 
-            'Content-Security-Policy', 
-            'x-frame-options', 
-            'X-Frame-Options'
-        ];
-        
-        headersToRemove.forEach(header => {
-            if (responseHeaders[header]) {
-                delete responseHeaders[header];
-            }
-        });
-
+        const headersToRemove = ['content-security-policy', 'Content-Security-Policy', 'x-frame-options', 'X-Frame-Options'];
+        headersToRemove.forEach(header => { if (responseHeaders[header]) delete responseHeaders[header]; });
         callback({ cancel: false, responseHeaders });
     });
 
@@ -74,8 +81,8 @@ app.on('window-all-closed', () => {
 // 3. IPC: СВЯЗЬ ФРОНТА С БЭКЕНДОМ
 // ==========================================
 ipcMain.handle('get-server-port', () => PORT);
+ipcMain.handle('get-app-version', () => app.getVersion());
 
-// Обработчики кастомных кнопок окна
 ipcMain.on('window-min', () => mainWindow.minimize());
 ipcMain.on('window-max', () => {
     if (mainWindow.isMaximized()) mainWindow.unmaximize();

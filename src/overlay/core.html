@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>USO CORE (ЯДРО)</title>
-    
-    <!-- Библиотека для работы с Twitch -->
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
     
+    <!-- ПОДКЛЮЧАЕМ WEBSOCKETS -->
+    <script src="/socket.io/socket.io.js"></script>
+    
     <script>
-        // Умный загрузчик для обхода кэша браузера
         const v = new URLSearchParams(window.location.search).get('nocache') || Date.now();
         document.write(`<script src="js/config.js?v=${v}"><\/script>`);
         document.write(`<script src="js/event-bus.js?v=${v}"><\/script>`);
     </script>
 </head>
 <body>
-    <!-- Скрытый контейнер для фонового аудио-плеера YouTube -->
     <div id="yt-player-core" style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></div>
 
     <script>
@@ -24,29 +23,12 @@
         const cacheVersion = params.get('nocache') || Date.now();
         const scriptsToLoad = [];
 
-        // Если режим не указан, загружаем всё (Стандартное поведение)
         if (!mode) {
-            scriptsToLoad.push(
-                'js/utils.js', 
-                'js/services/avatar-manager.js', 
-                'js/services/chat-filter.js',
-                'js/core.js', 
-                'js/audio-core.js', 
-                'js/tts-core.js', 
-                'js/queue-core.js', 
-                'js/youtube-core.js',
-                'js/state-core.js' // НОВОЕ: Менеджер состояний (Хранитель истины)
-            );
+            scriptsToLoad.push('js/utils.js', 'js/services/avatar-manager.js', 'js/services/chat-filter.js','js/core.js', 'js/audio-core.js', 'js/tts-core.js', 'js/queue-core.js', 'js/youtube-core.js','js/state-core.js');
         } else {
-            // Раздельная загрузка модулей, если используется сложная архитектура в OBS
-            if (mode === 'master') {
-                scriptsToLoad.push('js/utils.js', 'js/services/avatar-manager.js', 'js/services/chat-filter.js', 'js/core.js', 'js/queue-core.js', 'js/youtube-core.js', 'js/state-core.js');
-            }
-            if (mode === 'tts') {
-                scriptsToLoad.push('js/tts-core.js');
-            }
+            if (mode === 'master') scriptsToLoad.push('js/utils.js', 'js/services/avatar-manager.js', 'js/services/chat-filter.js', 'js/core.js', 'js/queue-core.js', 'js/youtube-core.js', 'js/state-core.js');
+            if (mode === 'tts') scriptsToLoad.push('js/tts-core.js');
             if (mode === 'alerts' || mode === 'deaths') {
-                // Перехват аудио-событий для разделения звуков смерти и алертов
                 const originalListen = window.AppEvents.listen;
                 window.AppEvents.listen = function(eventName, callback) {
                     if (eventName === 'PLAY_SOUND') {
@@ -64,7 +46,6 @@
             }
         }
 
-        // Динамически создаем теги <script> и добавляем их на страницу
         scriptsToLoad.forEach(src => {
             const s = document.createElement('script');
             s.src = `${src}?v=${cacheVersion}`;

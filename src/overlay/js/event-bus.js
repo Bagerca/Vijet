@@ -1,17 +1,33 @@
 /* ФАЙЛ: js/event-bus.js */
-/* ================= EVENT BUS (С ОТКЛЮЧАЕМЫМ ГЛУБИННЫМ ЛОГИРОВАНИЕМ) ================= */
-window.StreamBus = new BroadcastChannel('ultimate_overlay_channel');
+/* ================= EVENT BUS (WEBSOCKETS EDITION) ================= */
+// Теперь связь работает через интернет/локальную сеть без задержек
 
 window.AppEvents = {
-    // Читаем статус дебага из памяти браузера
     isDebug: localStorage.getItem('uso_debug_mode') === 'true',
+    socket: null,
 
     init: function() {
-        // Слушаем изменение дебаг-режима "на лету"
+        // Подключаем WebSockets, если скрипт io загружен
+        if (typeof io !== 'undefined') {
+            // Подключаемся к тому же хосту, откуда загружена страница
+            this.socket = io({ transports: ['websocket', 'polling'] });
+            
+            // Слушаем входящие события из космоса (от других окон/OBS/ModDeck)
+            this.socket.on('uso_event', (data) => {
+                if (this.isDebug) console.log(`%c[SOCKET 📥] ${data.event}`, 'color: #00E5FF; font-weight: bold;', data.payload);
+                
+                // Ретранслируем в локальный DOM, чтобы наши скрипты (core.js, queue.js и др.) их поймали
+                window.dispatchEvent(new CustomEvent(`uso_${data.event}`, { detail: data.payload }));
+            });
+        } else {
+            console.warn("[BUS ⚠️] Socket.io не найден! Связь между окнами работать не будет.");
+        }
+
+        // Локальное переключение логов
         this.listen('DEBUG_MODE_TOGGLE', d => {
             this.isDebug = d.state;
             localStorage.setItem('uso_debug_mode', d.state);
-            if (this.isDebug) console.log("%c[DEBUG] Глубинный мониторинг ВКЛЮЧЕН", "color: #00FF7F; font-size: 14px; font-weight: bold;");
+            if (this.isDebug) console.log("%c[DEBUG] Глубинный мониторинг ВКЛЮЧЕН", "color: #00FF7F; font-weight: bold;");
         });
     },
 
@@ -20,26 +36,18 @@ window.AppEvents = {
             console.log(`%c[BUS 📤] ${eventName}`, 'color: #FF4477; font-weight: bold;', payload);
         }
         
-        window.StreamBus.postMessage({ event: eventName, payload: payload });
+        // 1. Отправляем сигнал на Сервер, чтобы он раздал его всем остальным
+        if (this.socket) {
+            this.socket.emit('uso_event', { event: eventName, payload: payload });
+        }
         
-        window.dispatchEvent(new CustomEvent('local_bus', { 
-            detail: { event: eventName, payload: payload } 
-        }));
+        // 2. Вызываем локально (для модулей, которые живут в этом же окне)
+        window.dispatchEvent(new CustomEvent(`uso_${eventName}`, { detail: payload }));
     },
     
     listen: function(eventName, callback) {
-        window.StreamBus.addEventListener('message', (e) => {
-            if (e.data.event === eventName) {
-                if (this.isDebug) console.log(`%c[BUS 📥] ${eventName}`, 'color: #00E5FF; font-weight: bold;', e.data.payload);
-                try { callback(e.data.payload); } catch (err) { console.error(`[BUS ❌] Ошибка:`, err); }
-            }
-        });
-
-        window.addEventListener('local_bus', (e) => {
-            if (e.detail.event === eventName) {
-                if (this.isDebug) console.log(`%c[BUS 🏠 LOCAL] ${eventName}`, 'color: #00FF7F; font-weight: bold;', e.detail.payload);
-                try { callback(e.detail.payload); } catch (err) { console.error(`[BUS ❌ LOCAL] Ошибка:`, err); }
-            }
+        window.addEventListener(`uso_${eventName}`, (e) => {
+            try { callback(e.detail); } catch (err) { console.error(`[BUS ❌] Ошибка в обработчике ${eventName}:`, err); }
         });
     }
 };

@@ -3,30 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>USO Launcher</title>
-    <!-- Гасим предупреждение безопасности Electron -->
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/launcher.css">
 </head>
 <body>
 
-    <!-- Зона для перетаскивания окна -->
     <div class="titlebar-drag"></div>
 
-    <!-- Боковая панель -->
     <aside class="sidebar">
-        <!-- Кнопки управления окном (Стиль macOS) -->
         <div class="window-controls">
             <button class="win-btn win-close" data-cmd="close" title="Закрыть"></button>
             <button class="win-btn win-min" data-cmd="min" title="Свернуть"></button>
             <button class="win-btn win-max" data-cmd="max" title="Развернуть"></button>
         </div>
 
-        <!-- Навигация -->
         <nav class="nav-menu">
             <button class="nav-item active" data-tab="home">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                Запуск
+                Ссылки для OBS
             </button>
             <button class="nav-item" data-tab="moddeck">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
@@ -39,42 +34,93 @@
         </nav>
     </aside>
 
-    <!-- Главная область -->
     <main class="main-content">
         
-        <!-- Вкладка: ЗАПУСК -->
         <section id="tab-home" class="tab-content active">
-            <div class="info-panel">
-                <h1 class="panel-title">Система готова!</h1>
-                <p class="panel-desc">
-                    Локальный сервер успешно запущен. Скопируйте нужные ссылки ниже и вставьте их в источники "Браузер" внутри OBS Studio.<br>
-                    <span class="text-accent">Внимание:</span> Не ставьте галочку "Локальный файл" в OBS!
-                </p>
-                
-                <div class="links-container">
-                    <button class="link-btn" data-link-type="core">Ядро (CORE)</button>
-                    <button class="link-btn" data-link-type="visual">Визуал (Игры)</button>
-                    <button class="link-btn" data-link-type="chatting">Визуал (Общение)</button>
+            
+            <div class="dash-header">
+                <div class="dash-title-wrap">
+                    <h1 class="dash-title">USO <span>Студия</span></h1>
+                    <div class="dash-version" id="app-version">v1.0.0</div>
                 </div>
+
+                <div class="updater-card">
+                    <div class="updater-info">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                        <div class="updater-text"><span id="updater-status">Проверка обновлений...</span></div>
+                    </div>
+                    <button id="btn-check-update" class="updater-btn outline">Проверить</button>
+                    <button id="btn-download-update" class="updater-btn accent hidden">Скачать</button>
+                </div>
+            </div>
+
+            <div class="dash-alert">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <div>Сервер успешно запущен. Скопируйте нужные ссылки ниже и добавьте их в OBS как источник «Браузер». <b>Галочку «Локальный файл» ставить НЕ НУЖНО!</b> Размер: 1920x1080. У ядер обязательно ставьте галочку <b>«Управление аудио через OBS»</b>.</div>
+            </div>
+
+            <div class="link-cards-grid">
+                
+                <!-- ЯДРА -->
+                <div class="link-card card-core">
+                    <div class="lc-header"><div class="lc-icon">⚙️</div><div class="lc-title">Аудио-Ядра (Скрытые)</div></div>
+                    <div class="lc-desc">Разделенные источники звука. Добавьте их на одну общую непереключаемую сцену, чтобы звук не прерывался.</div>
+                    <div class="lc-links">
+                        <div class="lc-input-group"><span class="lc-label">Master:</span><input type="text" id="url-core-master" class="url-input" readonly><button class="btn-copy" data-target="url-core-master">Копировать</button></div>
+                        <div class="lc-input-group"><span class="lc-label">TTS:</span><input type="text" id="url-core-tts" class="url-input" readonly><button class="btn-copy" data-target="url-core-tts">Копировать</button></div>
+                        <div class="lc-input-group"><span class="lc-label">Алерты:</span><input type="text" id="url-core-alerts" class="url-input" readonly><button class="btn-copy" data-target="url-core-alerts">Копировать</button></div>
+                        <div class="lc-input-group"><span class="lc-label">Смерти:</span><input type="text" id="url-core-deaths" class="url-input" readonly><button class="btn-copy" data-target="url-core-deaths">Копировать</button></div>
+                    </div>
+                </div>
+
+                <!-- СТРИМИНГ (ИГРЫ) -->
+                <div class="link-card card-game">
+                    <div class="lc-header"><div class="lc-icon">🎮</div><div class="lc-title">Игровая сцена (Streaming)</div></div>
+                    <div class="lc-desc">Основной экран. Слой "Под вебкой" разместите ниже источника вашей камеры, а "Над вебкой" - выше всех источников.</div>
+                    <div class="lc-links">
+                        <div class="lc-input-group"><span class="lc-label">Над вебкой:</span><input type="text" id="url-stream-over" class="url-input" readonly><button class="btn-copy" data-target="url-stream-over">Копировать</button></div>
+                        <div class="lc-input-group"><span class="lc-label">Под вебкой:</span><input type="text" id="url-stream-under" class="url-input" readonly><button class="btn-copy" data-target="url-stream-under">Копировать</button></div>
+                    </div>
+                </div>
+
+                <!-- ОБЩЕНИЕ (JUST CHATTING) -->
+                <div class="link-card card-chat">
+                    <div class="lc-header"><div class="lc-icon">💬</div><div class="lc-title">Общение (Just Chatting)</div></div>
+                    <div class="lc-desc">Сцена для разговоров со зрителями. Чат смещен вправо, а камера занимает больше места.</div>
+                    <div class="lc-links">
+                        <div class="lc-input-group"><span class="lc-label">Над вебкой:</span><input type="text" id="url-chat-over" class="url-input" readonly><button class="btn-copy" data-target="url-chat-over">Копировать</button></div>
+                        <div class="lc-input-group"><span class="lc-label">Под вебкой:</span><input type="text" id="url-chat-under" class="url-input" readonly><button class="btn-copy" data-target="url-chat-under">Копировать</button></div>
+                    </div>
+                </div>
+
+                <!-- СЦЕНЫ ОЖИДАНИЯ -->
+                <div class="link-card card-scene">
+                    <div class="lc-header"><div class="lc-icon">⏳</div><div class="lc-title">Экраны трансляции</div></div>
+                    <div class="lc-desc">Стартовая заглушка с таймером и финальный экран прощания.</div>
+                    <div class="lc-links">
+                        <div class="lc-input-group"><span class="lc-label">Старт:</span><input type="text" id="url-scene-start" class="url-input" readonly><button class="btn-copy" data-target="url-scene-start">Копировать</button></div>
+                        <div class="lc-input-group"><span class="lc-label">Конец:</span><input type="text" id="url-scene-end" class="url-input" readonly><button class="btn-copy" data-target="url-scene-end">Копировать</button></div>
+                    </div>
+                </div>
+
             </div>
         </section>
 
-        <!-- Вкладка: MOD DECK (Встраиваем панель через iframe) -->
+        <!-- Вкладка: MOD DECK -->
         <section id="tab-moddeck" class="tab-content">
             <iframe id="moddeck-frame" src="" frameborder="0" allowtransparency="true"></iframe>
         </section>
 
-        <!-- Вкладка: НАСТРОЙКИ (Заглушка на будущее) -->
+        <!-- Вкладка: НАСТРОЙКИ -->
         <section id="tab-settings" class="tab-content">
-            <div class="info-panel">
+            <div class="info-panel" style="margin: 30px;">
                 <h1 class="panel-title">Параметры Лаунчера</h1>
-                <p class="panel-desc">Здесь в будущем будут настройки автозапуска, обновлений и привязка к Twitch API без конфигов.</p>
+                <p class="panel-desc">Здесь в будущем будут настройки автозапуска, конфигуратор `config.js` через красивый UI и привязка к Twitch API без ручного редактирования файлов.</p>
             </div>
         </section>
 
     </main>
 
-    <!-- Подключаем логику -->
     <script src="js/launcher.js"></script>
 </body>
 </html>
