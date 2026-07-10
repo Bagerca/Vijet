@@ -6,6 +6,18 @@
     <title>Ultimate Stream Overlay</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
+    
+    <style>
+        /* АНТИ-МЕРЦАНИЕ ПРИ ЗАГРУЗКЕ СЦЕНЫ В OBS */
+        body { 
+            opacity: 0; 
+            transition: opacity 0.6s ease-in-out; 
+            background: transparent !important; 
+        }
+        body.is-ready { 
+            opacity: 1; 
+        }
+    </style>
 </head>
 <body>
 
@@ -24,7 +36,6 @@
         <div id="deaths-container" class="hidden"><div class="deaths-title">DEATHS</div><div id="deaths-count">0</div></div>
         <div id="emotes-container"></div>
         
-        <!-- НОВЫЙ ВИДЖЕТ: ТАЙМЕР СТРИМА -->
         <div id="uptime-container" class="hidden">
             <div class="uptime-icon-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -91,7 +102,7 @@
             "css/webcam.css", "css/youtube.css", "css/socials.css", "css/alerts.css",
             "css/ticker.css", "css/goal.css", "css/deaths.css", "css/shoutout.css",
             "css/mediainfo.css", "css/wheel.css", "css/starting.css", "css/ending.css",
-            "css/uptime.css", // <--- ДОБАВЛЕН CSS АПТАЙМА
+            "css/uptime.css", 
             "css/theme-circus.css", "css/theme-noir.css", "css/modes.css" 
         ];
         myStyles.forEach(href => { document.write(`<link rel="stylesheet" href="${href}?v=${cacheBuster}">`); });
@@ -120,7 +131,7 @@
             'tts': ['js/tts.js'],
             'pet': ['js/pet.js'],
             'blur': ['js/blur.js'],
-            'uptime': ['js/uptime.js'] // <--- ДОБАВЛЕН JS АПТАЙМА
+            'uptime': ['js/uptime.js'] 
         };
 
         if (!activeWidgets) {

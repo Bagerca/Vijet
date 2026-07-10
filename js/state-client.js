@@ -1,15 +1,17 @@
 /* ФАЙЛ: js/state-client.js */
 /* ================= ПРИЕМНИК СОСТОЯНИЯ (ДЛЯ СЦЕН OBS) ================= */
 window.AppStateClient = {
+    fallbackTimer: null,
+
     init: function() {
         // 1. Слушаем ответ от Ядра
         window.AppEvents.listen('STATE_SYNC_RESPONSE', state => this.restoreVisuals(state));
 
-        // 2. Как только сцена загрузилась — просим данные
+        // 2. Запрашиваем данные чуть быстрее (чтобы не висеть в невидимости слишком долго)
         setTimeout(() => {
             console.log("🙋‍♂️ [СЦЕНА] Загрузилась! Запрашиваю синхронизацию...");
             window.AppEvents.emit('STATE_SYNC_REQUEST');
-        }, 1500);
+        }, 800);
 
         // 3. Просим данные, если сцена была заморожена и снова стала активной
         document.addEventListener("visibilitychange", () => {
@@ -17,6 +19,15 @@ window.AppStateClient = {
                 window.AppEvents.emit('STATE_SYNC_REQUEST');
             }
         });
+
+        // ПРЕДОХРАНИТЕЛЬ: Если Ядро мертвое или выключено, мы всё равно должны 
+        // показать сцену через 2.5 секунды, чтобы стрим не был черным.
+        this.fallbackTimer = setTimeout(() => {
+            if (!document.body.classList.contains('is-ready')) {
+                console.warn("⚠️ [СЦЕНА] Ядро не ответило! Принудительно показываю визуальную часть.");
+                document.body.classList.add('is-ready');
+            }
+        }, 2500);
     },
 
     restoreVisuals: function(state) {
@@ -63,6 +74,16 @@ window.AppStateClient = {
         } else if (window.AppPlayer && !state.youtube.isPlaying) {
             window.AppPlayer.hide();
         }
+
+        // МАГИЯ АНТИ-МЕРЦАНИЯ:
+        // Как только мы применили все настройки, мы плавно проявляем сцену.
+        // Используем requestAnimationFrame, чтобы браузер успел отрисовать изменения.
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                document.body.classList.add('is-ready');
+                clearTimeout(this.fallbackTimer); // Отключаем предохранитель, всё прошло успешно
+            });
+        });
     }
 };
 
