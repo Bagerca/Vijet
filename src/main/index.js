@@ -9,47 +9,71 @@ const fs = require('fs');
 const fsp = require('fs').promises;
 
 // ==========================================
-// 1. ФУНКЦИЯ УСТАНОВКИ ОБНОВЛЕНИЯ (БЕЗ ФРИЗОВ)
+// УТИЛИТА: ПОЛУЧЕНИЕ ПРАВИЛЬНОГО ПУТИ К OVERLAY
+// ==========================================
+// В production папка overlay лежит в app.asar.unpacked, чтобы мы могли ее перезаписывать!
+function getOverlayPath() {
+    const isPackaged = app.isPackaged;
+    const basePath = isPackaged 
+        ? path.join(process.resourcesPath, 'app.asar.unpacked') 
+        : path.join(__dirname, '..', '..');
+    
+    return path.join(basePath, 'overlay');
+}
+
+// ==========================================
+// 1. ФУНКЦИЯ УСТАНОВКИ ОБНОВЛЕНИЯ (HOT-PATCH)
 // ==========================================
 async function performHotUpdate(versionTag) {
     console.log(`[HOT-PATCH] Начинаю установку версии: ${versionTag}`);
-    io.emit('uso_event', { event: 'TICKER_CUSTOM', payload: { msg: `Установка версии ${versionTag}...`, badge: "СИСТЕМА", color: "#00E5FF" }});
+    io.emit('uso_event', { event: 'TICKER_CUSTOM', payload: { msg: `Скачивание ${versionTag}...`, badge: "СИСТЕМА", color: "#00E5FF" }});
 
-    const rootDir = app.getAppPath();
+    const overlayDir = getOverlayPath();
     const tempZip = path.join(app.getPath('temp'), `uso_update_${versionTag}.zip`);
     const tempDir = path.join(app.getPath('temp'), `uso_extracted_${versionTag}`);
 
     try {
-        // 1. Скачиваем АРХИВ КОНКРЕТНОГО РЕЛИЗА
+        // 1. Скачиваем АРХИВ с учетом таймаута и User-Agent (Github банит без него)
         const downloadUrl = `https://github.com/bagerca/Vijet/archive/refs/tags/${versionTag}.zip`;
-        const response = await axios({ method: 'GET', url: downloadUrl, responseType: 'arraybuffer' });
+        console.log(`[HOT-PATCH] Скачиваю с: ${downloadUrl}`);
+        
+        const response = await axios({ 
+            method: 'GET', 
+            url: downloadUrl, 
+            responseType: 'arraybuffer',
+            timeout: 15000, // 15 секунд таймаут, чтобы не висело вечно при сбоях сети
+            headers: { 'User-Agent': 'USO-Launcher-Updater' }
+        });
+        
         await fsp.writeFile(tempZip, response.data);
+        console.log(`[HOT-PATCH] Архив скачан во временную папку`);
 
         // 2. Распаковываем
         const zip = new AdmZip(tempZip);
-        zip.extractAllTo(tempDir, true); // AdmZip синхронный, но для небольших файлов ок
+        zip.extractAllTo(tempDir, true);
 
         // Имя папки внутри архива GitHub (Vijet-1.0.2)
         const cleanTag = versionTag.replace(/^v/, ''); 
-        const sourceDir = path.join(tempDir, `Vijet-${cleanTag}`);
+        const sourceOverlayDir = path.join(tempDir, `Vijet-${cleanTag}`, 'overlay');
         
-        // 3. АСИНХРОННОЕ копирование с заменой (не вешает UI лаунчера)
-        await fsp.cp(sourceDir, rootDir, {
+        // 3. Проверяем, существует ли папка overlay в скачанном архиве
+        if (!fs.existsSync(sourceOverlayDir)) {
+            throw new Error("Структура архива нарушена (отсутствует папка overlay).");
+        }
+
+        io.emit('uso_event', { event: 'TICKER_CUSTOM', payload: { msg: `Установка файлов...`, badge: "СИСТЕМА", color: "#FEE101" }});
+
+        // 4. Копируем только папку overlay с заменой (не трогаем исходники лаунчера)
+        await fsp.cp(sourceOverlayDir, overlayDir, {
             recursive: true,
-            force: true,
-            filter: (src) => {
-                const normalizedSrc = src.replace(/\\/g, '/');
-                if (normalizedSrc.includes('node_modules') || normalizedSrc.includes('.git')) return false;
-                if (normalizedSrc.endsWith('src/main/index.js')) return false; 
-                return true;
-            }
+            force: true
         });
 
-        // 4. Убираем мусор
+        // 5. Убираем мусор
         await fsp.rm(tempDir, { recursive: true, force: true });
         await fsp.unlink(tempZip);
 
-        console.log("[HOT-PATCH] Обновление успешно!");
+        console.log("[HOT-PATCH] Обновление успешно применено!");
         io.emit('uso_event', { event: 'TICKER_CUSTOM', payload: { msg: `Успешно обновлено до ${versionTag}!`, badge: "УСПЕХ", color: "#00FF7F" }});
         
         // Даем команду OBS обновиться
@@ -58,8 +82,23 @@ async function performHotUpdate(versionTag) {
         return { status: 'success' };
     } catch (err) {
         console.error("[HOT-PATCH] Ошибка обновления:", err);
-        io.emit('uso_event', { event: 'TICKER_CUSTOM', payload: { msg: "Ошибка установки патча!", badge: "ОШИБКА", color: "#FF0050" }});
-        return { status: 'error', message: err.message };
+        
+        // Очистка мусора в случае ошибки
+        try { if (fs.existsSync(tempDir)) await fsp.rm(tempDir, { recursive: true, force: true }); } catch(e){}
+        try { if (fs.existsSync(tempZip)) await fsp.unlink(tempZip); } catch(e){}
+
+        // Формируем понятную ошибку для сети
+        let errorMsg = err.message;
+        if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.message.includes('timeout')) {
+            errorMsg = "Сбой сети при скачивании (VPN/Провайдер).";
+        } else if (err.response && err.response.status === 404) {
+            errorMsg = "Файл релиза не найден на GitHub.";
+        } else if (err.code === 'EPERM' || err.code === 'EBUSY') {
+            errorMsg = "Файлы заблокированы OBS. Закройте OBS на время обновы.";
+        }
+
+        io.emit('uso_event', { event: 'TICKER_CUSTOM', payload: { msg: `Ошибка: ${errorMsg}`, badge: "ОШИБКА", color: "#FF0050" }});
+        return { status: 'error', message: errorMsg };
     }
 }
 
@@ -68,24 +107,24 @@ async function performHotUpdate(versionTag) {
 // ==========================================
 const expressApp = express();
 const server = http.createServer(expressApp);
-
 const io = new Server(server, { cors: { origin: '*' } });
 const PORT = 3500;
 
-expressApp.use(express.static(path.join(__dirname, '..', 'overlay')));
+// Указываем Express отдавать статику из "безопасной" папки overlay
+expressApp.use(express.static(getOverlayPath()));
 
 io.on('connection', (socket) => {
     console.log(`[SOCKET 🟢] Устройство подключено: ${socket.id}`);
     
     socket.on('uso_event', async (data) => {
         if (data.event === 'TRIGGER_HOT_UPDATE') {
-            // Вызов обновы через чат-команду !обнова
             try {
-                const res = await axios.get('https://api.github.com/repos/bagerca/Vijet/releases/latest');
+                const res = await axios.get('https://api.github.com/repos/bagerca/Vijet/releases/latest', {
+                    headers: { 'User-Agent': 'USO-Launcher' }
+                });
                 await performHotUpdate(res.data.tag_name);
-            } catch(e) { console.error("Не удалось найти релиз для !обнова", e); }
+            } catch(e) { console.error("[HOT-PATCH] Не удалось найти релиз для !обнова", e.message); }
         } else {
-            // Обычная пересылка сообщений между модулями
             socket.broadcast.emit('uso_event', data);
         }
     });
@@ -97,6 +136,7 @@ io.on('connection', (socket) => {
 
 server.listen(PORT, () => {
     console.log(`[USO SERVER] Сервер запущен: http://localhost:${PORT}`);
+    console.log(`[USO SERVER] Путь к Overlay: ${getOverlayPath()}`);
 });
 
 // ==========================================
@@ -108,9 +148,13 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1100, height: 700, minWidth: 900, minHeight: 600,
         title: "USO Launcher", frame: false, transparent: true, backgroundColor: '#00000000', 
-        webPreferences: { nodeIntegration: true, contextIsolation: false }
+        webPreferences: { 
+            nodeIntegration: true, 
+            contextIsolation: false 
+        }
     });
-    mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+    // Лаунчер (renderer) мы не трогаем, он запакован в app.asar
+    mainWindow.loadFile(path.join(__dirname, '..', '..', 'renderer', 'index.html'));
 }
 
 app.whenReady().then(() => {
@@ -136,14 +180,11 @@ ipcMain.on('window-close', () => mainWindow.close());
 // 4. IPC МОСТ (СВЯЗЬ С ЛАУНЧЕРОМ)
 // ==========================================
 
-// Перезагрузка визуала OBS
 ipcMain.on('force-reload-obs', () => { 
     io.emit('uso_event', { event: 'FORCE_RELOAD_VISUAL', payload: {} }); 
 });
 
-// Слушаем команду от кнопки "Установить" из лаунчера
 ipcMain.on('start-hot-update', async (event, versionTag) => {
     const result = await performHotUpdate(versionTag);
-    // Отправляем ответ обратно в UI лаунчера
     event.sender.send('hot-update-status', result);
 });
