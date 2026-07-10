@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
 const express = require('express');
 
@@ -38,7 +38,33 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    // ==========================================
+    // ФИКС БЛОКИРОВКИ TWITCH IFRAME (CSP)
+    // Twitch запрещает встраивание, если в предках есть file://
+    // Мы перехватываем заголовки и вырезаем политику безопасности
+    // ==========================================
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        const responseHeaders = { ...details.responseHeaders };
+        
+        const headersToRemove = [
+            'content-security-policy', 
+            'Content-Security-Policy', 
+            'x-frame-options', 
+            'X-Frame-Options'
+        ];
+        
+        headersToRemove.forEach(header => {
+            if (responseHeaders[header]) {
+                delete responseHeaders[header];
+            }
+        });
+
+        callback({ cancel: false, responseHeaders });
+    });
+
+    createWindow();
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();

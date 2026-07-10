@@ -7,7 +7,8 @@ window.DeckAuth = {
         token: localStorage.getItem('uso_mod_token') || ''
     },
     
-    activeTargetChannel: '', // Канал, куда сейчас полетят команды
+    activeTargetChannel: '', 
+    isConnectedOnce: false, // Флаг успешного коннекта
 
     init() {
         const modal = document.getElementById('auth-modal');
@@ -19,14 +20,21 @@ window.DeckAuth = {
         }
 
         document.getElementById('btn-connect').addEventListener('click', () => {
-            const channel = document.getElementById('auth-channel').value.trim().toLowerCase();
-            const user = document.getElementById('auth-user').value.trim().toLowerCase();
+            let channel = document.getElementById('auth-channel').value.trim().toLowerCase();
+            let user = document.getElementById('auth-user').value.trim().toLowerCase();
             let token = document.getElementById('auth-token').value.trim();
 
             if (!channel || !user || !token) { 
                 alert("Заполните все поля!"); 
                 return; 
             }
+
+            // ЖЕСТКАЯ ОЧИСТКА ВВОДА (Убираем кириллицу, пробелы, невидимые символы)
+            // Это спасет от ошибки "String contains non ISO-8859-1 code point"
+            channel = channel.replace(/[^a-z0-9_]/g, '');
+            user = user.replace(/[^a-z0-9_]/g, '');
+            token = token.replace(/[^a-zA-Z0-9:]/g, ''); // Оставляем только латиницу, цифры и двоеточие
+
             if (!token.startsWith('oauth:')) token = 'oauth:' + token;
 
             localStorage.setItem('uso_mod_channel', channel);
@@ -45,22 +53,25 @@ window.DeckAuth = {
     },
 
     connect() {
+        // Очищаем кэшированные данные на всякий случай перед отправкой в ComfyJS
+        this.creds.channel = this.creds.channel.replace(/[^a-z0-9_]/ig, '');
+        this.creds.user = this.creds.user.replace(/[^a-z0-9_]/ig, '');
+        this.creds.token = this.creds.token.replace(/[^a-zA-Z0-9:]/g, '');
+
         document.getElementById('app-container').classList.remove('hidden');
         document.getElementById('ui-channel-name').innerText = this.creds.channel;
         
-        // По умолчанию стреляем в основной канал
         this.activeTargetChannel = this.creds.channel; 
         
         window.DeckUI.updateStatus('yellow', 'ПОДКЛЮЧЕНИЕ...');
 
         try {
-            // ВАЖНО: Подключаемся сразу к двум каналам для прослушки (К основному и к каналу бота)
             ComfyJS.Init(this.creds.user, this.creds.token, [this.creds.channel, this.creds.user]);
             this.setupMonitors();
             this.embedTwitch();
         } catch (error) {
             console.error("[USO] Ошибка инициализации ComfyJS", error);
-            window.DeckUI.showToast('❌ ОШИБКА ПОДКЛЮЧЕНИЯ');
+            this.handleFatalAuthError();
         }
     },
 
@@ -68,7 +79,7 @@ window.DeckAuth = {
         if (type === 'main') {
             this.activeTargetChannel = this.creds.channel;
         } else if (type === 'bot') {
-            this.activeTargetChannel = this.creds.user; // Аккаунт модера/бота
+            this.activeTargetChannel = this.creds.user;
         }
         window.DeckUI.showToast(`🎯 Чат изменен на: ${this.activeTargetChannel}`);
     },
@@ -78,6 +89,7 @@ window.DeckAuth = {
         if (!client) return;
 
         client.on("connected", () => {
+            this.isConnectedOnce = true;
             window.DeckUI.updateStatus('green', 'ПОДКЛЮЧЕНО');
             window.DeckUI.showToast("⚡ СВЯЗЬ УСТАНОВЛЕНА");
         });
@@ -85,26 +97,47 @@ window.DeckAuth = {
         client.on("disconnected", (reason) => {
             window.DeckUI.updateStatus('red', 'ОТКЛЮЧЕНО');
             console.warn("[USO] Соединение разорвано:", reason);
+
+            // Если мы отключились НИ РАЗУ не подключившись успешно (битый токен)
+            if (!this.isConnectedOnce || reason === "Login authentication failed") {
+                this.handleFatalAuthError();
+            }
         });
 
         client.on("reconnect", () => {
+            if (!localStorage.getItem('uso_mod_token')) return;
             window.DeckUI.updateStatus('yellow', 'ПЕРЕПОДКЛЮЧЕНИЕ');
         });
 
-        // Слушаем чат для обратной синхронизации тумблеров
         ComfyJS.onCommand = (user, command, message, flags) => {
             if (flags.broadcaster || flags.mod || user.toLowerCase() === this.creds.user.toLowerCase()) {
                 window.DeckWidgets.syncToggleFromChat(command, message);
             }
         };
 
-        // Авто-пробуждение
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === 'visible' && client.readyState() !== "OPEN") {
+                if (!localStorage.getItem('uso_mod_token')) return;
                 window.DeckUI.updateStatus('yellow', 'ВОССТАНОВЛЕНИЕ...');
                 client.connect().catch(e => console.warn("Ошибка реконнекта:", e));
             }
         });
+    },
+
+    handleFatalAuthError() {
+        window.DeckUI.showToast('❌ ОШИБКА АВТОРИЗАЦИИ! Сброс...');
+        localStorage.removeItem('uso_mod_token');
+        this.creds.token = '';
+        
+        try { 
+            const client = ComfyJS.GetClient();
+            if (client) client.disconnect(); 
+        } catch (e) {}
+
+        // Перезапускаем интерфейс, чтобы ввести токен заново
+        setTimeout(() => {
+            location.reload();
+        }, 2000);
     },
 
     embedTwitch() {
@@ -138,7 +171,6 @@ window.DeckAuth = {
         
         const client = ComfyJS.GetClient();
         if (client && client.readyState() === "OPEN") {
-            // ВАЖНО: Отправляем команду в АКТИВНЫЙ целевой чат
             ComfyJS.Say(cmdString, this.activeTargetChannel);
             window.DeckUI.showToast(`✔️ Отправлено`);
         } else {
