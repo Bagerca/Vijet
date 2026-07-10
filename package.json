@@ -4,17 +4,45 @@
   "description": "Ultimate Stream Overlay - Desktop Controller",
   "main": "src/main/index.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win"
   },
-  "author": "",
+  "author": "Ваше Имя",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^29.0.0"
+    "electron": "^29.0.0",
+    "electron-builder": "^26.15.3"
   },
   "dependencies": {
     "adm-zip": "^0.5.18",
     "axios": "^1.18.1",
     "express": "^4.18.2",
     "socket.io": "^4.8.3"
+  },
+  "build": {
+    "appId": "com.uso.studio",
+    "productName": "USO Studio",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "overlay/**/*",
+      "renderer/**/*",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "USO Studio"
+    }
   }
 }
