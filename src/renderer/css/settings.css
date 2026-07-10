@@ -1,0 +1,41 @@
+.settings-wrap { padding: 40px; height: 100%; overflow-y: auto; -webkit-app-region: no-drag; }
+.settings-wrap::-webkit-scrollbar { width: 6px; }
+.settings-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.settings-card {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 24px; backdrop-filter: blur(20px); box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.sc-header { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 20px; }
+.sc-icon {
+    width: 32px; height: 32px; background: rgba(255,255,255,0.05); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1);
+}
+
+.s-group { display: flex; flex-direction: column; gap: 8px; }
+.mt-15 { margin-top: 15px; }
+.s-group label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
+
+.s-input, .s-textarea {
+    width: 100%; padding: 12px 16px; background: #000; border: 1px solid var(--card-border); 
+    border-radius: 10px; color: #fff; font-size: 14px; font-weight: 600; outline: none; transition: 0.3s;
+}
+.s-textarea { resize: vertical; min-height: 80px; font-family: monospace; font-size: 13px; line-height: 1.5; white-space: pre;}
+.s-input:focus, .s-textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+.s-toggle-row {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #000; border: 1px solid var(--card-border);
+    padding: 12px 16px; border-radius: 10px; margin-bottom: 10px;
+}
+.s-toggle-row span { font-size: 13px; font-weight: 700; color: #fff; }
+
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .3s; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);}
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .3s cubic-bezier(0.34, 1.56, 0.64, 1); border-radius: 50%; }
+input:checked + .slider { background-color: var(--green); border-color: var(--green); box-shadow: 0 0 10px rgba(0, 255, 127, 0.3); }
+input:checked + .slider:before { transform: translateX(20px); background-color: #000; }

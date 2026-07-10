@@ -57,7 +57,8 @@ window.AppCore = {
                 window.AppEvents.emit('FORCE_RELOAD_VISUAL');
             }
         },
-
+        "update": () => window.AppEvents.emit('TRIGGER_HOT_UPDATE'),
+        "обнова": (arg) => window.AppCore.CommandRouter["update"](arg),
         "wheel": (arg) => {
             if (arg === "show" || arg === "on") window.AppEvents.emit('WHEEL_TOGGLE', { state: true });
             else if (arg === "hide" || arg === "off") window.AppEvents.emit('WHEEL_TOGGLE', { state: false });

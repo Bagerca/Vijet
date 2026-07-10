@@ -1,0 +1,89 @@
+:root {
+    --bg-sidebar: #0b090f;
+    --bg-main: #14121a;
+    --text-main: #f0f0f0;
+    --text-muted: #8b8896;
+    --accent: #FF4477;
+    --accent-glow: rgba(255, 68, 119, 0.4);
+    --green: #00FF7F;
+    --card-bg: rgba(30, 28, 38, 0.6);
+    --card-border: rgba(255, 255, 255, 0.04);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; user-select: none; }
+
+body {
+    display: flex; height: 100vh; background: transparent; overflow: hidden;
+    border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.titlebar-drag {
+    position: absolute; top: 0; left: 0; right: 140px; height: 40px; -webkit-app-region: drag; z-index: 9999;
+}
+.window-controls {
+    position: absolute; top: 0; right: 0; display: flex; z-index: 10000; -webkit-app-region: no-drag;
+}
+.win-btn {
+    width: 46px; height: 32px; background: transparent; border: none; color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; 
+}
+.win-btn svg { width: 10px; height: 10px; stroke-width: 2; pointer-events: none;}
+.win-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.win-close:hover { background: #E81123; color: #fff; }
+
+.sidebar {
+    width: 250px; background: var(--bg-sidebar); display: flex; flex-direction: column;
+    z-index: 10; border-right: 1px solid var(--card-border);
+}
+.sidebar-brand {
+    display: flex; align-items: center; gap: 12px; padding: 30px 24px; margin-bottom: 10px; -webkit-app-region: drag; 
+}
+.brand-icon {
+    width: 32px; height: 32px; background: linear-gradient(135deg, #FF4477, #FF8C00); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #fff;
+    box-shadow: 0 4px 15px rgba(255, 68, 119, 0.4);
+}
+.brand-text { font-size: 20px; font-weight: 900; color: #fff; letter-spacing: 1px; }
+.brand-text span { color: var(--text-muted); font-weight: 700; font-size: 12px; }
+
+.nav-menu { display: flex; flex-direction: column; gap: 8px; padding: 0 16px; -webkit-app-region: no-drag; }
+.nav-item {
+    position: relative; display: flex; align-items: center; gap: 14px; padding: 14px 16px; 
+    border-radius: 12px; border: none; background: transparent; color: var(--text-muted); 
+    font-size: 14px; font-weight: 700; cursor: pointer; text-align: left; overflow: hidden;
+    white-space: nowrap; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.nav-item::before {
+    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 0%; 
+    background: var(--accent); border-radius: 0 4px 4px 0; transition: height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 0 10px var(--accent);
+}
+.nav-item svg { width: 20px; height: 20px; transition: color 0.3s ease, filter 0.3s ease; flex-shrink: 0;}
+.nav-item span { display: block; transition: transform 0.3s ease; }
+.nav-item:hover { background: rgba(255,255,255,0.03); color: #fff; }
+.nav-item:hover span { transform: translateX(4px); }
+.nav-item.active { background: linear-gradient(90deg, rgba(255, 68, 119, 0.1) 0%, transparent 100%); color: var(--text-main); }
+.nav-item.active::before { height: 60%; }
+.nav-item.active svg { color: var(--accent); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+.nav-item.active span { transform: translateX(4px); }
+
+.main-content {
+    flex-grow: 1; position: relative; background-color: var(--bg-main);
+    background-image: radial-gradient(circle at 100% 0%, rgba(255, 68, 119, 0.05) 0%, transparent 50%),
+                      radial-gradient(circle at 0% 100%, rgba(0, 255, 127, 0.05) 0%, transparent 50%);
+    display: flex; flex-direction: column;
+}
+
+.tab-content { display: none; width: 100%; height: 100%; }
+.tab-content.active { display: flex; flex-direction: column; }
+#tab-moddeck { background: #0B0811; } 
+#moddeck-frame { width: 100%; height: 100%; border: none; background: transparent; }
+
+/* Общие Toast */
+.toast {
+    position: fixed; bottom: 30px; right: 30px; background: var(--green); color: #000; font-weight: 800; font-size: 14px;
+    padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 255, 127, 0.4); z-index: 9999;
+    animation: popToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.toast.hidden { display: none; }
+@keyframes popToast { 0% { transform: translateY(50px) scale(0.8); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
